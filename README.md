@@ -1,4 +1,7 @@
 # API REST - CIENCIA CONECTA
+El repositorio cuenta con las api necesarias para que el frontEnd pueda consumir las mismas
+y desarrollar las vistas del proyecto, se especifican todas las api en el anexo.
+
 
 El proyecto utiliza variables de entorno para configurar las conexiones y ajustes específicos.
 

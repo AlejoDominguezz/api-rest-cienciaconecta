@@ -11,7 +11,10 @@ class Server {
         this.port = process.env.PORT;
 
         this.paths = {
+    
             feria:          '/api/feria',
+            usuario:        '/api/usuario'
+
         }
 
         
@@ -49,6 +52,10 @@ class Server {
     routes(){
         //path de feria con su ruta 
         this.app.use(this.paths.feria, require('../routes/ferias'));
+
+        //path de usuario para el CRUD del mismo
+        this.app.use(this.paths.usuario, require('../routes/usuario'));
+
 
     }
 

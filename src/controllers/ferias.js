@@ -1,8 +1,8 @@
-const { response , request } = require('express');
-const {Feria} = require('../models');
+import { response , request } from 'express';
+import {Feria} from '../models/feria.js';
 
 
-const getFerias = async(req = request, res = response) => {
+export const getFerias = async(req = request, res = response) => {
 
     const ferias = await Feria.find()
 
@@ -12,6 +12,3 @@ const getFerias = async(req = request, res = response) => {
 
 }
 
-module.exports = {
-    getFerias
-}

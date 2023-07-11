@@ -1,7 +1,10 @@
-const express = require('express');
-const cors = require('cors');
+import express from 'express';
+import cors from 'cors';
+import routerFerias from '../routes/ferias.js';
+import routerUsuarios from '../routes/usuario.js';
 
-const { dbConnection } = require('../database/config');
+
+import dbConnection from '../database/config.js';
 
 
 class Server {
@@ -12,8 +15,8 @@ class Server {
 
         this.paths = {
     
-            feria:          '/api/feria',
-            usuario:        '/api/usuario'
+            feria:          '/api/v1/feria',
+            usuario:        '/api/v1/usuario'
 
         }
 
@@ -51,10 +54,10 @@ class Server {
 
     routes(){
         //path de feria con su ruta 
-        this.app.use(this.paths.feria, require('../routes/ferias'));
+        this.app.use(this.paths.feria, routerFerias);
 
         //path de usuario para el CRUD del mismo
-        this.app.use(this.paths.usuario, require('../routes/usuario'));
+        this.app.use(this.paths.usuario, routerUsuarios);
 
 
     }
@@ -62,7 +65,8 @@ class Server {
 
     listen(){
         this.app.listen( this.port , () => {
-            console.log('servidor corriendo en puerto' , process.env.PORT);
+            console.log('servidor corriendo en puerto' , process.env.PORT );
+            console.log("🔥🔥🔥 http://localhost:5000") 
         });
     }
 
@@ -70,4 +74,4 @@ class Server {
 }
 
 
-module.exports= Server;
+export default Server;

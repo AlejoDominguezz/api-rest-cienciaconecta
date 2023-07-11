@@ -1,6 +1,6 @@
-const {Schema , model} = require('mongoose');
+import {Schema , model} from 'mongoose';
 
-const FeriaSchema = Schema({
+const feriaSchema = new Schema({
     nombre: {
         type: String,
         require: [true , 'El nombre es obligatorio'],
@@ -16,4 +16,4 @@ const FeriaSchema = Schema({
 })
 
 
-module.exports = model('Feria', FeriaSchema);
+export const Feria = model('Feria', feriaSchema);

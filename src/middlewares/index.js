@@ -1,7 +1,4 @@
-const validarCampos = require('../middlewares/validar-campos');
+import {validarCampos} from '../middlewares/validar-campos.js';
 
 
-module.exports = {
-    ...validarCampos,
-
-}
+export default validarCampos;

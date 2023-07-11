@@ -1,13 +1,13 @@
-const { Router } = require('express');
-const { check } = require('express-validator');
-const {getFerias} = require('../controllers/ferias');
+import { Router } from 'express';
+import { check } from 'express-validator';
+import {getFerias} from '../controllers/ferias.js';
 
-const router = Router();
+const routerFerias = Router();
 
 //obtener todas las ferias 
-router.get('/',  [] 
+routerFerias.get('/',  [] 
     , getFerias)
 
 
 
-module.exports = router;
+export default routerFerias;

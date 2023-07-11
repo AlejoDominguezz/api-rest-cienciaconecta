@@ -1,8 +1,8 @@
-const Feria = require('./feria');
+import Feria from './feria';
+import Usuario from'./usuario';
 
-
-
-module.exports = {
+export default {
     Feria,
+    Usuario,
 
 }

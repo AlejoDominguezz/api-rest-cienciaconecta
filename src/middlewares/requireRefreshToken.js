@@ -1,21 +1,19 @@
 import { tokenVerificationErrors } from "../helpers/generateToken.js";
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 
-// Verifica que se tenga el Refresh Token para volver a obtener (refrescar) el Token 
+// Verifica que se tenga el Refresh Token para volver a obtener (refrescar) el Token
 export const requireRefreshToken = (req, res, next) => {
-    try {
-        const refreshTokenCookie = req.cookies.refreshToken
-        
-        if(!refreshTokenCookie) throw new Error("No existe el token");
+  try {
+    const refreshTokenCookie = req.cookies.refreshToken;
 
-        const {uid} = jwt.verify(refreshTokenCookie, process.env.JWT_REFRESH)
-        req.uid = uid
-        next()
+    if (!refreshTokenCookie) throw new Error("No existe el token");
 
-    } catch (error) {
-        console.log(error)
+    const { uid } = jwt.verify(refreshTokenCookie, process.env.JWT_REFRESH);
+    req.uid = uid;
+    next();
+  } catch (error) {
+    console.log(error);
 
-        res.status(401).json({error: tokenVerificationErrors[error.message]})
-
-    }
+    res.status(401).json({ error: tokenVerificationErrors[error.message] });
+  }
 };

@@ -1,4 +1,4 @@
-import { Usuario } from "../models/usuario.js";
+import { Usuario } from "../models/Usuario.js";
 import { generateToken, generateRefreshToken } from "../helpers/generateToken.js";
 import { existeEmail } from "../helpers/db-validar.js";
 
@@ -36,7 +36,7 @@ export const login = async (req, res) => {
 
 //Función de Registro
 export const register = async (req, res) => {
-
+    
     const {nombre, apellido, cuil, email, password, dni} = req.body;
     const estado = true;
 

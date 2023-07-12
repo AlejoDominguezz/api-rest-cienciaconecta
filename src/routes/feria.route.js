@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { check } from 'express-validator';
-import {getFerias} from '../controllers/ferias.js';
+import {getFerias} from '../controllers/ferias.controller.js';
 
 const routerFerias = Router();
 

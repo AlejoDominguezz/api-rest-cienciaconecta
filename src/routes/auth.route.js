@@ -1,5 +1,5 @@
 import {Router} from 'express';
-import { login, logout, register } from '../controllers/auth.js';
+import { login, logout, register } from '../controllers/auth.controller.js';
 import { bodyLoginValidator, bodyRegisterValidator } from '../middlewares/validationManager.js';
 import { requireToken } from '../middlewares/requireToken.js';
 import { requireRefreshToken } from '../middlewares/requireRefreshToken.js';

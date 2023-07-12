@@ -7,10 +7,11 @@ export const bodyRegisterValidator = [
         .trim()
         .isEmail()
         .normalizeEmail(),
-    body('password', "Mínimo 6 caracteres")
+    body('password', "Mínimo 8 caracteres")
         .trim()
-        .isLength({min: 6}),
-    body('password', "Formato de contraseña incorrecto")
+        .isLength({min: 8, max: 20}),
+        // 1 mayúscula y 1 número
+    body('password', "Formato de contraseña incorrecto") // sacar 🥰
         .custom((value,  {req}) => {
             if (value !== req.body.repassword)
                 throw new Error('No coinciden las contraseñas')    
@@ -19,9 +20,15 @@ export const bodyRegisterValidator = [
     body('nombre', "Nombre requerido")
         .trim()
         .notEmpty(),
+    body('nombre', "Nombre máximo 30 caracteres")
+        .trim()
+        .isLength({max:30}),
     body('apellido', "Apellido requerido")
         .trim()
         .notEmpty(),
+    body('apellido', "Apellido máximo 30 caracteres")
+        .trim()
+        .isLength({max:30}),
     body('cuil', "Cuil requerido")
         .trim()
         .notEmpty(),
@@ -31,7 +38,6 @@ export const bodyRegisterValidator = [
     body('dni', "DNI requerido")
         .trim()
         .notEmpty(),
-    validarCampos,
     body('dni', "Formato de DNI incorrecto")
         .trim()
         .isLength({min: 7, max: 8}),

@@ -23,8 +23,8 @@ routerUsuarios.post(
         "cuil",
         "El CUIL es obligatorio y debe tener formato de cuil , min 13 caracteres"
       ).isLength({ min: 13 }),
-      check("correo", "El correo no es válido").isEmail(),
-      check("correo").custom(existeEmail),
+      check("email", "El correo no es válido").isEmail(),
+      check("email").custom(existeEmail),
       validarCampos,
     ],
     crearUsuario

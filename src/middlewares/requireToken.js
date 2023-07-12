@@ -21,7 +21,3 @@ export const requireToken = (req, res, next) => {
     }
 }
 
-
-export const prueba = (req, res) => {
-    res.json({ok: true})
-}

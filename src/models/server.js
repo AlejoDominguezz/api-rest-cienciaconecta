@@ -1,9 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import routerFerias from '../routes/ferias.js';
-import routerUsuarios from '../routes/usuario.js';
-import routerAuth from '../routes/auth.js'
+import routerFerias from '../routes/feria.route.js';
+import routerUsuarios from '../routes/usuario.route.js';
+import routerAuth from '../routes/auth.route.js'
 
 
 

@@ -15,7 +15,7 @@ const UsuarioSchema = new Schema({
     required: [true, "El apellido es obligatorio"],
   },
   estado: {
-    type: Boolean,
+    type: Boolean, // activo, inactivo, pendiente
     default: true,
     required: true,
   },
@@ -39,11 +39,14 @@ const UsuarioSchema = new Schema({
     type: Number,
     required: [true, "El número de DNI es obligatorio"],
   },
+  cue: {
+    type: Number,
+    required: [true, "El CUE es obligatorio"],
+  },
   rol: {
     type: Number,
     default: roles.responsableProyecto,
   },
-
 });
 
 

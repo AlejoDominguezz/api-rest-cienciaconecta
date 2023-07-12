@@ -1,5 +1,5 @@
 import { response, request } from "express";
-import {Usuario} from '../models/usuario.js';
+import {Usuario} from '../models/Usuario.js';
 import bcripyjs from 'bcryptjs';
 
 export const crearUsuario = async (req = request, res = response) => {

@@ -45,7 +45,7 @@ const UsuarioSchema = new Schema({
   },
   rol: {
     type: Number,
-    default: roles.responsableProyecto,
+    default: roles.docente,
   },
 });
 

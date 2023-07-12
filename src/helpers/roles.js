@@ -4,4 +4,5 @@ export const roles = {
     evaluador: 3,
     refEvaluador: 4,
     comAsesora: 5,
+    docente: 6,
   };

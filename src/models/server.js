@@ -1,7 +1,10 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import routerFerias from '../routes/ferias.js';
 import routerUsuarios from '../routes/usuario.js';
+import routerAuth from '../routes/auth.js'
+
 
 
 import dbConnection from '../database/config.js';
@@ -16,8 +19,8 @@ class Server {
         this.paths = {
     
             feria:          '/api/v1/feria',
-            usuario:        '/api/v1/usuario'
-
+            usuario:        '/api/v1/usuario',
+            auth:           '/api/v1/auth'
         }
 
         
@@ -46,7 +49,8 @@ class Server {
         //parseo y lectura del body
         this.app.use(express.json());
 
-
+        //Cookie-parser
+        this.app.use(cookieParser())
 
     }
 
@@ -58,6 +62,9 @@ class Server {
 
         //path de usuario para el CRUD del mismo
         this.app.use(this.paths.usuario, routerUsuarios);
+
+        //path de autenticación para login y register
+        this.app.use(this.paths.auth, routerAuth);
 
 
     }

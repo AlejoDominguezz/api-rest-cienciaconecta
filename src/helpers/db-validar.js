@@ -1,11 +1,11 @@
 import {Usuario} from '../models/usuario.js';
 
-export const existeEmail = async (correo = '') => {
+export const existeEmail = async (email = '') => {
 
-    const existeEm = await Usuario.findOne({correo});
+    const existeEm = await Usuario.findOne({email});
 
     if(existeEm){
-        throw new Error(`El correo [ ${correo} ] ya existe, debe elegir otro.`)
+        throw new Error(`El correo [ ${email} ] ya existe, debe elegir otro.`)
     }
 }
 

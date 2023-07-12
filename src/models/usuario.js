@@ -1,4 +1,6 @@
 import { Schema, model } from "mongoose";
+import { roles } from "../helpers/roles.js";
+import bcryptjs from 'bcryptjs';
 
 // REVISAR si no faltan campos o si son correctos los mismos
 //validar tema de ROL
@@ -6,11 +8,11 @@ import { Schema, model } from "mongoose";
 const UsuarioSchema = new Schema({
   nombre: {
     type: String,
-    require: [true, "El nombre es obligatorio"],
+    required: [true, "El nombre es obligatorio"],
   },
   apellido: {
     type: String,
-    require: [true, "El apellido es obligatorio"],
+    required: [true, "El apellido es obligatorio"],
   },
   estado: {
     type: Boolean,
@@ -19,26 +21,51 @@ const UsuarioSchema = new Schema({
   },
   cuil: {
     type: String,
-    require: [true, "El CUIL es obligatorio"],
+    required: [true, "El CUIL es obligatorio"],
   },
-  correo: {
+  email: {
     type: String,
-    require: [true, "El correo es obligatorio"],
+    required: [true, "El correo es obligatorio"],
     unique: true,
+    trim: true,
+    lowercase: true, 
+    index: {unique: true}
   },
   password: {
     type: String,
-    require: [true, "La contraseña es obligatoria"],
+    required: [true, "La contraseña es obligatoria"],
   },
   dni: {
     type: Number,
-    require: [true, "El número de DNI es obligatorio"],
+    required: [true, "El número de DNI es obligatorio"],
   },
-  dni: {
+  rol: {
     type: Number,
-    require: [true, "El número de DNI es obligatorio"],
+    default: roles.responsableProyecto,
   },
 
 });
+
+
+UsuarioSchema.pre("save", async function(next){
+  const user = this;
+
+  if(!user.isModified('password')) return next()
+
+  try {
+      const salt = await bcryptjs.genSalt(10)
+      user.password = await bcryptjs.hash(user.password, salt)
+      next()
+  } catch (error) {
+      console.log(error)
+      throw new Error('Falló el hash de contraseña')
+  }
+})
+
+
+UsuarioSchema.methods.comparePassword = async function(candidatePassword){
+  return await bcryptjs.compare(candidatePassword, this.password)
+}
+
 
 export const Usuario = model('Usuario', UsuarioSchema);

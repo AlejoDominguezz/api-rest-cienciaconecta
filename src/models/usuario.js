@@ -6,42 +6,22 @@ import bcryptjs from 'bcryptjs';
 //validar tema de ROL
 
 const UsuarioSchema = new Schema({
-  nombre: {
-    type: String,
-    required: [true, "El nombre es obligatorio"],
-  },
-  apellido: {
-    type: String,
-    required: [true, "El apellido es obligatorio"],
-  },
-  estado: {
-    type: Boolean, // activo, inactivo, pendiente
-    default: true,
-    required: true,
-  },
-  cuil: {
-    type: String,
-    required: [true, "El CUIL es obligatorio"],
-  },
   email: {
     type: String,
     required: [true, "El correo es obligatorio"],
     unique: true,
     trim: true,
-    lowercase: true, 
-    index: {unique: true}
+    lowercase: true,
+    index: { unique: true },
   },
   password: {
     type: String,
     required: [true, "La contraseña es obligatoria"],
   },
-  dni: {
-    type: Number,
-    required: [true, "El número de DNI es obligatorio"],
-  },
-  cue: {
-    type: Number,
-    required: [true, "El CUE es obligatorio"],
+  estado: {
+    type: Boolean, // activo, inactivo, pendiente
+    default: true,
+    required: true,
   },
   rol: {
     type: Number,

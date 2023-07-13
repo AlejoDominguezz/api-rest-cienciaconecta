@@ -59,6 +59,22 @@ export const bodyRegisterValidator = [
   body("cue","El CUE debe tener 9 caracteres (incluir 2 de anexo)")
     .trim()
     .isLength({min:9, max:9}),
+
+  // Validacion de telefono
+  body("telefono","Formato de teléfono incorrecto")
+    .trim()
+    .isInt()
+    .isLength({ min: 7, max: 15}),
+
+  // Validacion de cargo
+  body("cargo","El cargo no puede tener más de 30 caracteres")
+    .trim()
+    .isLength({  max: 30}),
+
+  body("cargo","El cargo es requerido")
+    .trim()
+    .notEmpty(),
+
   validarCampos,
 ];
 

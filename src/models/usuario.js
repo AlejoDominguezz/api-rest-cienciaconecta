@@ -19,9 +19,10 @@ const UsuarioSchema = new Schema({
     required: [true, "La contraseña es obligatoria"],
   },
   estado: {
-    type: Boolean, // activo, inactivo, pendiente
-    default: true,
+    type: Number, // 0=inactivo, 1=activo, 2=pendiente
+    default: 2,
     required: true,
+    enum:[0,1,2]
   },
   rol: {
     type: Number,

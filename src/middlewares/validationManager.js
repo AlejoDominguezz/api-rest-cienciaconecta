@@ -56,9 +56,10 @@ export const bodyRegisterValidator = [
     .trim()
     .notEmpty(),
 
-  body("cue","El CUE debe tener 7 caracteres")
+  body("cue","El CUE debe tener 7 caracteres numéricos")
     .trim()
-    .isLength({min:7, max:7}),
+    .isLength({min:7, max:7})
+    .isInt(),
 
   // Validacion de telefono
   body("telefono","Formato de teléfono incorrecto")

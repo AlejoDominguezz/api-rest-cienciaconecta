@@ -16,17 +16,18 @@ export const login = async (req, res) => {
         // Comparo contraseña ingresada con el hash
         const resPassword = await user.comparePassword(password);
         if(!resPassword)
-            return res.status(403).json({error: "Contraseña incorrecta"});
+            return res.status(403).json({error: "Datos incorrectos"});
         
 
         // Generar Token con JWT
         const {token, expiresIn} = generateToken(user.id)
 
         // Genero Refresh Token
-
         generateRefreshToken(user.id, res);
+        
+        const rol = user.rol;
 
-        return res.json({token, expiresIn})
+        return res.json({token, expiresIn, rol})
 
     } catch (error) {
         console.log(error)
@@ -39,7 +40,7 @@ export const login = async (req, res) => {
 export const register = async (req, res) => {
     
     const {nombre, apellido, cuil, email, password, dni, cue, telefono, cargo} = req.body;
-    const estado = true;
+    const estado = 2;
 
     try {
 
@@ -53,12 +54,7 @@ export const register = async (req, res) => {
         await user.save()
         await docente.save()
 
-        // Generar el Token con JWT
-        const {token, expiresIn} = generateToken(user.id);
-        // Generar el RefreshToken con JWT
-        generateRefreshToken(user.id, res);
-
-        return res.status(201).json({token, expiresIn})
+        return res.status(201).json({ok: true})
 
 
     } catch (error) {

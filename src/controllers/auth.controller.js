@@ -37,7 +37,7 @@ export const login = async (req, res) => {
 //Función de Registro
 export const register = async (req, res) => {
     
-    const {nombre, apellido, cuil, email, password, dni} = req.body;
+    const {nombre, apellido, cuil, email, password, dni, cue} = req.body;
     const estado = true;
 
     try {
@@ -45,8 +45,8 @@ export const register = async (req, res) => {
         // Busco usuario por mail
         existeEmail(email);
         
-        const user = new Usuario({nombre, apellido, estado, cuil, email, password, dni})
-        console.log(user.nombre, user.apellido, user.estado, user.cuil, user.email, user.password, user.dni)
+        const user = new Usuario({nombre, apellido, estado, cuil, email, password, dni, cue})
+        console.log(user.nombre, user.apellido, user.estado, user.cuil, user.email, user.password, user.dni, user.cue)
         
         await user.save()
 

@@ -4,10 +4,10 @@ import cookieParser from 'cookie-parser';
 import routerFerias from '../routes/feria.route.js';
 import routerUsuarios from '../routes/usuario.route.js';
 import routerAuth from '../routes/auth.route.js'
-
-
+import routerProyectos from '../routes/proyecto.route.js';
 
 import dbConnection from '../database/config.js';
+
 
 
 class Server {
@@ -20,7 +20,8 @@ class Server {
     
             feria:          '/api/v1/feria',
             usuario:        '/api/v1/usuario',
-            auth:           '/api/v1/auth'
+            auth:           '/api/v1/auth',
+            proyecto:       '/api/v1/proyecto',
         }
 
         
@@ -66,7 +67,8 @@ class Server {
         //path de autenticación para login y register
         this.app.use(this.paths.auth, routerAuth);
 
-
+        //path de gestion de proyectos
+        this.app.use(this.paths.proyecto, routerProyectos);
     }
 
 

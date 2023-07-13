@@ -1,4 +1,5 @@
 import {Usuario} from '../models/Usuario.js';
+import {Proyecto} from '../models/Proyecto.js';
 
 export const existeEmail = async (email = '') => {
 
@@ -7,5 +8,14 @@ export const existeEmail = async (email = '') => {
     if(existeEm){
         throw new Error(`El correo [ ${email} ] ya existe, debe elegir otro.`)
     }
+}
+
+export const existeProyecto = async (titulo = '') => {
+    const existeProy = await Proyecto.findOne({titulo});
+
+    if(existeProy){
+        throw new Error(`El proyecto "${titulo}" ya existe, elige otro título`)
+    }
+
 }
 

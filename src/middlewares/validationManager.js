@@ -56,9 +56,9 @@ export const bodyRegisterValidator = [
     .trim()
     .notEmpty(),
 
-  body("cue","El CUE debe tener 9 caracteres (incluir 2 de anexo)")
+  body("cue","El CUE debe tener 7 caracteres")
     .trim()
-    .isLength({min:9, max:9}),
+    .isLength({min:7, max:7}),
 
   // Validacion de telefono
   body("telefono","Formato de teléfono incorrecto")
@@ -93,3 +93,77 @@ export const bodyLoginValidator = [
 
   validarCampos,
 ];
+
+
+export const bodyInscribirProyectoValidator = [
+
+  //validaciones de titulo
+  body("titulo", "Nombre requerido")
+    .trim()
+    .notEmpty(),
+  body("titulo", "Título máximo 40 caracteres")
+    .trim()
+    .isLength({ max: 40 }),
+
+  //validaciones de reseña
+  body("descripcion", "Descripcion requerida")
+    .trim()
+    .notEmpty(),
+  body("descripcion", "Descripción máximo 500 caracteres")
+    .trim()
+    .isLength({ max: 500 }),
+
+  //validaciones de nivel
+  body("nivel", "Nivel requerido")
+    .trim()
+    .notEmpty(),
+  body("nivel", "Nivel incorrecto")
+    .isInt()
+    .isIn([1, 2, 3, 4]),
+
+  //validaciones de categoria
+  body("categoria", "Categoría requerida")
+    .trim()
+    .notEmpty(),
+  body("categoria", "Categoría incorrecta")
+    .isInt()
+    .isIn([1, 2, 3]),
+
+  //validaciones de nombre escuela
+  body("nombreEscuela", "Nombre escuela requerido")
+    .trim()
+    .notEmpty(),
+  body("nombreEscuela", "Nombre escuela máximo 40 caracteres")
+    .trim()
+    .isLength({ max: 40 }),
+
+  //validaciones de CUE
+  body("cueEscuela","El CUE es requerido")
+    .trim()
+    .notEmpty(),
+
+  body("cueEscuela","El CUE debe tener 7 caracteres")
+    .trim()
+    .isLength({min:7, max:7}),
+
+  //validaciones de tipo escuela
+  body("privada","El tipo de escuela es requerido")
+    .trim()
+    .notEmpty(),
+  body("privada","El tipo de escuela debe ser boolean")
+    .trim()
+    .isBoolean(),
+
+
+  //validaciones de email escuela
+  body("emailEscuela","El email de contacto de la escuela es requerido")
+    .trim()
+    .notEmpty(),
+  body("emailEscuela","Email con formato incorrecto")
+    .trim()
+    .isEmail(),
+
+  validarCampos,
+];
+
+

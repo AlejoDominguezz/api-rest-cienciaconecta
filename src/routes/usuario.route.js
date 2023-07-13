@@ -1,9 +1,14 @@
 import { Router } from "express";
-import { createUser } from "../controllers/usuarios.controller.js";
-import { bodyRegisterValidator } from "../middlewares/validationManager.js";
+import { deleteUser, registerUser } from "../controllers/usuarios.controller.js";
+import { bodyRegisterValidator  , bodyDeleteValidator} from "../middlewares/validationManager.js";
+import { requireToken } from "../middlewares/requireToken.js";
 
 const routerUsuarios = Router();
 
-routerUsuarios.post("/register", bodyRegisterValidator, createUser);
+//registrar un usuario 
+routerUsuarios.post("/register", bodyRegisterValidator, registerUser);
+
+//eliminar un usuario
+routerUsuarios.delete("/:id", requireToken ,bodyDeleteValidator , deleteUser);
 
 export default routerUsuarios;

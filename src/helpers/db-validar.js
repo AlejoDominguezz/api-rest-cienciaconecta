@@ -9,3 +9,11 @@ export const existeEmail = async (email = '') => {
     }
 }
 
+export const existsId = async ( id ) => {
+    console.log(id)
+    const existeId = await Usuario.findById(id);
+    if(!existeId){
+        throw new Error(`El id ingresado no existe! `)
+    }
+}
+

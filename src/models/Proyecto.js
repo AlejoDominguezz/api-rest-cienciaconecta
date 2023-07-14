@@ -1,6 +1,8 @@
 import { Schema, model } from "mongoose";
 
 const ProyectoSchema = new Schema({
+
+  // ------------------ INSTANCIA ESCOLAR --------------------------------
   titulo: {
     type: String,
     required: [true, "El título del proyecto es requerido"],
@@ -40,12 +42,57 @@ const ProyectoSchema = new Schema({
   idResponsable: {
     type: Schema.Types.ObjectId,
     required: true,
-    ref: 'Docente'
+    ref: "Docente",
   },
-  fechaInscripcion:{
+  fechaInscripcion: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
+  estado: {
+    type: Number,
+    default: 0,
+    enum:[0, 1, 2, 3, 4, 5, 6]},
+
+  // ------------------ INSTANCIA REGIONAL --------------------------------
+  videoPresentacion: {
+    type: String,
+    trim: true,
+  },
+  registroPedagogico: {
+    type: String,
+    trim: true,
+  },
+  carpetaCampo: {
+    type: String,
+    trim: true,
+  },
+  informeTrabajo: {
+    type: String,
+    trim: true,
+  },
+  nombreSede: {
+    type: String,
+    trim: true,
+  },
+  cueSede: {
+    type: Number,
+  },
+  autorizacionImagen: {
+    type: Boolean,
+  },
+  grupoProyecto: [
+    {
+      nombre: {
+        type: String,
+      },
+      apellido: {
+        type: String,
+      },
+      dni: {
+        type: Number,
+      },
+    },
+  ],
 });
 
 // export const nivel = {
@@ -63,4 +110,14 @@ const ProyectoSchema = new Schema({
 //   // Preguntar que categorias hay
 // };
 
-export const Proyecto = model('Proyecto', ProyectoSchema);
+export const estado = {
+  instanciaEscolar: 0,
+  instanciaRegional: 1,
+  enEvaluacionRegional: 2,
+  evaluadoRegional: 3,
+  promovidoNacional: 4,
+  finalizado: 5,
+  inactivo: 6,
+};
+
+export const Proyecto = model("Proyecto", ProyectoSchema);

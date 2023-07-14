@@ -44,8 +44,23 @@ class Server {
 
 
     middlewares(){
-        //cors
-        this.app.use(cors())
+        //CORS
+        this.app.use(function (req, res, next) {
+            req.headers.origin = req.headers.origin || 'http://' + req.headers.host;
+            next();
+          });
+
+        const whitelist = [process.env.ORIGIN1, ]
+
+        this.app.use(cors(
+            {
+            origin: function(origin, callback){
+                if(whitelist.includes(origin)){
+                    return callback(null, origin) 
+                }
+                return callback("Error de CORS - Origin: " + origin + " No autorizado")
+            }}
+        ))
 
         //parseo y lectura del body
         this.app.use(express.json());

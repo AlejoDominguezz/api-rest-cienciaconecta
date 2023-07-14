@@ -41,6 +41,10 @@ const ProyectoSchema = new Schema({
     type: Schema.Types.ObjectId,
     required: true,
     ref: 'Docente'
+  },
+  fechaInscripcion:{
+    type: Date,
+    default: Date.now
   }
 });
 

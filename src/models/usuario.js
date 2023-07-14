@@ -25,8 +25,8 @@ const UsuarioSchema = new Schema({
     enum:[0,1,2]
   },
   rol: {
-    type: Number,
-    default: roles.docente,
+    type: [String],
+    default: [roles.docente],
   },
 });
 

@@ -70,12 +70,9 @@ const ProyectoSchema = new Schema({
     type: String,
     trim: true,
   },
-  nombreSede: {
-    type: String,
-    trim: true,
-  },
-  cueSede: {
-    type: Number,
+  sede:{
+    type: Schema.Types.ObjectId,
+    ref: 'Sede'
   },
   autorizacionImagen: {
     type: Boolean,

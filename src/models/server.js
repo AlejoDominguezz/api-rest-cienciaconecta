@@ -5,8 +5,10 @@ import routerFerias from '../routes/feria.route.js';
 import routerUsuarios from '../routes/usuario.route.js';
 import routerAuth from '../routes/auth.route.js'
 import routerProyectos from '../routes/proyecto.route.js';
+import routerSedes from '../routes/sede.route.js';
 
 import dbConnection from '../database/config.js';
+
 
 
 
@@ -22,6 +24,7 @@ class Server {
             usuario:        '/api/v1/usuario',
             auth:           '/api/v1/auth',
             proyecto:       '/api/v1/proyecto',
+            sede:           '/api/v1/sede'
         }
 
         
@@ -69,6 +72,9 @@ class Server {
 
         //path de gestion de proyectos
         this.app.use(this.paths.proyecto, routerProyectos);
+
+        //path de gestion de sedes
+        this.app.use(this.paths.sede, routerSedes);
     }
 
 

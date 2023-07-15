@@ -47,6 +47,8 @@ export const deleteUser = async (req = request , res = response) => {
     const { id } = req.params;
     const usuario = await Usuario.findByIdAndUpdate(id , {estado:false});
     //revisar el token que devuelve
+
+    //usuario autenticado que deberia tener ROL de comisión (se incluye luego)
     const usuarioAutenticado = req.uid;
     
     res.json({
@@ -62,4 +64,25 @@ export const deleteUser = async (req = request , res = response) => {
 
 
 
+}
+
+//obtener todos los usuarios 
+export const getUsers = async (req , res) => {
+  try{
+    //obtengo los docentes y a partir de la referencia a usuario obtengo los datos tambien de usuario
+    const docentes = await Docente.find().populate('usuario');
+    if(!docentes){
+      res.status(401).json({
+        msg: "Error al traer los docentes"
+      })
+    }else{
+      res.json({
+        usuarios: docentes
+      })
+    }
+  }
+
+  catch (error) {
+    console.error(error);
+  }
 }

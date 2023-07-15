@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { deleteUser, registerUser } from "../controllers/usuarios.controller.js";
+import { deleteUser, registerUser , getUsers } from "../controllers/usuarios.controller.js";
 import { bodyRegisterValidator  , bodyDeleteValidator} from "../middlewares/validationManager.js";
 import { requireToken } from "../middlewares/requireToken.js";
 
@@ -10,5 +10,8 @@ routerUsuarios.post("/register", bodyRegisterValidator, registerUser);
 
 //eliminar un usuario
 routerUsuarios.delete("/:id", requireToken ,bodyDeleteValidator , deleteUser);
+
+routerUsuarios.get("/" , getUsers);
+
 
 export default routerUsuarios;

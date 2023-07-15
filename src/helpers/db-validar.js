@@ -16,6 +16,12 @@ export const existeProyecto = async (titulo = '') => {
     if(existeProy){
         throw new Error(`El proyecto "${titulo}" ya existe, elige otro título`)
     }
-
+}
+export const existsId = async ( id ) => {
+    console.log(id)
+    const existeId = await Usuario.findById(id);
+    if(!existeId){
+        throw new Error(`El id ingresado no existe! `)
+    }
 }
 

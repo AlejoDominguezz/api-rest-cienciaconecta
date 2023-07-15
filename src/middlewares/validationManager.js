@@ -1,6 +1,8 @@
 import { body, param } from "express-validator";
 import { validarCampos } from "./validar-campos.js";
 import axios from "axios";
+import { existsId } from "../helpers/db-validar.js";
+import {check} from "express-validator";
 
 export const bodyRegisterValidator = [
   //validaciones de email correcto formato
@@ -52,8 +54,9 @@ export const bodyRegisterValidator = [
     .isLength({ min: 7, max: 8 }),
 
   //validaciones de CUE
-  body("cue","El CUE es requerido")
+  body("cue","El CUE es requerido y debe ser un numero entero")
     .trim()
+    .isInt()
     .notEmpty(),
 
   body("cue","El CUE debe tener 7 caracteres numéricos")
@@ -224,3 +227,14 @@ export const bodyActualizarProyectoRegionalValidator = [
 
 
 ]
+export const bodyDeleteValidator = [
+  check('id','no es un ID valido de mongo').isMongoId(),
+  check('id').custom( existsId ),
+  validarCampos,
+];
+
+export const bodyUpdateValidator = [
+  check('id','no es un ID valido de mongo').isMongoId(),
+  check('id').custom( existsId ),
+  validarCampos,
+];

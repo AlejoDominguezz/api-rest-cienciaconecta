@@ -4,211 +4,291 @@ import { Docente } from "../models/Docente.js";
 import { existeProyecto } from "../helpers/db-validar.js";
 
 export const inscribirProyectoEscolar = async (req, res) => {
-    const {titulo, descripcion, nivel, categoria, nombreEscuela, cueEscuela, privada, emailEscuela} = req.body;
+  const {
+    titulo,
+    descripcion,
+    nivel,
+    categoria,
+    nombreEscuela,
+    cueEscuela,
+    privada,
+    emailEscuela,
+  } = req.body;
 
-    try {
-        existeProyecto(titulo);
+  try {
+    existeProyecto(titulo);
 
-        const uid = req.uid;
-        const responsable = await Docente.findOne({usuario: uid })
+    const uid = req.uid;
+    const responsable = await Docente.findOne({ usuario: uid });
 
-        const proyecto = new Proyecto({titulo, descripcion, nivel, categoria, nombreEscuela, cueEscuela, privada, emailEscuela, idResponsable: responsable._id})
-        
-        await proyecto.save()
+    const proyecto = new Proyecto({
+      titulo,
+      descripcion,
+      nivel,
+      categoria,
+      nombreEscuela,
+      cueEscuela,
+      privada,
+      emailEscuela,
+      idResponsable: responsable._id,
+    });
 
-        return res.json({ok: true})
+    await proyecto.save();
 
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({error: "Error de servidor"});
-    }
-}
-
+    return res.json({ ok: true });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Error de servidor" });
+  }
+};
 
 export const eliminarProyecto = async (req, res) => {
-    try {
-        const {id} =  req.params;
-        const proyecto = await Proyecto.findById(id)
-        
-        if(!proyecto) return res.status(404).json({error: "No existe el proyecto"})
-        
-        await proyecto.deleteOne()
+  try {
+    const { id } = req.params;
+    const proyecto = await Proyecto.findById(id);
 
-        return res.json({proyecto})
+    if (!proyecto)
+      return res.status(404).json({ error: "No existe el proyecto" });
 
-    } catch (error) {
-        console.log(error)
-        if(error.kind === "ObjectId") return res.status(403).json({error: "Formato ID incorrecto"})
-        res.status(500).json({error: "Error de servidor"})
-    }
-}
+    await proyecto.deleteOne();
+
+    return res.json({ proyecto });
+  } catch (error) {
+    console.log(error);
+    if (error.kind === "ObjectId")
+      return res.status(403).json({ error: "Formato ID incorrecto" });
+    res.status(500).json({ error: "Error de servidor" });
+  }
+};
 
 export const bajaProyecto = async (req, res) => {
-    try {
-        const {id} =  req.params;
-        const proyecto = await Proyecto.findById(id)
-        
-        if(!proyecto) return res.status(404).json({error: "No existe el proyecto"})
-        
-       proyecto.estado = estado.inactivo;
-       await proyecto.save();
+  try {
+    const { id } = req.params;
+    const proyecto = await Proyecto.findById(id);
 
-        return res.json({proyecto})
+    if (!proyecto)
+      return res.status(404).json({ error: "No existe el proyecto" });
 
-    } catch (error) {
-        console.log(error)
-        if(error.kind === "ObjectId") return res.status(403).json({error: "Formato ID incorrecto"})
-        res.status(500).json({error: "Error de servidor"})
-    }
-}
+    proyecto.estado = estado.inactivo;
+    await proyecto.save();
 
+    return res.json({ proyecto });
+  } catch (error) {
+    console.log(error);
+    if (error.kind === "ObjectId")
+      return res.status(403).json({ error: "Formato ID incorrecto" });
+    res.status(500).json({ error: "Error de servidor" });
+  }
+};
 
 export const modificarProyectoEscolar = async (req, res) => {
-    try {
-        const {id} =  req.params;
-        const {titulo, descripcion, nivel, categoria, nombreEscuela, cueEscuela, privada, emailEscuela} = req.body;
+  try {
+    const { id } = req.params;
+    const {
+      titulo,
+      descripcion,
+      nivel,
+      categoria,
+      nombreEscuela,
+      cueEscuela,
+      privada,
+      emailEscuela,
+    } = req.body;
 
-        let proyecto = await Proyecto.findById(id)
-        
-        if(!proyecto) return res.status(404).json({error: "No existe el proyecto"})
-        if(proyecto.estado === estado.inactivo) return res.status(404).json({error: "El proyecto ha sido dado de baja"})
+    let proyecto = await Proyecto.findById(id);
 
-        proyecto.titulo = titulo ?? proyecto.titulo;
-        proyecto.descripcion = descripcion ?? proyecto.descripcion;
-        proyecto.nivel = nivel ?? proyecto.nivel;
-        proyecto.categoria = categoria ?? proyecto.categoria;
-        proyecto.nombreEscuela = nombreEscuela ?? proyecto.nombreEscuela;
-        proyecto.cueEscuela = cueEscuela ?? proyecto.cueEscuela;
-        proyecto.privada = privada ?? proyecto.privada;
-        proyecto.emailEscuela = emailEscuela ?? proyecto.emailEscuela;
+    if (!proyecto)
+      return res.status(404).json({ error: "No existe el proyecto" });
+    if (proyecto.estado === estado.inactivo)
+      return res
+        .status(404)
+        .json({ error: "El proyecto ha sido dado de baja" });
 
-        await proyecto.save()
+    proyecto.titulo = titulo ?? proyecto.titulo;
+    proyecto.descripcion = descripcion ?? proyecto.descripcion;
+    proyecto.nivel = nivel ?? proyecto.nivel;
+    proyecto.categoria = categoria ?? proyecto.categoria;
+    proyecto.nombreEscuela = nombreEscuela ?? proyecto.nombreEscuela;
+    proyecto.cueEscuela = cueEscuela ?? proyecto.cueEscuela;
+    proyecto.privada = privada ?? proyecto.privada;
+    proyecto.emailEscuela = emailEscuela ?? proyecto.emailEscuela;
 
-        return res.json({proyecto})
+    await proyecto.save();
 
-    } catch (error) {
-
-        console.log(error)
-        if(error.kind === "ObjectId") return res.status(403).json({error: "Formato ID incorrecto"})
-        res.status(500).json({error: "Error de servidor"})
-    }
-}
-
+    return res.json({ proyecto });
+  } catch (error) {
+    console.log(error);
+    if (error.kind === "ObjectId")
+      return res.status(403).json({ error: "Formato ID incorrecto" });
+    res.status(500).json({ error: "Error de servidor" });
+  }
+};
 
 export const consultarProyecto = async (req, res) => {
-    try {
-        const {id} =  req.params;
-        const proyecto = await Proyecto.findById(id)
-        
-        if(!proyecto) return res.status(404).json({error: "No existe el proyecto"})
-        if(proyecto.estado === estado.inactivo) return res.status(404).json({error: "El proyecto ha sido dado de baja"})
+  try {
+    const { id } = req.params;
+    const proyecto = await Proyecto.findById(id);
 
-        return res.json({proyecto})
+    if (!proyecto)
+      return res.status(404).json({ error: "No existe el proyecto" });
+    if (proyecto.estado === estado.inactivo)
+      return res
+        .status(404)
+        .json({ error: "El proyecto ha sido dado de baja" });
 
-    } catch (error) {
-
-        console.log(error)
-        if(error.kind === "ObjectId") return res.status(403).json({error: "Formato ID incorrecto"})
-        res.status(500).json({error: "Error de servidor"})
-    }
-    
-
-}
-
+    return res.json({ proyecto });
+  } catch (error) {
+    console.log(error);
+    if (error.kind === "ObjectId")
+      return res.status(403).json({ error: "Formato ID incorrecto" });
+    res.status(500).json({ error: "Error de servidor" });
+  }
+};
 
 export const consultarProyectos = async (req, res) => {
-    try {
-        const proyectos = await Proyecto.find()
-        return res.json({proyectos})
-
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({error: "Error de servidor"})
-    }
-}
-
+  try {
+    const proyectos = await Proyecto.find();
+    return res.json({ proyectos });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error de servidor" });
+  }
+};
 
 export const actualizarProyectoRegional = async (req, res) => {
-    try {
-        const {id} =  req.params;
-        const {videoPresentacion, registroPedagogico, carpetaCampo, informeTrabajo, sede, autorizacionImagen, grupoProyecto} = req.body;
+  try {
+    const { id } = req.params;
+    const {
+      videoPresentacion,
+      registroPedagogico,
+      carpetaCampo,
+      informeTrabajo,
+      sede,
+      autorizacionImagen,
+      grupoProyecto,
+    } = req.body;
 
-        let proyecto = await Proyecto.findById(id)
-        if(!proyecto) return res.status(404).json({error: "No existe el proyecto"})
-        if(proyecto.estado === estado.inactivo) return res.status(404).json({error: "El proyecto ha sido dado de baja"})
-        if(proyecto.estado === estado.instanciaRegional) return res.status(404).json({error: "El proyecto ya ha sido actualizado a etapa regional. Aún puede modificar los datos de proyecto"})
-        
-        let existeSede = await Sede.findById(sede)
-        if(!existeSede) return res.status(404).json({error: "No existe la sede"})
+    let proyecto = await Proyecto.findById(id);
+    if (!proyecto)
+      return res.status(404).json({ error: "No existe el proyecto" });
+    if (proyecto.estado === estado.inactivo)
+      return res
+        .status(404)
+        .json({ error: "El proyecto ha sido dado de baja" });
+    if (proyecto.estado === estado.instanciaRegional)
+      return res
+        .status(404)
+        .json({
+          error:
+            "El proyecto ya ha sido actualizado a etapa regional. Aún puede modificar los datos de proyecto",
+        });
 
-        if(!autorizacionImagen) return res.status(404).json({error: "Para continuar, debe autorizar el uso y cesión de imagen de los estudiantes"})
+    let existeSede = await Sede.findById(sede);
+    if (!existeSede)
+      return res.status(404).json({ error: "No existe la sede" });
 
-        proyecto.videoPresentacion = videoPresentacion ?? proyecto.videoPresentacion;
-        proyecto.registroPedagogico = registroPedagogico ?? proyecto.registroPedagogico;
-        proyecto.carpetaCampo = carpetaCampo ?? proyecto.carpetaCampo;
-        proyecto.informeTrabajo = informeTrabajo ?? proyecto.informeTrabajo;
-        proyecto.sede = sede ?? proyecto.sede;
-        proyecto.autorizacionImagen = autorizacionImagen ?? proyecto.autorizacionImagen;
-        proyecto.grupoProyecto = grupoProyecto ?? proyecto.grupoProyecto;
-        
-        proyecto.estado = estado.instanciaRegional;
+    if (!autorizacionImagen)
+      return res
+        .status(404)
+        .json({
+          error:
+            "Para continuar, debe autorizar el uso y cesión de imagen de los estudiantes",
+        });
 
-        await proyecto.save()
+    proyecto.videoPresentacion =
+      videoPresentacion ?? proyecto.videoPresentacion;
+    proyecto.registroPedagogico =
+      registroPedagogico ?? proyecto.registroPedagogico;
+    proyecto.carpetaCampo = carpetaCampo ?? proyecto.carpetaCampo;
+    proyecto.informeTrabajo = informeTrabajo ?? proyecto.informeTrabajo;
+    proyecto.sede = sede ?? proyecto.sede;
+    proyecto.autorizacionImagen =
+      autorizacionImagen ?? proyecto.autorizacionImagen;
+    proyecto.grupoProyecto = grupoProyecto ?? proyecto.grupoProyecto;
 
-        return res.json({proyecto})
+    proyecto.estado = estado.instanciaRegional;
 
-    } catch (error) {
+    await proyecto.save();
 
-        console.log(error)
-        if(error.kind === "ObjectId") return res.status(403).json({error: "Formato ID incorrecto"})
-        res.status(500).json({error: "Error de servidor"})
-    }
-}
-
+    return res.json({ proyecto });
+  } catch (error) {
+    console.log(error);
+    if (error.kind === "ObjectId")
+      return res.status(403).json({ error: "Formato ID incorrecto" });
+    res.status(500).json({ error: "Error de servidor" });
+  }
+};
 
 export const modificarProyectoRegional = async (req, res) => {
-    try {
-        const {id} =  req.params;
+  try {
+    const { id } = req.params;
 
-        const {titulo, descripcion, nivel, categoria, nombreEscuela, cueEscuela, privada, emailEscuela, 
-            videoPresentacion, registroPedagogico, carpetaCampo, informeTrabajo, sede, 
-            autorizacionImagen, grupoProyecto} = req.body;
+    const {
+      titulo,
+      descripcion,
+      nivel,
+      categoria,
+      nombreEscuela,
+      cueEscuela,
+      privada,
+      emailEscuela,
+      videoPresentacion,
+      registroPedagogico,
+      carpetaCampo,
+      informeTrabajo,
+      sede,
+      autorizacionImagen,
+      grupoProyecto,
+    } = req.body;
 
-        let proyecto = await Proyecto.findById(id)
-        
-        if(!proyecto) return res.status(404).json({error: "No existe el proyecto"})
-        if(proyecto.estado === estado.inactivo) return res.status(404).json({error: "El proyecto ha sido dado de baja"})
+    let proyecto = await Proyecto.findById(id);
 
-        let existeSede = await Sede.findById(sede)
-        if(!existeSede) return res.status(404).json({error: "No existe la sede"})
+    if (!proyecto)
+      return res.status(404).json({ error: "No existe el proyecto" });
+    if (proyecto.estado === estado.inactivo)
+      return res
+        .status(404)
+        .json({ error: "El proyecto ha sido dado de baja" });
 
-        if(!autorizacionImagen) return res.status(404).json({error: "Para continuar, debe autorizar el uso y cesión de imagen de los estudiantes"})
+    let existeSede = await Sede.findById(sede);
+    if (!existeSede)
+      return res.status(404).json({ error: "No existe la sede" });
 
-        proyecto.titulo = titulo ?? proyecto.titulo;
-        proyecto.descripcion = descripcion ?? proyecto.descripcion;
-        proyecto.nivel = nivel ?? proyecto.nivel;
-        proyecto.categoria = categoria ?? proyecto.categoria;
-        proyecto.nombreEscuela = nombreEscuela ?? proyecto.nombreEscuela;
-        proyecto.cueEscuela = cueEscuela ?? proyecto.cueEscuela;
-        proyecto.privada = privada ?? proyecto.privada;
-        proyecto.emailEscuela = emailEscuela ?? proyecto.emailEscuela;
-        
-        proyecto.videoPresentacion = videoPresentacion ?? proyecto.videoPresentacion;
-        proyecto.registroPedagogico = registroPedagogico ?? proyecto.registroPedagogico;
-        proyecto.carpetaCampo = carpetaCampo ?? proyecto.carpetaCampo;
-        proyecto.informeTrabajo = informeTrabajo ?? proyecto.informeTrabajo;
-        proyecto.sede = sede ?? proyecto.sede;
-        proyecto.autorizacionImagen = autorizacionImagen ?? proyecto.autorizacionImagen;
-        proyecto.grupoProyecto = grupoProyecto ?? proyecto.grupoProyecto;
+    if (!autorizacionImagen)
+      return res
+        .status(404)
+        .json({
+          error:
+            "Para continuar, debe autorizar el uso y cesión de imagen de los estudiantes",
+        });
 
-        await proyecto.save()
+    proyecto.titulo = titulo ?? proyecto.titulo;
+    proyecto.descripcion = descripcion ?? proyecto.descripcion;
+    proyecto.nivel = nivel ?? proyecto.nivel;
+    proyecto.categoria = categoria ?? proyecto.categoria;
+    proyecto.nombreEscuela = nombreEscuela ?? proyecto.nombreEscuela;
+    proyecto.cueEscuela = cueEscuela ?? proyecto.cueEscuela;
+    proyecto.privada = privada ?? proyecto.privada;
+    proyecto.emailEscuela = emailEscuela ?? proyecto.emailEscuela;
 
-        return res.json({proyecto})
+    proyecto.videoPresentacion =
+      videoPresentacion ?? proyecto.videoPresentacion;
+    proyecto.registroPedagogico =
+      registroPedagogico ?? proyecto.registroPedagogico;
+    proyecto.carpetaCampo = carpetaCampo ?? proyecto.carpetaCampo;
+    proyecto.informeTrabajo = informeTrabajo ?? proyecto.informeTrabajo;
+    proyecto.sede = sede ?? proyecto.sede;
+    proyecto.autorizacionImagen =
+      autorizacionImagen ?? proyecto.autorizacionImagen;
+    proyecto.grupoProyecto = grupoProyecto ?? proyecto.grupoProyecto;
 
-    } catch (error) {
+    await proyecto.save();
 
-        console.log(error)
-        if(error.kind === "ObjectId") return res.status(403).json({error: "Formato ID incorrecto"})
-        res.status(500).json({error: "Error de servidor"})
-    }
-}
+    return res.json({ proyecto });
+  } catch (error) {
+    console.log(error);
+    if (error.kind === "ObjectId")
+      return res.status(403).json({ error: "Formato ID incorrecto" });
+    res.status(500).json({ error: "Error de servidor" });
+  }
+};

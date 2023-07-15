@@ -1,26 +1,67 @@
 import { response, request } from "express";
-import {Usuario} from '../models/Usuario.js';
-import bcripyjs from 'bcryptjs';
+import { Usuario } from "../models/Usuario.js";
+import { Docente } from "../models/Docente.js";
+import { existeEmail } from "../helpers/db-validar.js";
 
-export const createUser = async (req = request, res = response) => {
-  //leer del body los atributos del usuario y grabarlos en base de datos, y retornar el usuario creado
 
-  const { nombre, apellido , cuil , email , password , dni , cue} = req.body;
+export const deleteUser = async (req = request, res = response) => {
+  try {
+    //recibo el id como parametro
+    const { id } = req.params;
+    const usuario = await Usuario.findByIdAndUpdate(id, { estado: false });
+    //revisar el token que devuelve
 
-  const usuario = new Usuario({nombre, apellido , cuil , email , password , dni , cue});
+    //usuario autenticado que deberia tener ROL de comisión (se incluye luego)
+    
+    const usuarioAutenticado = req.uid;
 
-  //encriptar la contraseña - Resuelto con UsuarioSchema.pre()
-  //const salt = bcripyjs.genSaltSync();
-  //usuario.password = bcripyjs.hashSync( password , salt );s
-
-  //guardar el registro en bd
-  await usuario.save();
-
-  res.status(201).json({
-      msg: 'Usuario registrado',
-      usuario
-  });
-
+    res.json({
+      msg: "Usuario eliminado...",
+      usuario_eliminado: usuario,
+      usuario_autenticado: usuarioAutenticado,
+    });
+  } catch (error) {
+    console.error(error);
+  }
 };
 
+//obtener todos los usuarios
+export const getUsers = async (req, res) => {
+  try {
+    //obtengo los docentes y a partir de la referencia a usuario obtengo los datos tambien de usuario
+    const docentes = await Docente.find().populate("usuario");
+    if (!docentes) {
+      res.status(401).json({
+        msg: "Error al traer los docentes",
+      });
+    } else {
+      res.json({
+        usuarios: docentes,
+      });
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
 
+export const updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const {
+      nombre,
+      apellido,
+      cuil,
+      telefono,
+      dni,
+      cue,
+      cargo,
+      password,
+      rol
+    } = req.body;
+
+  } catch (error) {
+    console.error(error);
+  }
+
+};

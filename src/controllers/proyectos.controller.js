@@ -16,7 +16,7 @@ export const inscribirProyectoEscolar = async (req, res) => {
   } = req.body;
 
   try {
-    existeProyecto(titulo);
+    //existeProyecto(titulo);
 
     const uid = req.uid;
     const responsable = await Docente.findOne({ usuario: uid });

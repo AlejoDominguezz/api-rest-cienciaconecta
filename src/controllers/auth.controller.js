@@ -1,15 +1,15 @@
 import { Usuario } from "../models/Usuario.js";
 import { generateToken, generateRefreshToken } from "../helpers/generateToken.js";
-import { existeEmail } from "../helpers/db-validar.js";
+import { existeCuil, existeEmail } from "../helpers/db-validar.js";
 import { Docente } from "../models/Docente.js";
 
 // Función de Login
 export const login = async (req, res) => {
-    const {email, password} = req.body;
+    const {cuil, password} = req.body;
 
     try {
         // Buscamos usuario por mail
-        let user = await Usuario.findOne({email});
+        let user = await Usuario.findOne({cuil});
         if(!user) 
             return res.status(403).json({error: "No existe el usuario registrado"});
 
@@ -25,9 +25,11 @@ export const login = async (req, res) => {
         // Genero Refresh Token
         generateRefreshToken(user.id, res);
         
-        const rol = user.rol;
+        const roles = user.roles;
+        const userCuil = user.cuil;
+        const id = user._id;
 
-        return res.json({token, expiresIn, rol})
+        return res.json({token, expiresIn, id, userCuil, roles})
 
     } catch (error) {
         console.log(error)
@@ -45,9 +47,9 @@ export const register = async (req, res) => {
     try {
 
         // Busco usuario por mail
-        existeEmail(email);
+        //existeCuil(cuil);
         
-        const user = new Usuario({email, estado, password})
+        const user = new Usuario({cuil, email, estado, password})
         const docente = new Docente({nombre, apellido, cuil, dni, cue, telefono, cargo, usuario: user._id})
         //console.log(user.nombre, user.apellido, user.estado, user.cuil, user.email, user.password, user.dni, user.cue)
         

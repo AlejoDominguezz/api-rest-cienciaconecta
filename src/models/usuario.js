@@ -6,13 +6,17 @@ import bcryptjs from 'bcryptjs';
 //validar tema de ROL
 
 const UsuarioSchema = new Schema({
+  cuil: {
+    type: String,
+    required: [true, "El CUIL es obligatorio"],
+    unique: true,
+    index: { unique: true },
+  },
   email: {
     type: String,
     required: [true, "El correo es obligatorio"],
-    unique: true,
     trim: true,
     lowercase: true,
-    index: { unique: true },
   },
   password: {
     type: String,
@@ -24,7 +28,7 @@ const UsuarioSchema = new Schema({
     required: true,
     enum:[0,1,2]
   },
-  rol: {
+  roles: {
     type: [String],
     default: [roles.docente],
   },

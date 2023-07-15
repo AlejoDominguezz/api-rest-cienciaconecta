@@ -14,7 +14,7 @@ export const existeProyecto = async (titulo = '') => {
     const existeProy = await Proyecto.findOne({titulo});
 
     if(existeProy){
-        throw new Error(`El proyecto "${titulo}" ya existe, elige otro título`)
+        throw new Error(`El proyecto ${titulo} ya existe, elige otro título`)
     }
 }
 export const existsId = async ( id ) => {
@@ -25,3 +25,11 @@ export const existsId = async ( id ) => {
     }
 }
 
+export const existeCuil = async (cuil = '') => {
+
+    const existecuil = await Usuario.findOne({cuil});
+
+    if(existecuil){
+        throw new Error(`El CUIL ${cuil} ya existe, debe elegir otro.`)
+    }
+}

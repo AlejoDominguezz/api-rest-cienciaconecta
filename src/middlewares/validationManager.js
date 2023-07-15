@@ -102,3 +102,9 @@ export const bodyDeleteValidator = [
   check('id').custom( existsId ),
   validarCampos,
 ];
+
+export const bodyUpdateValidator = [
+  check('id','no es un ID valido de mongo').isMongoId(),
+  check('id').custom( existsId ),
+  validarCampos,
+];

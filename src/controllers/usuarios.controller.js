@@ -11,7 +11,7 @@ export const createUser = async (req = request, res = response) => {
 
   //encriptar la contraseña - Resuelto con UsuarioSchema.pre()
   //const salt = bcripyjs.genSaltSync();
-  //usuario.password = bcripyjs.hashSync( password , salt );
+  //usuario.password = bcripyjs.hashSync( password , salt );s
 
   //guardar el registro en bd
   await usuario.save();

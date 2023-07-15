@@ -168,3 +168,59 @@ export const bodyInscribirProyectoValidator = [
 ];
 
 
+export const bodyActualizarProyectoRegionalValidator = [
+  body("videoPresentacion")
+    .trim()
+    .notEmpty()
+    .withMessage("El video de presentación es requerido")
+    .isURL()
+    .withMessage("Formato de URL incorrecto"),
+  body("registroPedagogico")
+    .trim()
+    .notEmpty()
+    .withMessage("El registro pedagógico es requerido")
+    .isURL()
+    .withMessage("Formato de URL incorrecto"),
+  body("carpetaCampo")
+    .trim()
+    .notEmpty()
+    .withMessage("La carpeta de campo es requerida")
+    .isURL()
+    .withMessage("Formato de URL incorrecto"),
+  body("informeTrabajo")
+    .trim()
+    .notEmpty()
+    .withMessage("El informe de trabajo es requerido")
+    .isURL()
+    .withMessage("Formato de URL incorrecto"),
+  body("sede")
+    .trim()
+    .isString()
+    .withMessage("El ID de sede se debe enviar como un tipo String")
+    .isLength({max: 24, min:24})
+    .withMessage("El ID de sede debe tener 24 caracteres alfanuméricos"),
+  body("autorizacionImagen")
+    .isBoolean()
+    .withMessage("Se debe indicar que se autoriza el uso y cesión de imagen")
+    ,
+
+  body('grupoProyecto')
+    .isArray({ min: 1 })
+    .withMessage('El grupo de proyecto debe ser un arreglo con al menos un elemento'),
+  body('grupoProyecto.*.nombre')
+    .trim()
+    .notEmpty()
+    .withMessage('El nombre del miembro del grupo es requerido'),
+  body('grupoProyecto.*.apellido')
+    .trim()
+    .notEmpty()
+    .withMessage('El apellido del miembro del grupo es requerido'),
+  body('grupoProyecto.*.dni')
+    .isInt()
+    .isLength({ min: 7, max: 8 })
+    .withMessage('El DNI del miembro del grupo debe ser un número de entre 7 y 8 digitos'),
+
+  validarCampos,
+
+
+]

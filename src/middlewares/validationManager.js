@@ -44,10 +44,8 @@ export const bodyRegisterValidator = [
     .isLength({ min: 10, max: 11 })
     .withMessage("Formato de CUIL incorrecto"),
 
-    check("cuil").custom(existeCuil),
-    
+  check("cuil").custom(existeCuil),
 
-  
   //validaciones de DNI
   body("dni", "DNI requerido").trim().notEmpty(),
   body("dni", "Formato de DNI incorrecto").trim().isLength({ min: 7, max: 8 }),
@@ -211,5 +209,55 @@ export const bodyDeleteValidator = [
 export const bodyUpdateValidator = [
   check("id", "no es un ID valido de mongo").isMongoId(),
   check("id").custom(existsId),
+  body("nombre", "Nombre máximo 30 caracteres")
+      .optional()
+      .trim()
+      .isLength({ max: 30 }),
+  body("apellido", "Apellido máximo 30 caracteres")
+    .optional()
+    .trim()
+    .isLength({ max: 30 }),
+  body("cuil")
+    .optional()
+    .trim()
+    .isLength({ min: 10, max: 11 })
+    .withMessage("Formato de CUIL incorrecto"),
+  body("dni", "Formato de DNI incorrecto").optional().trim().isLength({ min: 7, max: 8 }),
+  body("cue", "El CUE debe tener 7 caracteres numéricos")
+    .trim()
+    .isLength({ min: 7, max: 7 })
+    .isInt(),
+  body("telefono", "Formato de teléfono incorrecto")
+    .optional()
+    .trim()
+    .isInt()
+    .isLength({ min: 7, max: 15 }),
+  body("cargo", "El cargo no puede tener más de 30 caracteres")
+    .optional()
+    .trim()
+    .isLength({ max: 30 }),
+
+  body("email", "Formato de email incorrecto")
+    .optional()
+    .trim()
+    .isEmail()
+    .normalizeEmail(),
+
+  body("password", "Mínimo 8 caracteres y máximo 20")
+    .optional()
+    .trim()
+    .isLength({ min: 8, max: 20 }),
+
+  body("password", "La contraseña debe tener al menos un número")
+  .optional()
+  .matches(
+    /[0-9]/
+  ),
+
+  body("password", "La contraseña debe tener al menos una mayúscula")
+  .optional()
+  .matches(
+    /[A-Z]/
+  ),
   validarCampos,
 ];

@@ -8,7 +8,7 @@ export const deleteUser = async (req = request, res = response) => {
   try {
     //recibo el id como parametro
     const { id } = req.params;
-    const usuario = await Usuario.findByIdAndUpdate(id, { estado: false });
+    const usuario = await Usuario.findByIdAndUpdate(id, { estado: 0 });
     //revisar el token que devuelve
 
     //usuario autenticado que deberia tener ROL de comisión (se incluye luego)
@@ -52,16 +52,51 @@ export const updateUser = async (req, res) => {
       nombre,
       apellido,
       cuil,
+      email,
       telefono,
       dni,
       cue,
       cargo,
       password,
-      rol
+      estado,
+      roles
     } = req.body;
 
+    const user = await Usuario.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ msg: "Usuario no encontrado" });
+    }
+
+    const docente = await Docente.findOne({ usuario: id });
+
+    // Actualización del usuario
+    user.cuil = cuil || user.cuil;
+    user.email = email || user.email;
+    user.roles = roles || user.roles;
+    user.estado = estado || user.estado;
+    user.password = password || user.password;
+
+    // Actualización del docente
+    docente.nombre = nombre || docente.nombre;
+    docente.apellido = apellido || docente.apellido;
+    docente.telefono = telefono || docente.telefono;
+    docente.dni = dni || docente.dni;
+    docente.cargo = cargo || docente.cargo;
+    docente.cue = cue || docente.cue;
+
+    await user.save();
+    await docente.save();
+
+    res.json({
+      msg: "Usuario actualizado con éxito",
+      usuario: user,
+      docente: docente
+    });
+
   } catch (error) {
-    console.error(error);
+    console.log(error);
+    res.status(500).json({ msg: "Error en el servidor" });
   }
 
 };

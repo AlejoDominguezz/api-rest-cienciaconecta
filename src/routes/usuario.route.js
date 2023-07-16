@@ -13,7 +13,7 @@ routerUsuarios.delete("/:id", requireToken ,bodyDeleteValidator , deleteUser);
 routerUsuarios.get("/" ,requireToken , getUsers);
 
 //actualizar un usuario
-routerUsuarios.patch("/:id" ,requireToken,bodyUpdateValidator , updateUser);
+routerUsuarios.patch("/:id" ,requireToken, bodyUpdateValidator , updateUser);
 
 
 export default routerUsuarios;

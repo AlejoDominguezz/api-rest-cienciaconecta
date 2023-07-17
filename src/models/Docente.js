@@ -14,15 +14,15 @@ const DocenteSchema = new Schema({
     required: [true, "El CUIL es obligatorio"],
   },
   dni: {
-    type: Number,
+    type: String,
     required: [true, "El número de DNI es obligatorio"],
   },
   cue: {
-    type: Number,
+    type: String,
     required: [true, "El CUE es obligatorio"],
   },
   telefono: {
-    type: Number,
+    type: String,
     required: [true, "El número de teléfono es obligatorio"],
   },
   cargo: {

@@ -5,7 +5,7 @@ import { Usuario } from "../models/Usuario.js";
 export const refreshToken = async (req, res) => {
   try {
     const { token, expiresIn } = generateToken(req.uid); //el req viene del middleware requireRefreshToken
-    const user = await Usuario.findById(uid);
+    const user = await Usuario.findById(req.uid);
     const roles = user.roles;
     const cuil = user.cuil;
     const id = user.id;

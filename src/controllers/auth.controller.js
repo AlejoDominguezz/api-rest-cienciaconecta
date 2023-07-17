@@ -15,6 +15,10 @@ export const login = async (req, res) => {
     let user = await Usuario.findOne({ cuil });
     if (!user)
       return res.status(403).json({ error: "No existe el usuario registrado" });
+    if (user.estado === '2')
+      return res.status(403).json({ error: "Usuario pendiente de activación. Se le notificará por email cuando el usuario haya sido activado"});
+    if (user.estado === '0')
+      return res.status(403).json({ error: "Usuario inactivo" });
 
     // Comparo contraseña ingresada con el hash
     const resPassword = await user.comparePassword(password);
@@ -42,7 +46,7 @@ export const login = async (req, res) => {
 export const register = async (req, res) => {
   const { nombre, apellido, cuil, email, password, dni, cue, telefono, cargo } =
     req.body;
-  const estado = 2;
+  const estado = '2';
 
   try {
     // Busco usuario por mail

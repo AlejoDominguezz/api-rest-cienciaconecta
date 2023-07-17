@@ -8,6 +8,7 @@ import routerProyectos from '../routes/proyecto.route.js';
 import routerSedes from '../routes/sede.route.js';
 
 import dbConnection from '../database/config.js';
+import { crearCategorias, crearNiveles } from '../helpers/initialSetup.js';
 
 
 
@@ -62,7 +63,9 @@ class Server {
                     return callback(null, origin) 
                 }
                 return callback("Error de CORS - Origin: " + origin + " No autorizado")
-            }}
+            },
+            credentials: true  
+            }
         ))
 
         //parseo y lectura del body
@@ -71,6 +74,9 @@ class Server {
         //Cookie-parser
         this.app.use(cookieParser())
 
+        //Inicialización de categorias y niveles
+        crearCategorias();
+        crearNiveles();
     }
 
 

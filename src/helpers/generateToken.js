@@ -40,5 +40,6 @@ export const tokenVerificationErrors = {
     "jwt expired": "JWT expirado",
     "invalid token": "Token no válido",
     "No Bearer": "Utiliza formato Bearer",
-    "jwt malformed": "JWT formato no válido"
+    "jwt malformed": "JWT formato no válido",
+    "No Token": "JWT necesario para acceder a la ruta"
 };

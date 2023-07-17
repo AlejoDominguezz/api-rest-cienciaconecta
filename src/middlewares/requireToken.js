@@ -5,7 +5,7 @@ import { tokenVerificationErrors } from "../helpers/generateToken.js";
 export const requireToken = (req, res, next) => {
   try {
     let token = req.headers?.authorization;
-    if (!token) throw new Error("No Bearer");
+    if (!token) throw new Error("No Token");
 
     token = token.split(" ")[1]; //Separa palabra Bearer del token, toma el token solo
     const { uid } = jwt.verify(token, process.env.JWT_SECRET);

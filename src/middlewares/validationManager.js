@@ -1,7 +1,7 @@
 import { body, param } from "express-validator";
 import { validarCampos } from "./validar-campos.js";
 import axios from "axios";
-import { existsId, existeCuil, existeProyecto } from "../helpers/db-validar.js";
+import { existsId, existeCuil, existeProyecto, existeCategoria, existeNivel } from "../helpers/db-validar.js";
 import { check } from "express-validator";
 
 export const bodyRegisterValidator = [
@@ -48,23 +48,23 @@ export const bodyRegisterValidator = [
 
   //validaciones de DNI
   body("dni", "DNI requerido").trim().notEmpty(),
-  body("dni", "Formato de DNI incorrecto").trim().isLength({ min: 7, max: 8 }),
+  body("dni", "Formato de DNI incorrecto").trim().isString().isLength({ min: 7, max: 8 }),
 
   //validaciones de CUE
-  body("cue", "El CUE es requerido y debe ser un numero entero")
+  body("cue", "El CUE es requerido y debe ser un string")
     .trim()
-    .isInt()
+    .isString()
     .notEmpty(),
 
-  body("cue", "El CUE debe tener 7 caracteres numéricos")
+  body("cue", "El CUE debe tener 7 caracteres")
     .trim()
     .isLength({ min: 7, max: 7 })
-    .isInt(),
+    .isString(),
 
   // Validacion de telefono
   body("telefono", "Formato de teléfono incorrecto")
     .trim()
-    .isInt()
+    .isString()
     .isLength({ min: 7, max: 15 }),
 
   // Validacion de cargo
@@ -84,6 +84,7 @@ export const bodyLoginValidator = [
     .withMessage("El cuil es requerido")
     .trim()
     .isLength({ min: 10, max: 11 })
+    .isString()
     .withMessage("El cuil debe tener entre 10 y 11 caracteres"),
   body("password", "Mínimo 8 caracteres y máximo 20")
     .trim()
@@ -111,12 +112,14 @@ export const bodyInscribirProyectoValidator = [
     .isLength({ max: 500 }),
 
   //validaciones de nivel
-  body("nivel", "Nivel requerido").trim().notEmpty(),
-  body("nivel", "Nivel incorrecto").isInt().isIn([1, 2, 3, 4]),
+  body("nivel").trim().notEmpty().withMessage("Nivel requerido")
+    .isMongoId().withMessage("ID de Nivel incorrecto"),
+  check("nivel").custom(existeNivel),
 
   //validaciones de categoria
-  body("categoria", "Categoría requerida").trim().notEmpty(),
-  body("categoria", "Categoría incorrecta").isInt().isIn([1, 2, 3]),
+  body("categoria").trim().notEmpty().withMessage("Categoría requerida")
+    .isMongoId().withMessage("ID de Categoria incorrecto"),
+  check("categoria").custom(existeCategoria),
 
   //validaciones de nombre escuela
   body("nombreEscuela", "Nombre escuela requerido").trim().notEmpty(),
@@ -129,6 +132,7 @@ export const bodyInscribirProyectoValidator = [
 
   body("cueEscuela", "El CUE debe tener 7 caracteres")
     .trim()
+    .isString()
     .isLength({ min: 7, max: 7 }),
 
   //validaciones de tipo escuela
@@ -217,11 +221,11 @@ export const bodyUpdateValidator = [
     .optional()
     .trim()
     .isLength({ max: 30 }),
-  body("cuil")
-    .optional()
-    .trim()
-    .isLength({ min: 10, max: 11 })
-    .withMessage("Formato de CUIL incorrecto"),
+  // body("cuil")
+  //   .optional()
+  //   .trim()
+  //   .isLength({ min: 10, max: 11 })
+  //   .withMessage("Formato de CUIL incorrecto"),
   body("dni", "Formato de DNI incorrecto").optional().trim().isLength({ min: 7, max: 8 }),
   body("cue", "El CUE debe tener 7 caracteres numéricos")
     .trim()

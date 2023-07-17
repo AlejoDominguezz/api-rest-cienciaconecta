@@ -8,7 +8,7 @@ export const deleteUser = async (req = request, res = response) => {
   try {
     //recibo el id como parametro
     const { id } = req.params;
-    const usuario = await Usuario.findByIdAndUpdate(id, { estado: 0 });
+    const usuario = await Usuario.findByIdAndUpdate(id, { estado: '0' });
     //revisar el token que devuelve
 
     //usuario autenticado que deberia tener ROL de comisión (se incluye luego)
@@ -51,7 +51,7 @@ export const updateUser = async (req, res) => {
     const {
       nombre,
       apellido,
-      cuil,
+      //cuil,
       email,
       telefono,
       dni,
@@ -71,7 +71,7 @@ export const updateUser = async (req, res) => {
     const docente = await Docente.findOne({ usuario: id });
 
     // Actualización del usuario
-    user.cuil = cuil || user.cuil;
+    //user.cuil = cuil || user.cuil;
     user.email = email || user.email;
     user.roles = roles || user.roles;
     user.estado = estado || user.estado;

@@ -1,5 +1,7 @@
 import {Usuario} from '../models/Usuario.js';
 import {Proyecto} from '../models/Proyecto.js';
+import {Nivel} from '../models/Nivel.js';
+import {Categoria} from '../models/Categoria.js';
 
 export const existeEmail = async (email = '') => {
 
@@ -31,5 +33,23 @@ export const existeCuil = async (cuil = '') => {
 
     if(existecuil){
         throw new Error(`El CUIL ${cuil} ya existe, debe elegir otro.`)
+    }
+}
+
+export const existeNivel = async (nivel = '') => {
+
+    const existenivel = await Nivel.findById({_id: nivel});
+
+    if(!existenivel){
+        throw new Error(`El nivel elegido no existe`)
+    }
+}
+
+export const existeCategoria = async (categoria = '') => {
+
+    const existecategoria = await Categoria.findById({_id: categoria});
+
+    if(!existecategoria){
+        throw new Error(`La categoria elegida no existe`)
     }
 }

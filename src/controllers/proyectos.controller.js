@@ -20,6 +20,8 @@ export const inscribirProyectoEscolar = async (req, res) => {
 
     const uid = req.uid;
     const responsable = await Docente.findOne({ usuario: uid });
+    if(!responsable)  
+      return res.status(401).json({ error: "No existe el docente correspondiente a su usuario" });
 
     const proyecto = new Proyecto({
       titulo,
@@ -148,6 +150,8 @@ export const consultarProyecto = async (req, res) => {
 export const consultarProyectos = async (req, res) => {
   try {
     const proyectos = await Proyecto.find();
+    if (proyectos.length === 0)
+      return res.status(404).json({ error: "No se han encontrado proyectos" });
     return res.json({ proyectos });
   } catch (error) {
     console.log(error);
@@ -195,15 +199,12 @@ export const actualizarProyectoRegional = async (req, res) => {
             "Para continuar, debe autorizar el uso y cesión de imagen de los estudiantes",
         });
 
-    proyecto.videoPresentacion =
-      videoPresentacion ?? proyecto.videoPresentacion;
-    proyecto.registroPedagogico =
-      registroPedagogico ?? proyecto.registroPedagogico;
+    proyecto.videoPresentacion = videoPresentacion ?? proyecto.videoPresentacion;
+    proyecto.registroPedagogico = registroPedagogico ?? proyecto.registroPedagogico;
     proyecto.carpetaCampo = carpetaCampo ?? proyecto.carpetaCampo;
     proyecto.informeTrabajo = informeTrabajo ?? proyecto.informeTrabajo;
     proyecto.sede = sede ?? proyecto.sede;
-    proyecto.autorizacionImagen =
-      autorizacionImagen ?? proyecto.autorizacionImagen;
+    proyecto.autorizacionImagen = autorizacionImagen ?? proyecto.autorizacionImagen;
     proyecto.grupoProyecto = grupoProyecto ?? proyecto.grupoProyecto;
 
     proyecto.estado = estado.instanciaRegional;

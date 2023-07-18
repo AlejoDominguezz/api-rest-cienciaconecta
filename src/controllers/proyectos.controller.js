@@ -151,7 +151,7 @@ export const consultarProyectos = async (req, res) => {
   try {
     const proyectos = await Proyecto.find();
     if (proyectos.length === 0)
-      return res.status(404).json({ error: "No se han encontrado proyectos" });
+      return res.status(204).json({ error: "No se han encontrado proyectos" });
     return res.json({ proyectos });
   } catch (error) {
     console.log(error);

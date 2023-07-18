@@ -24,7 +24,7 @@ const UsuarioSchema = new Schema({
   },
   estado: {
     type: String, // 0=inactivo, 1=activo, 2=pendiente
-    default: 2,
+    default: '2',
     required: true,
     enum:['0','1','2']
   },

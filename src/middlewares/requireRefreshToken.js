@@ -8,8 +8,10 @@ export const requireRefreshToken = (req, res, next) => {
 
     if (!refreshTokenCookie) throw new Error("No existe el token");
 
-    const { uid } = jwt.verify(refreshTokenCookie, process.env.JWT_REFRESH);
+    const { uid, cuil, roles } = jwt.verify(refreshTokenCookie, process.env.JWT_REFRESH);
     req.uid = uid;
+    req.cuil = cuil;
+    req.roles = roles;
     next();
   } catch (error) {
     console.log(error);

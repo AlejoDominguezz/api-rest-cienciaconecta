@@ -230,11 +230,11 @@ export const bodyUpdateValidator = [
   body("cue", "El CUE debe tener 7 caracteres numéricos")
     .trim()
     .isLength({ min: 7, max: 7 })
-    .isInt(),
+    .isString(),
   body("telefono", "Formato de teléfono incorrecto")
     .optional()
     .trim()
-    .isInt()
+    .isString()
     .isLength({ min: 7, max: 15 }),
   body("cargo", "El cargo no puede tener más de 30 caracteres")
     .optional()

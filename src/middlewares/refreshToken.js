@@ -4,11 +4,12 @@ import { Usuario } from "../models/Usuario.js";
 // Permite volver a obtener el Token a partir del Refresh Token ya verificado
 export const refreshToken = async (req, res) => {
   try {
-    const { token, expiresIn } = generateToken(req.uid, req.cuil, req.roles); //el req viene del middleware requireRefreshToken
+    const user = await Usuario.findById(req.uid)
+    const roles = user.roles;
+    const cuil = user.cuil;
+    const id = user.id
 
-    const roles = req.roles;
-    const cuil = req.cuil;
-    const id = req.uid;
+    const { token, expiresIn } = generateToken(id); //el req viene del middleware requireRefreshToken
 
     return res.json({ token, expiresIn, id, cuil, roles});
   } catch (error) {

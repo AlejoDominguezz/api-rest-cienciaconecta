@@ -25,15 +25,15 @@ export const login = async (req, res) => {
     if (!resPassword)
       return res.status(403).json({ error: "Datos incorrectos" });
 
-    // Generar Token con JWT
-    const { token, expiresIn } = generateToken(user.id, user.cuil, user.roles);
-
-    // Genero Refresh Token
-    generateRefreshToken(user.id, user.cuil, user.roles, res);
 
     const roles = user.roles;
     const userCuil = user.cuil;
-    const id = user._id;
+    const id = user._id;  
+    // Generar Token con JWT
+    const { token, expiresIn } = generateToken(id);
+
+    // Genero Refresh Token
+    generateRefreshToken(id, res);
 
     return res.json({ token, expiresIn, id, userCuil, roles });
   } catch (error) {

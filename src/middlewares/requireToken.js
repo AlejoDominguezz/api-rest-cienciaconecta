@@ -1,18 +1,24 @@
 import jwt from "jsonwebtoken";
 import { tokenVerificationErrors } from "../helpers/generateToken.js";
+import { Usuario } from "../models/Usuario.js";
 
 // Verifica que el Token enviado es válido, para rutas protegidas
-export const requireToken = (req, res, next) => {
+export const requireToken = async (req, res, next) => {
   try {
     let token = req.headers?.authorization;
     if (!token) throw new Error("No Token");
 
     token = token.split(" ")[1]; //Separa palabra Bearer del token, toma el token solo
-    const { uid, cuil, roles } = jwt.verify(token, process.env.JWT_SECRET);
+    const { uid } = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await Usuario.findById(uid)
 
     req.uid = uid;
-    req.cuil = cuil;
-    req.roles = roles;
+    req.roles = user.roles;
+    const baja = user.estado;
+
+    if(baja === '0')
+      return res.status(403).json({error: "El usuario ha sido dado de baja"})
 
     next();
   } catch (error) {

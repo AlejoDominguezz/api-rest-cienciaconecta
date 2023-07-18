@@ -1,11 +1,11 @@
 import jwt from 'jsonwebtoken';
 
 // Función que genera el token
-export const generateToken = (uid, cuil, roles) => {
+export const generateToken = (uid) => {
     const expiresIn = 60 * 15 //60seg x 15 = 15 min
 
     try {
-        const token = jwt.sign({uid, cuil, roles}, process.env.JWT_SECRET, {expiresIn});
+        const token = jwt.sign({uid}, process.env.JWT_SECRET, {expiresIn});
         return {token, expiresIn};
     } catch (error) {
         console.log(error)
@@ -14,11 +14,11 @@ export const generateToken = (uid, cuil, roles) => {
 }
 
 // Función que genera el refresh token
-export const generateRefreshToken = (uid, cuil, roles, res) => {
-    const expiresIn = 60 * 60 * 24 * 30 // 30 dias - No hace falta que sea tan corto como el token
+export const generateRefreshToken = (uid, res) => {
+    const expiresIn = 60 * 60 * 24 * 7 // 7 dias - No hace falta que sea tan corto como el token
 
     try {
-        const refreshToken = jwt.sign({uid, cuil, roles}, process.env.JWT_REFRESH, {expiresIn});
+        const refreshToken = jwt.sign({uid}, process.env.JWT_REFRESH, {expiresIn});
         
         // Guardamos el Refresh Token en cookie segura
         res.cookie("refreshToken", refreshToken, {

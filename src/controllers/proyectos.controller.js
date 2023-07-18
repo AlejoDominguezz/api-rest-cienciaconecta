@@ -1,7 +1,7 @@
 import { Proyecto, estado } from "../models/Proyecto.js";
 import { Sede } from "../models/Sede.js";
 import { Docente } from "../models/Docente.js";
-import { existeProyecto } from "../helpers/db-validar.js";
+import { Usuario } from "../models/Usuario.js";
 
 export const inscribirProyectoEscolar = async (req, res) => {
   const {
@@ -20,6 +20,7 @@ export const inscribirProyectoEscolar = async (req, res) => {
 
     const uid = req.uid;
     const responsable = await Docente.findOne({ usuario: uid });
+    const usuario = await Usuario.findById(uid)
     if(!responsable)  
       return res.status(401).json({ error: "No existe el docente correspondiente a su usuario" });
 
@@ -36,6 +37,11 @@ export const inscribirProyectoEscolar = async (req, res) => {
     });
 
     await proyecto.save();
+
+    // Cambio estado del usuario: de docente a responsable de proyecto
+    if(!usuario.roles.includes('2'))
+      usuario.roles.push('2')
+    await usuario.save();
 
     return res.json({ ok: true });
   } catch (error) {
@@ -250,6 +256,11 @@ export const modificarProyectoRegional = async (req, res) => {
       return res
         .status(404)
         .json({ error: "El proyecto ha sido dado de baja" });
+
+    if (proyecto.estado === estado.instanciaEscolar)
+    return res
+      .status(404)
+      .json({ error: "El proyecto aún no ha sido actualizado a etapa regional" });
 
     let existeSede = await Sede.findById(sede);
     if (!existeSede)

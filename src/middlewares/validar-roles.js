@@ -2,6 +2,7 @@
 
 import { Docente } from "../models/Docente.js";
 import { Proyecto } from "../models/Proyecto.js";
+import { roles } from "../helpers/roles.js";
 
 export const checkRolAuth = (roles) => async (req, res, next) => {
   try {
@@ -23,6 +24,10 @@ export const esPropietario = async (req, res, next) => {
   try {
     const idUsuario = req.uid;
     const { id } = req.params;
+    const rolesData = req.roles;
+
+    if(rolesData !== roles.responsableProyecto)
+      return next();
 
     if (!id) {
       return res

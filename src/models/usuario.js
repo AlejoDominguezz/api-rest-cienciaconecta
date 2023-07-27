@@ -32,6 +32,14 @@ const UsuarioSchema = new Schema({
     type: [String],
     default: [roles.docente],
   },
+  tokenConfirm: {
+    type: String,
+    default: null,
+  },
+  cuentaConfirmada: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 

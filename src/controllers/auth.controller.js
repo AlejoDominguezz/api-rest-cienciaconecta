@@ -162,7 +162,7 @@ export const confirmarCuenta = async (req, res) => {
 
     await user.save();
 
-    return res.status(200).json({ error: "Cuenta verificada, le llegará un email cuando su cuenta haya sido aprobada" });
+    return res.status(200).json({ msg: "Cuenta verificada, le llegará un email cuando su cuenta haya sido aprobada" });
 
   } catch (error) {
     return res.status(500).json({ error: "Error de servidor" });

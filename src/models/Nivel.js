@@ -8,6 +8,10 @@ const NivelSchema = new Schema({
     abreviatura:{
         type: String,
         required: true,
+    },
+    codigo:{
+        type: String,
+        required: true,
     }
 })
 

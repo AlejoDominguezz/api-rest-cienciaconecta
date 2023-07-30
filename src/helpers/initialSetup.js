@@ -8,13 +8,13 @@ export const crearNiveles = async () => {
         if(count > 0) return;
 
         const values = await Promise.all([
-            new Nivel({nombre: "Nivel Inicial", abreviatura: "Nivel I"}).save(),
-            new Nivel({nombre: "Primer Ciclo de la Educación Primaria", abreviatura: "Nivel IIA"}).save(),
-            new Nivel({nombre: "Segundo Ciclo de la Educación Primaria", abreviatura: "Nivel IIB"}).save(),
-            new Nivel({nombre: "Ciclo Básico de la Educación Secundaria", abreviatura: "Nivel IIIA"}).save(),
-            new Nivel({nombre: "Ciclo Orientado de la Educación Secundaria", abreviatura: "Nivel IIIB"}).save(),
-            new Nivel({nombre: "Nivel Superior Formación Docente", abreviatura: "Nivel IVA"}).save(),
-            new Nivel({nombre: "Nivel Superior Tecnicaturas", abreviatura: "Nivel IVB"}).save(),
+            new Nivel({nombre: "Nivel Inicial", abreviatura: "Nivel I", codigo: '1'}).save(),
+            new Nivel({nombre: "Primer Ciclo de la Educación Primaria", abreviatura: "Nivel IIA", codigo: '2'}).save(),
+            new Nivel({nombre: "Segundo Ciclo de la Educación Primaria", abreviatura: "Nivel IIB", codigo: '3'}).save(),
+            new Nivel({nombre: "Ciclo Básico de la Educación Secundaria", abreviatura: "Nivel IIIA", codigo: '4'}).save(),
+            new Nivel({nombre: "Ciclo Orientado de la Educación Secundaria", abreviatura: "Nivel IIIB", codigo: '5'}).save(),
+            new Nivel({nombre: "Nivel Superior Formación Docente", abreviatura: "Nivel IVA", codigo: '6'}).save(),
+            new Nivel({nombre: "Nivel Superior Tecnicaturas", abreviatura: "Nivel IVB", codigo: '7'}).save(),
         ]);
         console.log(values);
     } catch (error) {

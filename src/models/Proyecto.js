@@ -102,4 +102,13 @@ export const estado = {
   inactivo: '6',
 };
 
+export const nombreEstado = [
+  "Instancia escolar",
+  "Instancia regional",
+  "En evaluación regional",
+  "Promovido a instancia nacional",
+  "Finalizado",
+  "Inactivo",
+]
+
 export const Proyecto = model("Proyecto", ProyectoSchema);

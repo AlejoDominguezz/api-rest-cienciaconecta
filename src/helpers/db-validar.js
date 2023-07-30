@@ -53,3 +53,34 @@ export const existeCategoria = async (categoria = '') => {
         throw new Error(`La categoria elegida no existe`)
     }
 }
+
+
+export const fechaPosteriorA = (fechaA) => {
+    return (fechaB) => {
+      const fechaInicio = new Date(fechaA);
+      const fechaFin = new Date(fechaB);
+  
+      if (fechaFin <= fechaInicio) {
+        throw new Error('La fecha ingresada debe ser posterior a ' + fechaInicio.toString());
+      }
+  
+      return true;
+    };
+};
+
+export const fechaAnteriorA = (fechaA) => {
+    return (fechaB) => {
+      const fechaFin = new Date(fechaA);
+      const fechaInicio = new Date(fechaB);
+  
+      if (fechaFin <= fechaInicio) {
+        throw new Error('La fecha ingresada debe ser anterior a ' + fechaFin.toString());
+      }
+  
+      return true;
+    };
+};
+
+
+
+

@@ -4,12 +4,13 @@ import { crearFeria, getFerias } from '../controllers/ferias.controller.js';
 import { requireToken } from '../middlewares/requireToken.js';
 import { checkRolAuth } from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
+import { bodyCrearFeriaValidator } from '../middlewares/validationManagerFeria.js';
 
 const routerFerias = Router();
 
 //obtener todas las ferias 
 routerFerias.get('/', requireToken, checkRolAuth([roles.admin, roles.comAsesora]), getFerias)
-routerFerias.post('/', requireToken, checkRolAuth([roles.admin, roles.comAsesora]), crearFeria)
+routerFerias.post('/', requireToken, checkRolAuth([roles.admin, roles.comAsesora]), bodyCrearFeriaValidator, crearFeria)
 
 
 

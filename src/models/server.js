@@ -9,6 +9,8 @@ import routerSedes from '../routes/sede.route.js';
 
 import dbConnection from '../database/config.js';
 import { crearCategorias, crearNiveles } from '../helpers/initialSetup.js';
+import routerCategorias from '../routes/categoria.route.js';
+import routerNiveles from '../routes/nivel.route.js';
 
 
 
@@ -25,7 +27,9 @@ class Server {
             usuario:        '/api/v1/usuario',
             auth:           '/api/v1/auth',
             proyecto:       '/api/v1/proyecto',
-            sede:           '/api/v1/sede'
+            sede:           '/api/v1/sede', 
+            categoria:      '/api/v1/categoria',
+            nivel:          '/api/v1/nivel'
         }
 
         
@@ -96,6 +100,12 @@ class Server {
 
         //path de gestion de sedes
         this.app.use(this.paths.sede, routerSedes);
+
+        //path de categorias de proyectos
+        this.app.use(this.paths.categoria, routerCategorias);
+
+        //path de niveles de proyectos
+        this.app.use(this.paths.nivel, routerNiveles);
     }
 
 

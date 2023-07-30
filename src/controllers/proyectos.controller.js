@@ -1,4 +1,4 @@
-import { Proyecto, estado } from "../models/Proyecto.js";
+import { Proyecto, estado, nombreEstado } from "../models/Proyecto.js";
 import { Sede } from "../models/Sede.js";
 import { Docente } from "../models/Docente.js";
 import { Usuario } from "../models/Usuario.js";
@@ -143,8 +143,13 @@ export const consultarProyecto = async (req, res) => {
       return res
         .status(404)
         .json({ error: "El proyecto ha sido dado de baja" });
+    
+    // Agrega el nombre del estado y lo devuelve en el json de la consulta
+    const proyectosConNombreEstado = {
+      ...proyecto.toObject(),
+      nombreEstado: nombreEstado[proyecto.estado], }// Obtenemos el nombre del estado según la clave;
 
-    return res.json({ proyecto });
+    return res.json({ proyectosConNombreEstado });
   } catch (error) {
     console.log(error);
     if (error.kind === "ObjectId")
@@ -156,9 +161,17 @@ export const consultarProyecto = async (req, res) => {
 export const consultarProyectos = async (req, res) => {
   try {
     const proyectos = await Proyecto.find();
+
     if (proyectos.length === 0)
       return res.status(204).json({ error: "No se han encontrado proyectos" });
-    return res.json({ proyectos });
+
+    // Agrega el nombre del estado y lo devuelve en el json de la consulta
+    const proyectosConNombreEstado = proyectos.map((proyecto) => ({
+      ...proyecto.toObject(),
+      nombreEstado: nombreEstado[proyecto.estado], // Obtenemos el nombre del estado según la clave
+    }));
+
+    return res.json({ proyectosConNombreEstado  });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Error de servidor" });

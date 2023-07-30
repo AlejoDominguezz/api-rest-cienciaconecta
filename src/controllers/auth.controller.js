@@ -5,6 +5,9 @@ import {
 } from "../helpers/generateToken.js";
 import { existeCuil, existeEmail } from "../helpers/db-validar.js";
 import { Docente } from "../models/Docente.js";
+import { transporter } from "../helpers/mailer.js";
+import {nanoid} from 'nanoid';
+import { confirmationMailHtml } from "../helpers/confirmationMail.js";
 
 // Función de Login
 export const login = async (req, res) => {
@@ -15,6 +18,8 @@ export const login = async (req, res) => {
     let user = await Usuario.findOne({ cuil });
     if (!user)
       return res.status(403).json({ error: "No existe el usuario registrado" });
+    if (!user.cuentaConfirmada)
+      return res.status(403).json({ error: "Debe confirmar la cuenta antes de poder iniciar sesión" });
     if (user.estado === '2')
       return res.status(403).json({ error: "Usuario pendiente de activación. Se le notificará por email cuando el usuario haya sido activado"});
     if (user.estado === '0')
@@ -49,10 +54,8 @@ export const register = async (req, res) => {
   const estado = '2';
 
   try {
-    // Busco usuario por mail
-    //existeCuil(cuil);
 
-    const user = new Usuario({ cuil, email, estado, password });
+    const user = new Usuario({ cuil, email, estado, password, tokenConfirm: nanoid() });
     const docente = new Docente({
       nombre,
       apellido,
@@ -67,6 +70,16 @@ export const register = async (req, res) => {
 
     await user.save();
     await docente.save();
+
+    // Lógica de envío de mail de confirmación
+    const confirmationMail = confirmationMailHtml(user.tokenConfirm)
+
+    await transporter.sendMail({
+      from: 'Ciencia Conecta',
+      to: user.email,
+      subject: "Verifica tu cuenta de correo",
+      html: confirmationMail
+    })
 
     return res.status(201).json({ ok: true });
   } catch (error) {
@@ -84,3 +97,23 @@ export const logout = (req, res) => {
   res.clearCookie("refreshToken");
   res.json({ ok: true });
 };
+
+// Función para confirmar cuenta de correo electrónico
+export const confirmarCuenta = async (req, res) => {
+  const {token} = req.params;
+
+  try {
+    const user = await Usuario.findOne({tokenConfirm: token});
+    if(!user) throw new Error("Token de confirmación inválido")
+
+    user.cuentaConfirmada = true;
+    user.tokenConfirm = null;
+
+    await user.save();
+
+    return res.status(200).json({ msg: "Cuenta verificada, le llegará un email cuando su cuenta haya sido aprobada" });
+
+  } catch (error) {
+    return res.status(500).json({ error: "Error de servidor" });
+  }
+}

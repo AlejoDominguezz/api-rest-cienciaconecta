@@ -163,11 +163,11 @@ export const consultarProyecto = async (req, res) => {
         .json({ error: "El proyecto ha sido dado de baja" });
     
     // Agrega el nombre del estado y lo devuelve en el json de la consulta
-    const proyectosConNombreEstado = {
+    const proyectoConNombreEstado = {
       ...proyecto.toObject(),
       nombreEstado: nombreEstado[proyecto.estado], }// Obtenemos el nombre del estado según la clave;
 
-    return res.json({ proyectos: proyectosConNombreEstado });
+    return res.json({ proyecto: proyectoConNombreEstado });
   } catch (error) {
     console.log(error);
     if (error.kind === "ObjectId")

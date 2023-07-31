@@ -13,12 +13,18 @@ export const existeEmail = async (email = '') => {
 }
 
 export const existeProyecto = async (titulo = '') => {
-    const existeProy = await Proyecto.findOne({titulo});
+    try{
+        const existeProy = await Proyecto.findOne({titulo});
 
-    if(existeProy){
-        throw new Error(`El proyecto ${titulo} ya existe, elige otro título`)
+        if(existeProy){
+            throw new Error(`El proyecto ${titulo} ya existe, elige otro título`)
+        }
+        return false; // No existe el proyecto
+    } catch (error) {
+        return { error: error.message };
     }
 }
+
 export const existsId = async ( id ) => {
     console.log(id)
     const existeId = await Usuario.findById(id);

@@ -167,7 +167,7 @@ export const consultarProyecto = async (req, res) => {
       ...proyecto.toObject(),
       nombreEstado: nombreEstado[proyecto.estado], }// Obtenemos el nombre del estado según la clave;
 
-    return res.json({ proyectosConNombreEstado });
+    return res.json({ proyectos: proyectosConNombreEstado });
   } catch (error) {
     console.log(error);
     if (error.kind === "ObjectId")
@@ -178,7 +178,47 @@ export const consultarProyecto = async (req, res) => {
 
 export const consultarProyectos = async (req, res) => {
   try {
-    const proyectos = await Proyecto.find();
+    const {
+      titulo,
+      descripcion,
+      nivel,
+      categoria,
+      nombreEscuela,
+      cueEscuela,
+      privada,
+      emailEscuela,
+      idResponsable,
+      fechaInscripcion,
+      estado,
+      videoPresentacion,
+      registroPedagogico,
+      carpetaCampo,
+      informeTrabajo,
+      sede,
+      autorizacionImagen,
+    } = req.query;
+
+    // Crear un objeto de filtro con los parámetros de consulta presentes
+    const filtro = {
+      ...(titulo && { titulo }),
+      ...(descripcion && { descripcion }),
+      ...(nivel && { nivel }),
+      ...(categoria && { categoria }),
+      ...(nombreEscuela && { nombreEscuela }),
+      ...(cueEscuela && { cueEscuela }),
+      ...(privada && { privada: privada === 'true' }),
+      ...(emailEscuela && { emailEscuela }),
+      ...(idResponsable && { idResponsable }),
+      ...(fechaInscripcion && { fechaInscripcion }),
+      ...(estado && { estado }),
+      ...(videoPresentacion && { videoPresentacion }),
+      ...(registroPedagogico && { registroPedagogico }),
+      ...(carpetaCampo && { carpetaCampo }),
+      ...(informeTrabajo && { informeTrabajo }),
+      ...(sede && { sede }),
+      ...(autorizacionImagen && { autorizacionImagen: autorizacionImagen === 'true' }),
+    };
+    const proyectos = await Proyecto.find(filtro);
 
     if (proyectos.length === 0)
       return res.status(204).json({ error: "No se han encontrado proyectos" });
@@ -189,7 +229,75 @@ export const consultarProyectos = async (req, res) => {
       nombreEstado: nombreEstado[proyecto.estado], // Obtenemos el nombre del estado según la clave
     }));
 
-    return res.json({ proyectosConNombreEstado  });
+    return res.json({ proyectos: proyectosConNombreEstado  });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error de servidor" });
+  }
+};
+
+export const consultarMisProyectos = async (req, res) => {
+  try {
+    const uid = req.uid;
+
+    const {
+      titulo,
+      descripcion,
+      nivel,
+      categoria,
+      nombreEscuela,
+      cueEscuela,
+      privada,
+      emailEscuela,
+      idResponsable,
+      fechaInscripcion,
+      estado,
+      videoPresentacion,
+      registroPedagogico,
+      carpetaCampo,
+      informeTrabajo,
+      sede,
+      autorizacionImagen,
+    } = req.query;
+
+    const responsable = await Docente.findOne({ usuario: uid });
+    if(!responsable)  
+      return res.status(401).json({ error: "No existe el docente correspondiente a su usuario" });
+
+    // Crear un objeto de filtro con los parámetros de consulta presentes
+    const filtro = {
+      ...(titulo && { titulo }),
+      ...(descripcion && { descripcion }),
+      ...(nivel && { nivel }),
+      ...(categoria && { categoria }),
+      ...(nombreEscuela && { nombreEscuela }),
+      ...(cueEscuela && { cueEscuela }),
+      ...(privada && { privada: privada === 'true' }),
+      ...(emailEscuela && { emailEscuela }),
+      ...(idResponsable && { idResponsable }),
+      ...(fechaInscripcion && { fechaInscripcion }),
+      ...(estado && { estado }),
+      ...(videoPresentacion && { videoPresentacion }),
+      ...(registroPedagogico && { registroPedagogico }),
+      ...(carpetaCampo && { carpetaCampo }),
+      ...(informeTrabajo && { informeTrabajo }),
+      ...(sede && { sede }),
+      ...(autorizacionImagen && { autorizacionImagen: autorizacionImagen === 'true' }),
+      idResponsable: responsable._id
+    };
+
+    const proyectos = await Proyecto.find(filtro);
+
+    if (proyectos.length === 0)
+      return res.status(204).json({ error: "No se han encontrado proyectos" });
+
+    // Agrega el nombre del estado y lo devuelve en el json de la consulta
+    const proyectosConNombreEstado = proyectos.map((proyecto) => ({
+      ...proyecto.toObject(),
+      nombreEstado: nombreEstado[proyecto.estado], // Obtenemos el nombre del estado según la clave
+    }));
+
+    return res.json({ proyectos: proyectosConNombreEstado  });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Error de servidor" });
@@ -341,3 +449,59 @@ export const modificarProyectoRegional = async (req, res) => {
     res.status(500).json({ error: "Error de servidor" });
   }
 };
+
+// Obtener proyectos por query params
+// export const filtrarProyectos = async (req, res) => {
+//   try {
+//     console.log("Filtrado")
+//     // Obtener los parámetros de consulta de los query params
+//     const {
+//       titulo,
+//       descripcion,
+//       nivel,
+//       categoria,
+//       nombreEscuela,
+//       cueEscuela,
+//       privada,
+//       emailEscuela,
+//       idResponsable,
+//       fechaInscripcion,
+//       estado,
+//       videoPresentacion,
+//       registroPedagogico,
+//       carpetaCampo,
+//       informeTrabajo,
+//       sede,
+//       autorizacionImagen,
+//     } = req.query;
+
+//     // Crear un objeto de filtro con los parámetros de consulta presentes
+//     const filtro = {
+//       ...(titulo && { titulo }),
+//       ...(descripcion && { descripcion }),
+//       ...(nivel && { nivel }),
+//       ...(categoria && { categoria }),
+//       ...(nombreEscuela && { nombreEscuela }),
+//       ...(cueEscuela && { cueEscuela }),
+//       ...(privada && { privada: privada === 'true' }),
+//       ...(emailEscuela && { emailEscuela }),
+//       ...(idResponsable && { idResponsable }),
+//       ...(fechaInscripcion && { fechaInscripcion }),
+//       ...(estado && { estado }),
+//       ...(videoPresentacion && { videoPresentacion }),
+//       ...(registroPedagogico && { registroPedagogico }),
+//       ...(carpetaCampo && { carpetaCampo }),
+//       ...(informeTrabajo && { informeTrabajo }),
+//       ...(sede && { sede }),
+//       ...(autorizacionImagen && { autorizacionImagen: autorizacionImagen === 'true' }),
+//     };
+
+//     // Realizar la búsqueda en la base de datos con los filtros
+//     const proyectosFiltrados = await Proyecto.find(filtro);
+
+//     return res.json({ proyectos: proyectosFiltrados });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ error: "Error de servidor" });
+//   }
+// };

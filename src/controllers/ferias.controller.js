@@ -6,7 +6,39 @@ import { estado } from '../models/Proyecto.js';
 
 export const getFerias = async(req = request, res = response) => {
 
-    const ferias = await Feria.find()
+  const {
+    nombre,
+    descripcion,
+    logo,
+    fechaInicioFeria,
+    fechaFinFeria,
+    fechaInicioPostulacionEvaluadores,
+    fechaFinPostulacionEvaluadores,
+    fechaInicioAsignacionProyectos,
+    fechaFinAsignacionProyectos,
+    estado,
+    usuarioResponsable,
+    instancias,
+    
+  } = req.query;
+
+  // Crear un objeto de filtro con los parámetros de consulta presentes
+  const filtro = {
+    ...(nombre && { nombre }),
+    ...(descripcion && { descripcion }),
+    ...(logo && { logo }),
+    ...(fechaInicioFeria && { fechaInicioFeria }),
+    ...(fechaFinFeria && { fechaFinFeria }),
+    ...(fechaInicioPostulacionEvaluadores && { fechaInicioPostulacionEvaluadores }),
+    ...(fechaFinPostulacionEvaluadores && { fechaFinPostulacionEvaluadores }),
+    ...(fechaInicioAsignacionProyectos && { fechaInicioAsignacionProyectos }),
+    ...(fechaFinAsignacionProyectos && { fechaFinAsignacionProyectos }),
+    ...(instancias && { instancias }),
+    ...(estado && { estado }),
+    ...(usuarioResponsable && { usuarioResponsable }),
+  };
+
+    const ferias = await Feria.find(filtro)
 
     res.json({
         ferias

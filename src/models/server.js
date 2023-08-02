@@ -8,7 +8,7 @@ import routerProyectos from '../routes/proyecto.route.js';
 import routerSedes from '../routes/sede.route.js';
 
 import dbConnection from '../database/config.js';
-import { crearCategorias, crearNiveles } from '../helpers/initialSetup.js';
+import { crearCategorias, crearEstablecimientosEducativos, crearNiveles } from '../helpers/initialSetup.js';
 import routerCategorias from '../routes/categoria.route.js';
 import routerNiveles from '../routes/nivel.route.js';
 
@@ -81,6 +81,7 @@ class Server {
         //Inicialización de categorias y niveles
         crearCategorias();
         crearNiveles();
+        crearEstablecimientosEducativos();
     }
 
 

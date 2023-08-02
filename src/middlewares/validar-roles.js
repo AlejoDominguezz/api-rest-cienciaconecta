@@ -29,7 +29,10 @@ export const esPropietario = async (req, res, next) => {
     if (!rolesData.includes(roles.responsableProyecto)) {
       return next();
     }
-    
+
+    if (rolesData.includes(roles.admin)) {
+      return next();
+    }
 
     if (!id) {
       return res

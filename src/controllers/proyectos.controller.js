@@ -2,6 +2,7 @@ import { Proyecto, estado, nombreEstado } from "../models/Proyecto.js";
 import { Sede } from "../models/Sede.js";
 import { Docente } from "../models/Docente.js";
 import { Usuario } from "../models/Usuario.js";
+import { drive } from "../services/drive/drive.js";
 
 export const inscribirProyectoEscolar = async (req, res) => {
   const {
@@ -20,9 +21,11 @@ export const inscribirProyectoEscolar = async (req, res) => {
 
     const uid = req.uid;
     const responsable = await Docente.findOne({ usuario: uid });
-    const usuario = await Usuario.findById(uid)
-    if(!responsable)  
-      return res.status(401).json({ error: "No existe el docente correspondiente a su usuario" });
+    const usuario = await Usuario.findById(uid);
+    if (!responsable)
+      return res
+        .status(401)
+        .json({ error: "No existe el docente correspondiente a su usuario" });
 
     const proyecto = new Proyecto({
       titulo,
@@ -39,8 +42,7 @@ export const inscribirProyectoEscolar = async (req, res) => {
     await proyecto.save();
 
     // Cambio estado del usuario: de docente a responsable de proyecto
-    if(!usuario.roles.includes('2'))
-      usuario.roles.push('2')
+    if (!usuario.roles.includes("2")) usuario.roles.push("2");
     await usuario.save();
 
     return res.json({ ok: true });
@@ -143,11 +145,12 @@ export const consultarProyecto = async (req, res) => {
       return res
         .status(404)
         .json({ error: "El proyecto ha sido dado de baja" });
-    
+
     // Agrega el nombre del estado y lo devuelve en el json de la consulta
     const proyectosConNombreEstado = {
       ...proyecto.toObject(),
-      nombreEstado: nombreEstado[proyecto.estado], }// Obtenemos el nombre del estado según la clave;
+      nombreEstado: nombreEstado[proyecto.estado],
+    }; // Obtenemos el nombre del estado según la clave;
 
     return res.json({ proyectosConNombreEstado });
   } catch (error) {
@@ -171,7 +174,7 @@ export const consultarProyectos = async (req, res) => {
       nombreEstado: nombreEstado[proyecto.estado], // Obtenemos el nombre del estado según la clave
     }));
 
-    return res.json({ proyectosConNombreEstado  });
+    return res.json({ proyectosConNombreEstado });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Error de servidor" });
@@ -199,31 +202,30 @@ export const actualizarProyectoRegional = async (req, res) => {
         .status(404)
         .json({ error: "El proyecto ha sido dado de baja" });
     if (proyecto.estado === estado.instanciaRegional)
-      return res
-        .status(404)
-        .json({
-          error:
-            "El proyecto ya ha sido actualizado a etapa regional. Aún puede modificar los datos de proyecto",
-        });
+      return res.status(404).json({
+        error:
+          "El proyecto ya ha sido actualizado a etapa regional. Aún puede modificar los datos de proyecto",
+      });
 
     let existeSede = await Sede.findById(sede);
     if (!existeSede)
       return res.status(404).json({ error: "No existe la sede" });
 
     if (!autorizacionImagen)
-      return res
-        .status(404)
-        .json({
-          error:
-            "Para continuar, debe autorizar el uso y cesión de imagen de los estudiantes",
-        });
+      return res.status(404).json({
+        error:
+          "Para continuar, debe autorizar el uso y cesión de imagen de los estudiantes",
+      });
 
-    proyecto.videoPresentacion = videoPresentacion ?? proyecto.videoPresentacion;
-    proyecto.registroPedagogico = registroPedagogico ?? proyecto.registroPedagogico;
+    proyecto.videoPresentacion =
+      videoPresentacion ?? proyecto.videoPresentacion;
+    proyecto.registroPedagogico =
+      registroPedagogico ?? proyecto.registroPedagogico;
     proyecto.carpetaCampo = carpetaCampo ?? proyecto.carpetaCampo;
     proyecto.informeTrabajo = informeTrabajo ?? proyecto.informeTrabajo;
     proyecto.sede = sede ?? proyecto.sede;
-    proyecto.autorizacionImagen = autorizacionImagen ?? proyecto.autorizacionImagen;
+    proyecto.autorizacionImagen =
+      autorizacionImagen ?? proyecto.autorizacionImagen;
     proyecto.grupoProyecto = grupoProyecto ?? proyecto.grupoProyecto;
 
     proyecto.estado = estado.instanciaRegional;
@@ -271,21 +273,21 @@ export const modificarProyectoRegional = async (req, res) => {
         .json({ error: "El proyecto ha sido dado de baja" });
 
     if (proyecto.estado === estado.instanciaEscolar)
-    return res
-      .status(404)
-      .json({ error: "El proyecto aún no ha sido actualizado a etapa regional" });
+      return res
+        .status(404)
+        .json({
+          error: "El proyecto aún no ha sido actualizado a etapa regional",
+        });
 
     let existeSede = await Sede.findById(sede);
     if (!existeSede)
       return res.status(404).json({ error: "No existe la sede" });
 
     if (!autorizacionImagen)
-      return res
-        .status(404)
-        .json({
-          error:
-            "Para continuar, debe autorizar el uso y cesión de imagen de los estudiantes",
-        });
+      return res.status(404).json({
+        error:
+          "Para continuar, debe autorizar el uso y cesión de imagen de los estudiantes",
+      });
 
     proyecto.titulo = titulo ?? proyecto.titulo;
     proyecto.descripcion = descripcion ?? proyecto.descripcion;
@@ -316,4 +318,16 @@ export const modificarProyectoRegional = async (req, res) => {
       return res.status(403).json({ error: "Formato ID incorrecto" });
     res.status(500).json({ error: "Error de servidor" });
   }
+};
+
+export const cargarArchivosRegional = async (req, res) => {
+  //testeo para ver si me trae todas las carpetas creadas en la cuenta de servicio
+
+  const driveResponse = await drive.files.list({
+    q: "'root' in parents", // Obtener archivos de la raíz (puedes cambiar "root" por el ID de una carpeta específica)
+    fields: "files(id, name, mimeType, parents)",
+  });
+
+  const files = driveResponse.data.files;
+  console.log(files);
 };

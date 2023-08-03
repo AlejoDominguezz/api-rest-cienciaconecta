@@ -57,7 +57,7 @@ export const crearEstablecimientosEducativos = async () => {
         const count = await EstablecimientoEducativo.estimatedDocumentCount();
         if(count > 0) return;
 
-        const workbook = xlsx.readFile('F:/Facu/CienciaConecta_ApiRest/api-rest-cienciaconecta/excel/2023.07.03_establecimientosEducativos.xlsx');
+        const workbook = xlsx.readFile('./excel/2023.07.03_establecimientosEducativos.xlsx');
         const worksheet = workbook.Sheets['padron'];
     
         // Convertir el contenido del archivo Excel a un arreglo de objetos

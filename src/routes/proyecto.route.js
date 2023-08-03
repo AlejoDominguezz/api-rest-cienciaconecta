@@ -8,7 +8,7 @@ import { roles } from "../helpers/roles.js";
 const routerProyectos = Router();
 
 routerProyectos.post("/", requireToken, checkRolAuth([roles.admin, roles.docente]), bodyInscribirProyectoValidator, inscribirProyectoEscolar);
-routerProyectos.get("/misProyectos", requireToken, checkRolAuth([roles.admin, roles.responsableProyecto]), consultarMisProyectos);
+routerProyectos.get("/misProyectos", requireToken, checkRolAuth([roles.admin, roles.responsableProyecto, roles.docente]), consultarMisProyectos);
 routerProyectos.get("/:id", requireToken, checkRolAuth([roles.admin, roles.responsableProyecto]), esPropietario, consultarProyecto);
 routerProyectos.get("/", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), consultarProyectos);
 routerProyectos.patch("/:id", requireToken, checkRolAuth([roles.admin, roles.responsableProyecto]), esPropietario, bodyInscribirProyectoValidator, modificarProyectoEscolar);

@@ -1,5 +1,6 @@
 import { response , request } from 'express';
 import {Feria, estadoFeria} from '../models/Feria.js';
+import { EstablecimientoEducativo} from '../models/EstablecimientoEducativo.js'
 import { Usuario } from '../models/Usuario.js';
 import { estado } from '../models/Proyecto.js';
 
@@ -95,7 +96,19 @@ export const crearFeria = async (req, res) => {
         usuarioResponsable: responsable._id,
       });
   
-      await feria.save();
+      const feriaBD = await feria.save();
+
+      // Obtener las sedes de la instancia regional y provincial
+      const sedesRegionales = instancias.instanciaRegional.sedes;
+      const sedeProvincial = instancias.instanciaProvincial.sede;
+
+      // Agregar el ID de la feria a los atributos "ferias" de las sedes
+      const sedesActualizar = [...sedesRegionales, sedeProvincial];
+
+      await EstablecimientoEducativo.updateMany(
+          { _id: { $in: sedesActualizar } },
+          { $addToSet: { ferias: feriaBD._id } }
+      );
   
       return res.json({ ok: true });
     } catch (error) {
@@ -141,6 +154,9 @@ export const modificarFeria = async (req, res) => {
       if(existeNombreFeria)
         return res.status(401).json({ error: "Ya existe una feria con el nombre ingresado" });}
 
+    // Obtén las ferias anteriores
+    const feriasAnteriores = [...feria.instancias.instanciaRegional.sedes, feria.instancias.instanciaProvincial.sede];
+
     // No se puede modificar los estados ni el usuario responsable
 
     feria.nombre = nombre ?? feria.nombre;
@@ -172,6 +188,27 @@ export const modificarFeria = async (req, res) => {
 
     await feria.save();
 
+     // Obtén las ferias nuevas
+     const feriasNuevas = [...instancias.instanciaRegional.sedes, instancias.instanciaProvincial.sede];
+
+     // Calcula las ferias eliminadas (presentes en feriasAnteriores pero no en feriasNuevas)
+     const feriasEliminadas = feriasAnteriores.filter(feriaAnterior => !feriasNuevas.includes(feriaAnterior));
+
+     // Calcula las ferias agregadas (presentes en feriasNuevas pero no en feriasAnteriores)
+     const feriasAgregadas = feriasNuevas.filter(feriaNueva => !feriasAnteriores.includes(feriaNueva));
+
+     // Elimina el ID de la feria actual de las ferias eliminadas
+     await EstablecimientoEducativo.updateMany(
+         { _id: { $in: feriasEliminadas } },
+         { $pull: { ferias: feria._id } }
+     );
+
+     // Agrega el ID de la feria actual a las ferias agregadas
+     await EstablecimientoEducativo.updateMany(
+         { _id: { $in: feriasAgregadas } },
+         { $addToSet: { ferias: feria._id } }
+     );
+
     return res.json({ feria });
   } catch (error) {
     console.log(error);
@@ -197,6 +234,12 @@ export const eliminarFeria = async (req, res) => {
 
   
   try {
+    // Elimina el ID de la feria actual del atributo "ferias" en las sedes de la feria
+    await EstablecimientoEducativo.updateMany(
+      { _id: { $in: [...feria.instancias.instanciaRegional.sedes, feria.instancias.instanciaProvincial.sede] } },
+      { $pull: { ferias: feria._id } }
+    );
+
     await feria.deleteOne();
 
     return res.json({ ok: true });

@@ -4,6 +4,7 @@ import { fechaAnteriorA, fechaPosteriorA } from "../helpers/db-validar.js";
 import { check } from "express-validator";
 import { Sede } from "../models/Sede.js";
 import { Nivel } from "../models/Nivel.js";
+import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js";
 
 export const bodyCrearFeriaValidator = [
     //validaciones de nombre
@@ -192,7 +193,7 @@ export const bodyCrearFeriaValidator = [
         .custom(async (sedesIds) => {
             // Validar cada ObjectId de las sedes en el array
             for (const sedeId of sedesIds) {
-            const sede = await Sede.findById(sedeId);
+            const sede = await EstablecimientoEducativo.findById(sedeId);
             if (!sede) {
                 return Promise.reject('Una de las sedes proporcionadas no es válida');
             }
@@ -268,7 +269,7 @@ export const bodyCrearFeriaValidator = [
         .if(body('instancias.instanciaProvincial.sede').exists())
             .isMongoId().withMessage('La sede debe ser un ObjectId válido')
             .custom(async (sedeId) => {
-                const sede = await Sede.findById(sedeId);
+                const sede = await EstablecimientoEducativo.findById(sedeId);
                 if (!sede) {
                 return Promise.reject('La sede proporcionada no es válida');
                 }

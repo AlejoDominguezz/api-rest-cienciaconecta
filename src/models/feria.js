@@ -68,7 +68,7 @@ const feriaSchema = new Schema({
                 sede: {
                     type: Schema.Types.ObjectId,
                     required: true,
-                    ref: 'Sede',
+                    ref: 'EstablecimientoEducativo',
                 },
                 nivel: {
                     type: Schema.Types.ObjectId,
@@ -115,7 +115,7 @@ const feriaSchema = new Schema({
             sede: {
                 type: Schema.Types.ObjectId,
                 required: false,
-                ref: 'Sede',
+                ref: 'EstablecimientoEducativo',
             },
         }
 

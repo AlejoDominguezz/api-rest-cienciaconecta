@@ -17,6 +17,6 @@ routerProyectos.delete("/delete/:id", requireToken, checkRolAuth([roles.admin]),
 routerProyectos.delete("/:id", requireToken, checkRolAuth([roles.admin, roles.comAsesora, roles.responsableProyecto]), esPropietario, bajaProyecto);
 
 //recibo por parametro el id del proyecto y los archivos por form-data
-routerProyectos.post("/regional/upload/:id",cargarArchivosRegional)
+routerProyectos.post("/regional/upload/:id", requireToken , cargarArchivosRegional)
 // requireToken , checkRolAuth([roles.admin, roles.responsableProyecto]), esPropietario, 
 export default routerProyectos;

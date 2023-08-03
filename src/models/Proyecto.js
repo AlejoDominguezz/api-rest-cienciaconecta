@@ -77,6 +77,9 @@ const ProyectoSchema = new Schema({
   autorizacionImagen: {
     type: Boolean,
   },
+  id_carpeta_drive: {
+    type: String,
+  },
   grupoProyecto: [
     {
       nombre: {

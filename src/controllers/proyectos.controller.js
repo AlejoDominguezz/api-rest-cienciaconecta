@@ -3,6 +3,12 @@ import { Sede } from "../models/Sede.js";
 import { Docente } from "../models/Docente.js";
 import { Usuario } from "../models/Usuario.js";
 import { drive } from "../services/drive/drive.js";
+import {
+  createFolder,
+  shareFolderWithPersonalAccount,
+  sendFileToDrive
+} from "../services/drive/helpers-drive.js";
+import formidable from "formidable";
 
 export const inscribirProyectoEscolar = async (req, res) => {
   const {
@@ -273,11 +279,9 @@ export const modificarProyectoRegional = async (req, res) => {
         .json({ error: "El proyecto ha sido dado de baja" });
 
     if (proyecto.estado === estado.instanciaEscolar)
-      return res
-        .status(404)
-        .json({
-          error: "El proyecto aún no ha sido actualizado a etapa regional",
-        });
+      return res.status(404).json({
+        error: "El proyecto aún no ha sido actualizado a etapa regional",
+      });
 
     let existeSede = await Sede.findById(sede);
     if (!existeSede)
@@ -321,13 +325,66 @@ export const modificarProyectoRegional = async (req, res) => {
 };
 
 export const cargarArchivosRegional = async (req, res) => {
-  //testeo para ver si me trae todas las carpetas creadas en la cuenta de servicio
+  //obtengo el usuario logueado
+  const uid = req.uid;
 
-  const driveResponse = await drive.files.list({
-    q: "'root' in parents", // Obtener archivos de la raíz (puedes cambiar "root" por el ID de una carpeta específica)
-    fields: "files(id, name, mimeType, parents)",
-  });
+  const usuario = await Usuario.findById(uid);
 
-  const files = driveResponse.data.files;
-  console.log(files);
+  //obtengo el id del proyecto
+  const id_proyecto = req.params.id;
+  //busco el proyecto que pertenece ese id
+  const proyecto = await Proyecto.findById(id_proyecto);
+  //asigno nombre a la nueva carpeta
+  const name_folder = proyecto.titulo;
+
+  try {
+    const form = formidable({ multiples: false });
+    form.parse(req, async (err, fields, files) => {
+      if (err) {
+        console.error("Error al form-data", err.message);
+        res.status(500).send("Error al procesar el form-data");
+        return;
+      }
+
+      //creo la nueva carpeta
+      const id_folder_new = await createFolder(name_folder, drive);
+
+      //seteo el campo del proyecto "id_carpeta_drive" con el "id" de la carpeta creada
+      proyecto.id_carpeta_drive = id_folder_new;
+
+      console.log(id_folder_new);
+
+      //comparto la carpeta creada con el email del usuario creador del proyecto y con cienciaConceta
+      const email_user = usuario.email;
+      const email_ciencia_conecta = "cienciaconecta.utn@gmail.com";
+      shareFolderWithPersonalAccount(
+        id_folder_new,
+        email_user,
+        drive,
+        "reader"
+      );
+      shareFolderWithPersonalAccount(
+        id_folder_new,
+        email_ciencia_conecta,
+        drive,
+        "writer"
+      );
+      const files_pdf = files.pdf;
+      const files_carpeta_campo = files.campo;
+      console.log(files_pdf);
+      const id_archivo_pdf = sendFileToDrive(files_pdf , id_folder_new , drive );
+      proyecto.informeTrabajo = id_archivo_pdf;
+      const id_archivo_pdf_campo = sendFileToDrive(files_carpeta_campo , id_folder_new , drive );
+      proyecto.carpetaCampo = id_archivo_pdf_campo;
+
+      res.status(200).json({
+        msg: "Archivos enviados correctamente a drive"
+      })
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({
+      msg: "Error al enviar archivos a drive!!! ", 
+    });
+  }
 };

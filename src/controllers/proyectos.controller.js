@@ -6,7 +6,7 @@ import { drive } from "../services/drive/drive.js";
 import {
   createFolder,
   shareFolderWithPersonalAccount,
-  sendFileToDrive
+  sendFileToDrive,
 } from "../services/drive/helpers-drive.js";
 import formidable from "formidable";
 
@@ -357,34 +357,59 @@ export const cargarArchivosRegional = async (req, res) => {
       //comparto la carpeta creada con el email del usuario creador del proyecto y con cienciaConceta
       const email_user = usuario.email;
       const email_ciencia_conecta = "cienciaconecta.utn@gmail.com";
-      shareFolderWithPersonalAccount(
+      await shareFolderWithPersonalAccount(
         id_folder_new,
         email_user,
         drive,
         "reader"
       );
-      shareFolderWithPersonalAccount(
+      await shareFolderWithPersonalAccount(
         id_folder_new,
         email_ciencia_conecta,
         drive,
         "writer"
       );
-      const files_pdf = files.pdf;
-      const files_carpeta_campo = files.campo;
-      console.log(files_pdf);
-      const id_archivo_pdf = sendFileToDrive(files_pdf , id_folder_new , drive );
-      proyecto.informeTrabajo = id_archivo_pdf;
-      const id_archivo_pdf_campo = sendFileToDrive(files_carpeta_campo , id_folder_new , drive );
-      proyecto.carpetaCampo = id_archivo_pdf_campo;
 
-      res.status(200).json({
-        msg: "Archivos enviados correctamente a drive"
-      })
+      const files_registroPedagogicopdf = files.registroPedagogicopdf;
+      const files_carpetaCampo = files.carpetaCampo;
+      const files_informeTrabajo = files.informeTrabajo;
+
+      const id_archivo_pdf = await sendFileToDrive(
+        files_registroPedagogicopdf,
+        id_folder_new,
+        drive
+      );
+      console.log(id_archivo_pdf);
+      proyecto.registroPedagogico = id_archivo_pdf;
+      const id_archivo_pdf_campo = await sendFileToDrive(
+        files_carpetaCampo,
+        id_folder_new,
+        drive
+      );
+      proyecto.carpetaCampo = id_archivo_pdf_campo;
+      const id_archivo_informeTrabajo = await sendFileToDrive(
+        files_informeTrabajo,
+        id_folder_new,
+        drive
+      );
+      proyecto.informeTrabajo = id_archivo_informeTrabajo;
+      console.log(proyecto.informeTrabajo);
+      if (id_archivo_pdf && id_archivo_pdf_campo && id_archivo_informeTrabajo) {
+        res.status(200).json({
+          id_inform_tranajp: proyecto.informeTrabajo,
+          msg: "Archivos enviados correctamente a drive",
+          proyecto,
+        });
+      } else {
+        res.status(400).json({
+          msg: "Error al subir los archivos a drive",
+        });
+      }
     });
   } catch (error) {
     console.error(error);
     res.status(400).json({
-      msg: "Error al enviar archivos a drive!!! ", 
+      msg: "Error al enviar archivos a drive!!! ",
     });
   }
 };

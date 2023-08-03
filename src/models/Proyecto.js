@@ -60,15 +60,15 @@ const ProyectoSchema = new Schema({
   },
   registroPedagogico: {
     type: String,
-    trim: true,
+    
   },
   carpetaCampo: {
     type: String,
-    trim: true,
+    
   },
   informeTrabajo: {
     type: String,
-    trim: true,
+  
   },
   sede:{
     type: Schema.Types.ObjectId,

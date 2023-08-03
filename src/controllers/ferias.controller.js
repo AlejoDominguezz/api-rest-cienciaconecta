@@ -152,8 +152,6 @@ export const modificarFeria = async (req, res) => {
     feria.instancias.instanciaEscolar.fechaInicioInstancia = instancias.instanciaEscolar.fechaInicioInstancia ?? feria.instancias.instanciaEscolar.fechaInicioInstancia;
     feria.instancias.instanciaEscolar.fechaFinInstancia = instancias.instanciaEscolar.fechaFinInstancia ?? feria.instancias.instanciaEscolar.fechaFinInstancia;
     
-    feria.instancias.instanciaRegional.fechaInicioActualizacion = instancias.instanciaRegional.fechaInicioActualizacion ?? feria.instancias.instanciaRegional.fechaInicioActualizacion;
-    feria.instancias.instanciaRegional.fechaFinActualizacion = instancias.instanciaRegional.fechaFinActualizacion ?? feria.instancias.instanciaRegional.fechaFinActualizacion;
     feria.instancias.instanciaRegional.fechaInicioEvaluacionTeorica = instancias.instanciaRegional.fechaInicioEvaluacionTeorica ?? feria.instancias.instanciaRegional.fechaInicioEvaluacionTeorica;
     feria.instancias.instanciaRegional.fechaFinEvaluacionTeorica = instancias.instanciaRegional.fechaFinEvaluacionTeorica ?? feria.instancias.instanciaRegional.fechaFinEvaluacionTeorica;
     feria.instancias.instanciaRegional.fechaInicioEvaluacionPresencial = instancias.instanciaRegional.fechaInicioEvaluacionPresencial ?? feria.instancias.instanciaRegional.fechaInicioEvaluacionPresencial;
@@ -161,8 +159,6 @@ export const modificarFeria = async (req, res) => {
     feria.instancias.instanciaRegional.cupos = instancias.instanciaRegional.cupos ?? feria.instancias.instanciaRegional.cupos;
     feria.instancias.instanciaRegional.sedes = instancias.instanciaRegional.sedes ?? feria.instancias.instanciaRegional.sedes;
 
-    feria.instancias.instanciaProvincial.fechaInicioActualizacion = instancias.instanciaProvincial.fechaInicioActualizacion ?? feria.instancias.instanciaProvincial.fechaInicioActualizacion;
-    feria.instancias.instanciaProvincial.fechaFinActualizacion = instancias.instanciaProvincial.fechaFinActualizacion ?? feria.instancias.instanciaProvincial.fechaFinActualizacion;
     feria.instancias.instanciaProvincial.fechaInicioEvaluacionPresencial = instancias.instanciaProvincial.fechaInicioEvaluacionPresencial ?? feria.instancias.instanciaProvincial.fechaInicioEvaluacionPresencial;
     feria.instancias.instanciaProvincial.fechaFinEvaluacionPresencial = instancias.instanciaProvincial.fechaFinEvaluacionPresencial ?? feria.instancias.instanciaProvincial.fechaFinEvaluacionPresencial;
     feria.instancias.instanciaProvincial.cupos = instancias.instanciaProvincial.cupos ?? feria.instancias.instanciaProvincial.cupos;

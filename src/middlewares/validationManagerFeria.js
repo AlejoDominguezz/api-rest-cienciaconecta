@@ -3,6 +3,7 @@ import { validarCampos } from "./validar-campos.js";
 import { fechaAnteriorA, fechaPosteriorA } from "../helpers/db-validar.js";
 import { check } from "express-validator";
 import { Sede } from "../models/Sede.js";
+import { Nivel } from "../models/Nivel.js";
 
 export const bodyCrearFeriaValidator = [
     //validaciones de nombre
@@ -62,7 +63,7 @@ export const bodyCrearFeriaValidator = [
 
     // VALIDACIONES DE INSTANCIAS --------------------------------------------------------------------------
     // INSTANCIA ESCOLAR -----------------------------------------------------------------------------------
-    //validaciones de fecha de inicio de inscripcion
+    //validaciones de fecha de inicio de instancia
     body('instancias.instanciaEscolar.fechaInicioInstancia')
         .notEmpty()
         .withMessage('La fecha de inicio de instancia escolar es obligatoria')
@@ -75,7 +76,7 @@ export const bodyCrearFeriaValidator = [
         return fechaAnteriorA(req.body.fechaFinFeria)(fechaInicioInstancia);
         }),
 
-    //validaciones de fecha de fin de inscripcion
+    //validaciones de fecha de fin de instancia
     body('instancias.instanciaEscolar.fechaFinInstancia')
         .notEmpty()
         .withMessage('La fecha de fin de instancia escolar es obligatoria')
@@ -92,26 +93,6 @@ export const bodyCrearFeriaValidator = [
         .withMessage('El estado de instancia regional debe tener un valor válido'),
     // INSTANCIA REGIONAL -----------------------------------------------------------------------------------------------------
 
-    //validaciones de fecha de inicio de inscripcion
-    body('instancias.instanciaRegional.fechaInicioActualizacion')
-        .notEmpty()
-        .withMessage('La fecha de inicio de actualización a instancia regional es obligatoria')
-        .isISO8601()
-        .withMessage('La fecha de inicio de actualización a instancia regional debe ser una fecha válida')
-        .custom((fechaInicioActualizacion, { req }) => {
-        return fechaPosteriorA(req.body.instancias.instanciaEscolar.fechaFinInstancia)(fechaInicioActualizacion);
-        }),
-
-    //validaciones de fecha de fin de inscripcion
-    body('instancias.instanciaRegional.fechaFinActualizacion')
-        .notEmpty()
-        .withMessage('La fecha de fin de actualización a instancia regional es obligatoria')
-        .isISO8601()
-        .withMessage('La fecha de fin de actualización a instancia regional debe ser una fecha válida')
-        .custom((fechaFinActualizacion, { req }) => {
-        return fechaPosteriorA(req.body.instancias.instanciaRegional.fechaInicioActualizacion)(fechaFinActualizacion);
-        }),
-
     //validaciones de fecha de inicio de evaluacion teorica
     body('instancias.instanciaRegional.fechaInicioEvaluacionTeorica')
         .notEmpty()
@@ -119,7 +100,7 @@ export const bodyCrearFeriaValidator = [
         .isISO8601()
         .withMessage('La fecha de inicio de evaluación teórica de instancia regional debe ser una fecha válida')
         .custom((fechaInicioEvaluacionTeorica, { req }) => {
-        return fechaPosteriorA(req.body.instancias.instanciaRegional.fechaFinActualizacion)(fechaInicioEvaluacionTeorica);
+        return fechaPosteriorA(req.body.instancias.instanciaEscolar.fechaFinInstancia)(fechaInicioEvaluacionTeorica);
         }),
 
     //validaciones de fecha de fin de evaluacion teorica
@@ -155,19 +136,46 @@ export const bodyCrearFeriaValidator = [
     //validaciones de cupo
     body('instancias.instanciaRegional.cupos')
         .optional()
-        .isArray(),
+        .isArray()
+        .custom((cupos, { req }) => {
+            const seenSedeNivelPairs = new Set();
+    
+            for (const cupo of cupos) {
+                const sedeNivelPair = `${cupo.sede}-${cupo.nivel}`;
+                if (seenSedeNivelPairs.has(sedeNivelPair)) {
+                    return Promise.reject('No puede haber cupos con la misma sede y el mismo nivel');
+                }
+                seenSedeNivelPairs.add(sedeNivelPair);
+            }
+            return true;
+        })
+        .withMessage('Los cupos no pueden tener la misma sede y el mismo nivel al mismo tiempo'),
+        
     body('instancias.instanciaRegional.cupos.*.sede', 'El campo "sede" es requerido y debe ser un ObjectId válido.')
         .if(body('instancias.instanciaProvincial.cupos').exists())
             .exists()
-            .isMongoId(),
+            .isMongoId()
+            .custom((value, { req }) => {
+                const sedeIds = req.body.instancias.instanciaRegional.sedes;
+                return sedeIds.includes(value.toString()); // Convertir a string para comparar
+            })
+            .withMessage('La sede en los cupos debe ser una de las sedes elegidas'),
     body('instancias.instanciaRegional.cupos.*.nivel', 'El campo "nivel" es requerido y debe ser un ObjectId válido.')
         .if(body('instancias.instanciaProvincial.cupos').exists())
             .exists()
-            .isMongoId(),
+            .isMongoId()
+            .custom(async (value) => {
+                const nivelExists = await Nivel.exists({ _id: value });
+                if (!nivelExists) {
+                    return Promise.reject('El nivel proporcionado no es válido');
+                }
+                return true;
+            }),
     body('instancias.instanciaRegional.cupos.*.cantidad', 'El campo "cantidad" es requerido y debe ser un número válido.')
         .if(body('instancias.instanciaProvincial.cupos').exists())
             .exists()
             .isInt(),
+    
 
     //validaciones de estado
     body('instancias.instanciaRegional.estado')
@@ -195,26 +203,6 @@ export const bodyCrearFeriaValidator = [
     
     // INSTANCIA PROVINCIAL -----------------------------------------------------------------------------
     
-    //validaciones de fecha de inicio de actualizacion
-    body('instancias.instanciaProvincial.fechaInicioActualizacion')
-        .notEmpty()
-        .withMessage('La fecha de inicio de actualización a instancia provincial es obligatoria')
-        .isISO8601()
-        .withMessage('La fecha de inicio de actualización a instancia provincial debe ser una fecha válida')
-        .custom((fechaInicioActualizacion, { req }) => {
-            return fechaPosteriorA(req.body.instancias.instanciaRegional.fechaFinEvaluacionPresencial)(fechaInicioActualizacion);
-        }),
-
-    //validaciones de fecha de fin de actualizacion
-    body('instancias.instanciaProvincial.fechaFinActualizacion')
-        .notEmpty()
-        .withMessage('La fecha de fin de actualización a instancia provincial es obligatoria')
-        .isISO8601()
-        .withMessage('La fecha de fin de actualización a instancia provincial debe ser una fecha válida')
-        .custom((fechaFinActualizacion, { req }) => {
-            return fechaPosteriorA(req.body.instancias.instanciaProvincial.fechaInicioActualizacion)(fechaFinActualizacion);
-        }),
-
     //validaciones de fecha de inicio de evaluacion
     body('instancias.instanciaProvincial.fechaInicioEvaluacionPresencial')
         .notEmpty()
@@ -222,7 +210,7 @@ export const bodyCrearFeriaValidator = [
         .isISO8601()
         .withMessage('La fecha de inicio de evaluación presencial de instancia provincial debe ser una fecha válida')
         .custom((fechaInicioEvaluacionPresencial, { req }) => {
-            return fechaPosteriorA(req.body.instancias.instanciaProvincial.fechaFinActualizacion)(fechaInicioEvaluacionPresencial);
+            return fechaPosteriorA(req.body.instancias.instanciaRegional.fechaFinEvaluacionPresencial)(fechaInicioEvaluacionPresencial);
         }),
 
     //validaciones de fecha de fin de evaluacion
@@ -241,11 +229,29 @@ export const bodyCrearFeriaValidator = [
     //validaciones de cupo
     body('instancias.instanciaProvincial.cupos')
         .optional()
-        .isArray(),
+        .isArray()
+        .custom((cupos, { req }) => {
+            const seenNiveles = new Set();
+            for (const cupo of cupos) {
+                if (seenNiveles.has(cupo.nivel)) {
+                    return Promise.reject('No puede haber cupos con el mismo nivel en la instancia provincial');
+                }
+                seenNiveles.add(cupo.nivel);
+            }
+            return true;})
+        .withMessage('Los cupos no pueden tener el mismo nivel en la instancia provincial'),
+
     body('instancias.instanciaProvincial.cupos.*.nivel', 'El campo "nivel" es requerido y debe ser un ObjectId válido.')
         .if(body('instancias.instanciaProvincial.cupos').exists())
             .exists()
-            .isMongoId(),
+            .isMongoId()
+            .custom(async (value) => {
+                const nivelExists = await Nivel.exists({ _id: value });
+                if (!nivelExists) {
+                    return Promise.reject('El nivel proporcionado no es válido');
+                }
+                return true;
+            }),
     body('instancias.instanciaProvincial.cupos.*.cantidad', 'El campo "cantidad" es requerido y debe ser un número válido.')
         .if(body('instancias.instanciaProvincial.cupos').exists())
             .exists()

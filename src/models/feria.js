@@ -42,14 +42,6 @@ const feriaSchema = new Schema({
             }
         },
         instanciaRegional: {
-            fechaInicioActualizacion: {
-                type: Date,
-                required: [true , 'La fecha de inicio de actualización a instancia regional es obligatoria'],
-            },
-            fechaFinActualizacion: {
-                type: Date,
-                required: [true , 'La fecha de fin de actualización a instancia regional es obligatoria'],
-            },
             fechaInicioEvaluacionTeorica: {
                 type: Date,
                 required: [true , 'La fecha de inicio de evaluación teórica de instancia regional es obligatoria'],
@@ -76,7 +68,7 @@ const feriaSchema = new Schema({
                 sede: {
                     type: Schema.Types.ObjectId,
                     required: true,
-                    ref: 'Sede',
+                    ref: 'EstablecimientoEducativo',
                 },
                 nivel: {
                     type: Schema.Types.ObjectId,
@@ -95,14 +87,6 @@ const feriaSchema = new Schema({
             },
         },
         instanciaProvincial: {
-            fechaInicioActualizacion: {
-                type: Date,
-                required: [true , 'La fecha de inicio de actualización a instancia provincial es obligatoria'],
-            },
-            fechaFinActualizacion: {
-                type: Date,
-                required: [true , 'La fecha de fin de actualización a instancia provincial es obligatoria'],
-            },
             fechaInicioEvaluacionPresencial: {
                 type: Date,
                 required: [true , 'La fecha de inicio de evaluación presencial de instancia provincial es obligatoria'],
@@ -131,7 +115,7 @@ const feriaSchema = new Schema({
             sede: {
                 type: Schema.Types.ObjectId,
                 required: false,
-                ref: 'Sede',
+                ref: 'EstablecimientoEducativo',
             },
         }
 

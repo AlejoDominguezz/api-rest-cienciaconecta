@@ -12,6 +12,7 @@ import {
 import formidable from "formidable";
 
 import { existeProyecto } from "../helpers/db-validar.js";
+import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js";
 
 
 export const inscribirProyectoEscolar = async (req, res) => {
@@ -20,9 +21,7 @@ export const inscribirProyectoEscolar = async (req, res) => {
     descripcion,
     nivel,
     categoria,
-    nombreEscuela,
-    cueEscuela,
-    privada,
+    establecimientoEducativo,
     emailEscuela,
   } = req.body;
 
@@ -47,9 +46,7 @@ export const inscribirProyectoEscolar = async (req, res) => {
       descripcion,
       nivel,
       categoria,
-      nombreEscuela,
-      cueEscuela,
-      privada,
+      establecimientoEducativo,
       emailEscuela,
       idResponsable: responsable._id,
     });
@@ -119,9 +116,7 @@ export const modificarProyectoEscolar = async (req, res) => {
       descripcion,
       nivel,
       categoria,
-      nombreEscuela,
-      cueEscuela,
-      privada,
+      establecimientoEducativo,
       emailEscuela,
     } = req.body;
 
@@ -145,9 +140,7 @@ export const modificarProyectoEscolar = async (req, res) => {
     proyecto.descripcion = descripcion ?? proyecto.descripcion;
     proyecto.nivel = nivel ?? proyecto.nivel;
     proyecto.categoria = categoria ?? proyecto.categoria;
-    proyecto.nombreEscuela = nombreEscuela ?? proyecto.nombreEscuela;
-    proyecto.cueEscuela = cueEscuela ?? proyecto.cueEscuela;
-    proyecto.privada = privada ?? proyecto.privada;
+    proyecto.establecimientoEducativo = establecimientoEducativo ?? proyecto.establecimientoEducativo;
     proyecto.emailEscuela = emailEscuela ?? proyecto.emailEscuela;
 
     await proyecto.save();
@@ -195,9 +188,7 @@ export const consultarProyectos = async (req, res) => {
       descripcion,
       nivel,
       categoria,
-      nombreEscuela,
-      cueEscuela,
-      privada,
+      establecimientoEducativo,
       emailEscuela,
       idResponsable,
       fechaInscripcion,
@@ -216,9 +207,7 @@ export const consultarProyectos = async (req, res) => {
       ...(descripcion && { descripcion }),
       ...(nivel && { nivel }),
       ...(categoria && { categoria }),
-      ...(nombreEscuela && { nombreEscuela }),
-      ...(cueEscuela && { cueEscuela }),
-      ...(privada && { privada: privada === 'true' }),
+      ...(establecimientoEducativo && { establecimientoEducativo }),
       ...(emailEscuela && { emailEscuela }),
       ...(idResponsable && { idResponsable }),
       ...(fechaInscripcion && { fechaInscripcion }),
@@ -260,9 +249,7 @@ export const consultarMisProyectos = async (req, res) => {
       descripcion,
       nivel,
       categoria,
-      nombreEscuela,
-      cueEscuela,
-      privada,
+      establecimientoEducativo,
       emailEscuela,
       idResponsable,
       fechaInscripcion,
@@ -285,9 +272,7 @@ export const consultarMisProyectos = async (req, res) => {
       ...(descripcion && { descripcion }),
       ...(nivel && { nivel }),
       ...(categoria && { categoria }),
-      ...(nombreEscuela && { nombreEscuela }),
-      ...(cueEscuela && { cueEscuela }),
-      ...(privada && { privada: privada === 'true' }),
+      ...(establecimientoEducativo && { establecimientoEducativo }),
       ...(emailEscuela && { emailEscuela }),
       ...(idResponsable && { idResponsable }),
       ...(fechaInscripcion && { fechaInscripcion }),
@@ -390,9 +375,7 @@ export const modificarProyectoRegional = async (req, res) => {
       descripcion,
       nivel,
       categoria,
-      nombreEscuela,
-      cueEscuela,
-      privada,
+      establecimientoEducativo,
       emailEscuela,
       videoPresentacion,
       registroPedagogico,
@@ -421,11 +404,6 @@ export const modificarProyectoRegional = async (req, res) => {
       }
     }
 
-
-    const existeSede = await Sede.findById(sede);
-    if (!existeSede)
-      return res.status(404).json({ error: "No existe la sede" });
-
     if (!autorizacionImagen)
       return res.status(404).json({
         error:
@@ -436,9 +414,7 @@ export const modificarProyectoRegional = async (req, res) => {
     proyecto.descripcion = descripcion ?? proyecto.descripcion;
     proyecto.nivel = nivel ?? proyecto.nivel;
     proyecto.categoria = categoria ?? proyecto.categoria;
-    proyecto.nombreEscuela = nombreEscuela ?? proyecto.nombreEscuela;
-    proyecto.cueEscuela = cueEscuela ?? proyecto.cueEscuela;
-    proyecto.privada = privada ?? proyecto.privada;
+    proyecto.establecimientoEducativo = establecimientoEducativo ?? proyecto.establecimientoEducativo;
     proyecto.emailEscuela = emailEscuela ?? proyecto.emailEscuela;
 
     proyecto.videoPresentacion =

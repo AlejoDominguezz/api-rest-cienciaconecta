@@ -58,6 +58,15 @@ export const getSedesActuales = async (req = request, res = response) => {
         res.json({
             sedes: sedesDetallesConInstancias
         });
+
+        // return sedesDetalles.map(sede => ({
+        //     _id: sede._id.toString(),
+        //     instancias: [
+        //         ...(sedesRegionales.includes(sede._id.toString()) ? ['regional'] : []),
+        //         ...(sede._id.toString() === sedeProvincial.toString() ? ['provincial'] : [])
+        //     ]
+        // }));
+
     } catch (error) {
         console.error('Error al obtener las sedes:', error);
         return res.status(500).json({
@@ -67,6 +76,33 @@ export const getSedesActuales = async (req = request, res = response) => {
 };
 
 
+export const getSedesActualesForValidation = async (sedeId) => {
+    try {
+      const feriaActiva = await Feria.findOne({ estado: { $ne: estadoFeria.finalizada } });
+      if (!feriaActiva) {
+        throw new Error('No existe una feria activa en este momento');
+      }
+
+      // Obtener las sedes de ambas instancias de la feria activa
+      const sedesRegionalesActivas = feriaActiva.instancias.instanciaRegional.sedes;
+      const sedeProvincialActiva = feriaActiva.instancias.instanciaProvincial.sede;
+  
+    if (sedeProvincialActiva.toString() === sedeId) {
+      return true; // La sedeId es la sede provincial activa
+    }
+
+    if (sedesRegionalesActivas.includes(sedeId)) {
+      return true; // La sedeId está en las sedes regionales activas
+    }
+
+    return false; // La sedeId no es una sede activa
+
+    } catch (error) {
+      console.error('Error al obtener la sede actual:', error);
+      throw new Error('El establecimiento ingresado no es una sede actual:');
+    }
+  };
+  
 
 
 // export const getEstablecimientoEducativo = async (req = request, res = response) => {

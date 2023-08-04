@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { requireToken } from '../middlewares/requireToken.js';
-import { bajaProyecto, consultarMisProyectos, consultarProyecto, consultarProyectos, eliminarProyecto, inscribirProyectoEscolar, modificarProyectoEscolar, modificarProyectoRegional } from "../controllers/proyectos.controller.js";
+import { bajaProyecto, consultarMisProyectos, consultarProyecto, consultarProyectos, eliminarProyecto, inscribirProyectoEscolar, modificarProyectoEscolar, modificarProyectoRegional , cargarArchivosRegional} from "../controllers/proyectos.controller.js";
 import { bodyInscribirProyectoValidator, bodyActualizarProyectoRegionalValidator } from "../middlewares/validationManager.js";
 import { checkRolAuth, esPropietario } from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
@@ -17,5 +17,7 @@ routerProyectos.patch("/regional/:id", requireToken, checkRolAuth([roles.admin, 
 routerProyectos.delete("/delete/:id", requireToken, checkRolAuth([roles.admin]), eliminarProyecto);
 routerProyectos.delete("/:id", requireToken, checkRolAuth([roles.admin, roles.comAsesora, roles.responsableProyecto]), esPropietario, bajaProyecto);
 
-
+//recibo por parametro el id del proyecto y los archivos por form-data
+routerProyectos.post("/regional/upload/:id", requireToken , cargarArchivosRegional)
+// requireToken , checkRolAuth([roles.admin, roles.responsableProyecto]), esPropietario, 
 export default routerProyectos;

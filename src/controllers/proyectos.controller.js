@@ -2,7 +2,17 @@ import { Proyecto, estado, nombreEstado } from "../models/Proyecto.js";
 import { Sede } from "../models/Sede.js";
 import { Docente } from "../models/Docente.js";
 import { Usuario } from "../models/Usuario.js";
+
+import { drive } from "../services/drive/drive.js";
+import {
+  createFolder,
+  shareFolderWithPersonalAccount,
+  sendFileToDrive,
+} from "../services/drive/helpers-drive.js";
+import formidable from "formidable";
+
 import { existeProyecto } from "../helpers/db-validar.js";
+
 
 export const inscribirProyectoEscolar = async (req, res) => {
   const {
@@ -26,9 +36,11 @@ export const inscribirProyectoEscolar = async (req, res) => {
 
     const uid = req.uid;
     const responsable = await Docente.findOne({ usuario: uid });
-    const usuario = await Usuario.findById(uid)
-    if(!responsable)  
-      return res.status(401).json({ error: "No existe el docente correspondiente a su usuario" });
+    const usuario = await Usuario.findById(uid);
+    if (!responsable)
+      return res
+        .status(401)
+        .json({ error: "No existe el docente correspondiente a su usuario" });
 
     const proyecto = new Proyecto({
       titulo,
@@ -45,8 +57,7 @@ export const inscribirProyectoEscolar = async (req, res) => {
     await proyecto.save();
 
     // Cambio estado del usuario: de docente a responsable de proyecto
-    if(!usuario.roles.includes('2'))
-      usuario.roles.push('2')
+    if (!usuario.roles.includes("2")) usuario.roles.push("2");
     await usuario.save();
 
     return res.json({ ok: true });
@@ -161,11 +172,12 @@ export const consultarProyecto = async (req, res) => {
       return res
         .status(404)
         .json({ error: "El proyecto ha sido dado de baja" });
-    
+
     // Agrega el nombre del estado y lo devuelve en el json de la consulta
     const proyectoConNombreEstado = {
       ...proyecto.toObject(),
-      nombreEstado: nombreEstado[proyecto.estado], }// Obtenemos el nombre del estado según la clave;
+      nombreEstado: nombreEstado[proyecto.estado],
+    }; // Obtenemos el nombre del estado según la clave;
 
     return res.json({ proyecto: proyectoConNombreEstado });
   } catch (error) {
@@ -229,7 +241,10 @@ export const consultarProyectos = async (req, res) => {
       nombreEstado: nombreEstado[proyecto.estado], // Obtenemos el nombre del estado según la clave
     }));
 
+
+
     return res.json({ proyectos: proyectosConNombreEstado  });
+    
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Error de servidor" });
@@ -290,6 +305,7 @@ export const consultarMisProyectos = async (req, res) => {
 
     if (proyectos.length === 0)
       return res.status(204).json({ error: "No se han encontrado proyectos" });
+
 
     // Agrega el nombre del estado y lo devuelve en el json de la consulta
     const proyectosConNombreEstado = proyectos.map((proyecto) => ({
@@ -397,6 +413,7 @@ export const modificarProyectoRegional = async (req, res) => {
         .status(404)
         .json({ error: "El proyecto ha sido dado de baja" });
 
+
     if (titulo && titulo !== proyecto.titulo) {
       const errorExisteProyecto = await existeProyecto(titulo);
       if (errorExisteProyecto) {
@@ -404,17 +421,16 @@ export const modificarProyectoRegional = async (req, res) => {
       }
     }
 
+
     const existeSede = await Sede.findById(sede);
     if (!existeSede)
       return res.status(404).json({ error: "No existe la sede" });
 
     if (!autorizacionImagen)
-      return res
-        .status(404)
-        .json({
-          error:
-            "Para continuar, debe autorizar el uso y cesión de imagen de los estudiantes",
-        });
+      return res.status(404).json({
+        error:
+          "Para continuar, debe autorizar el uso y cesión de imagen de los estudiantes",
+      });
 
     proyecto.titulo = titulo ?? proyecto.titulo;
     proyecto.descripcion = descripcion ?? proyecto.descripcion;
@@ -450,58 +466,94 @@ export const modificarProyectoRegional = async (req, res) => {
   }
 };
 
-// Obtener proyectos por query params
-// export const filtrarProyectos = async (req, res) => {
-//   try {
-//     console.log("Filtrado")
-//     // Obtener los parámetros de consulta de los query params
-//     const {
-//       titulo,
-//       descripcion,
-//       nivel,
-//       categoria,
-//       nombreEscuela,
-//       cueEscuela,
-//       privada,
-//       emailEscuela,
-//       idResponsable,
-//       fechaInscripcion,
-//       estado,
-//       videoPresentacion,
-//       registroPedagogico,
-//       carpetaCampo,
-//       informeTrabajo,
-//       sede,
-//       autorizacionImagen,
-//     } = req.query;
 
-//     // Crear un objeto de filtro con los parámetros de consulta presentes
-//     const filtro = {
-//       ...(titulo && { titulo }),
-//       ...(descripcion && { descripcion }),
-//       ...(nivel && { nivel }),
-//       ...(categoria && { categoria }),
-//       ...(nombreEscuela && { nombreEscuela }),
-//       ...(cueEscuela && { cueEscuela }),
-//       ...(privada && { privada: privada === 'true' }),
-//       ...(emailEscuela && { emailEscuela }),
-//       ...(idResponsable && { idResponsable }),
-//       ...(fechaInscripcion && { fechaInscripcion }),
-//       ...(estado && { estado }),
-//       ...(videoPresentacion && { videoPresentacion }),
-//       ...(registroPedagogico && { registroPedagogico }),
-//       ...(carpetaCampo && { carpetaCampo }),
-//       ...(informeTrabajo && { informeTrabajo }),
-//       ...(sede && { sede }),
-//       ...(autorizacionImagen && { autorizacionImagen: autorizacionImagen === 'true' }),
-//     };
+export const cargarArchivosRegional = async (req, res) => {
+  //obtengo el usuario logueado
+  const uid = req.uid;
 
-//     // Realizar la búsqueda en la base de datos con los filtros
-//     const proyectosFiltrados = await Proyecto.find(filtro);
+  const usuario = await Usuario.findById(uid);
 
-//     return res.json({ proyectos: proyectosFiltrados });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({ error: "Error de servidor" });
-//   }
-// };
+  //obtengo el id del proyecto
+  const id_proyecto = req.params.id;
+  //busco el proyecto que pertenece ese id
+  const proyecto = await Proyecto.findById(id_proyecto);
+  //asigno nombre a la nueva carpeta
+  const name_folder = proyecto.titulo;
+
+  try {
+    const form = formidable({ multiples: false });
+    form.parse(req, async (err, fields, files) => {
+      if (err) {
+        console.error("Error al form-data", err.message);
+        res.status(500).send("Error al procesar el form-data");
+        return;
+      }
+
+      //creo la nueva carpeta
+      const id_folder_new = await createFolder(name_folder, drive);
+
+      //seteo el campo del proyecto "id_carpeta_drive" con el "id" de la carpeta creada
+      proyecto.id_carpeta_drive = id_folder_new;
+
+      console.log(id_folder_new);
+
+      //comparto la carpeta creada con el email del usuario creador del proyecto y con cienciaConceta
+      const email_user = usuario.email;
+      const email_ciencia_conecta = "cienciaconecta.utn@gmail.com";
+      await shareFolderWithPersonalAccount(
+        id_folder_new,
+        email_user,
+        drive,
+        "reader"
+      );
+      await shareFolderWithPersonalAccount(
+        id_folder_new,
+        email_ciencia_conecta,
+        drive,
+        "writer"
+      );
+
+      const files_registroPedagogicopdf = files.registroPedagogicopdf;
+      const files_carpetaCampo = files.carpetaCampo;
+      const files_informeTrabajo = files.informeTrabajo;
+
+      const id_archivo_pdf = await sendFileToDrive(
+        files_registroPedagogicopdf,
+        id_folder_new,
+        drive
+      );
+      console.log(id_archivo_pdf);
+      proyecto.registroPedagogico = id_archivo_pdf;
+      const id_archivo_pdf_campo = await sendFileToDrive(
+        files_carpetaCampo,
+        id_folder_new,
+        drive
+      );
+      proyecto.carpetaCampo = id_archivo_pdf_campo;
+      const id_archivo_informeTrabajo = await sendFileToDrive(
+        files_informeTrabajo,
+        id_folder_new,
+        drive
+      );
+      proyecto.informeTrabajo = id_archivo_informeTrabajo;
+      console.log(proyecto.informeTrabajo);
+      if (id_archivo_pdf && id_archivo_pdf_campo && id_archivo_informeTrabajo) {
+        res.status(200).json({
+          id_inform_tranajp: proyecto.informeTrabajo,
+          msg: "Archivos enviados correctamente a drive",
+          proyecto,
+        });
+      } else {
+        res.status(400).json({
+          msg: "Error al subir los archivos a drive",
+        });
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({
+      msg: "Error al enviar archivos a drive!!! ",
+    });
+  }
+};
+

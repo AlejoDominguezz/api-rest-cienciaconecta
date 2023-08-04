@@ -60,15 +60,15 @@ const ProyectoSchema = new Schema({
   },
   registroPedagogico: {
     type: String,
-    trim: true,
+    
   },
   carpetaCampo: {
     type: String,
-    trim: true,
+    
   },
   informeTrabajo: {
     type: String,
-    trim: true,
+  
   },
   sede:{
     type: Schema.Types.ObjectId,
@@ -76,6 +76,9 @@ const ProyectoSchema = new Schema({
   },
   autorizacionImagen: {
     type: Boolean,
+  },
+  id_carpeta_drive: {
+    type: String,
   },
   grupoProyecto: [
     {

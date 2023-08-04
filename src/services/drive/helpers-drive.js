@@ -21,12 +21,12 @@ export const createFolder = async (folderName, drive) => {
 export const shareFolderWithPersonalAccount = async (
   folderId,
   personalAccountEmail,
-  drive, 
+  drive,
   permiso
 ) => {
   const permission = {
     type: "user",
-    role: permiso , // Puedes ajustar el rol según tus necesidades (reader, writer, owner, etc.)
+    role: permiso, // Puedes ajustar el rol según tus necesidades (reader, writer, owner, etc.)
     emailAddress: personalAccountEmail,
   };
 
@@ -44,21 +44,16 @@ export const shareFolderWithPersonalAccount = async (
   }
 };
 
-
-export const sendFileToDrive = async(files_pdf ,  myFolder , drive) => {
-
+export const sendFileToDrive = async (files_pdf, myFolder, drive) => {
   try {
     const { originalFilename: pdfName, filepath: pdfPath } = files_pdf;
 
-  
-  
     const fileMetadata = {
       name: pdfName,
       parents: [myFolder],
       mimeType: "application/pdf",
     };
-  
-    
+
     const response = await drive.files.create({
       resource: fileMetadata,
       media: {
@@ -67,15 +62,11 @@ export const sendFileToDrive = async(files_pdf ,  myFolder , drive) => {
       },
       fields: "id",
     });
-      //Eliminar el archivo temporal después de subirlo a Drive
+    //Eliminar el archivo temporal después de subirlo a Drive
     fs.unlinkSync(pdfPath);
     console.log("Archivo PDF subido. ID:", response.data.id);
-    return response.data.id
-
+    return response.data.id;
   } catch (error) {
     console.error("Error al subir el archivo:", error.message);
-
   }
-
-
-}
+};

@@ -2,6 +2,7 @@ import { Proyecto, estado, nombreEstado } from "../models/Proyecto.js";
 import { Sede } from "../models/Sede.js";
 import { Docente } from "../models/Docente.js";
 import { Usuario } from "../models/Usuario.js";
+
 import { drive } from "../services/drive/drive.js";
 import {
   createFolder,
@@ -9,6 +10,9 @@ import {
   sendFileToDrive,
 } from "../services/drive/helpers-drive.js";
 import formidable from "formidable";
+
+import { existeProyecto } from "../helpers/db-validar.js";
+
 
 export const inscribirProyectoEscolar = async (req, res) => {
   const {
@@ -23,7 +27,12 @@ export const inscribirProyectoEscolar = async (req, res) => {
   } = req.body;
 
   try {
-    //existeProyecto(titulo);
+
+    
+    const errorExisteProyecto = await existeProyecto(titulo);
+    if (errorExisteProyecto) {
+        return res.status(400).json(errorExisteProyecto); // Devuelves el mensaje de error en formato JSON
+    }
 
     const uid = req.uid;
     const responsable = await Docente.findOne({ usuario: uid });
@@ -85,6 +94,11 @@ export const bajaProyecto = async (req, res) => {
     if (!proyecto)
       return res.status(404).json({ error: "No existe el proyecto" });
 
+    const proyectoInactivo = proyecto.estado === estado.inactivo || proyecto.estado === estado.finalizado
+    console.log(proyectoInactivo)
+    if(proyectoInactivo)
+      return res.status(404).json({ error: "El proyecto ya se encuentra inactivo" });
+
     proyecto.estado = estado.inactivo;
     await proyecto.save();
 
@@ -119,6 +133,13 @@ export const modificarProyectoEscolar = async (req, res) => {
       return res
         .status(404)
         .json({ error: "El proyecto ha sido dado de baja" });
+    
+    if (titulo && titulo !== proyecto.titulo) {
+      const errorExisteProyecto = await existeProyecto(titulo);
+      if (errorExisteProyecto) {
+          return res.status(400).json(errorExisteProyecto); // Devuelves el mensaje de error en formato JSON
+      }
+    }
 
     proyecto.titulo = titulo ?? proyecto.titulo;
     proyecto.descripcion = descripcion ?? proyecto.descripcion;
@@ -153,12 +174,12 @@ export const consultarProyecto = async (req, res) => {
         .json({ error: "El proyecto ha sido dado de baja" });
 
     // Agrega el nombre del estado y lo devuelve en el json de la consulta
-    const proyectosConNombreEstado = {
+    const proyectoConNombreEstado = {
       ...proyecto.toObject(),
       nombreEstado: nombreEstado[proyecto.estado],
     }; // Obtenemos el nombre del estado según la clave;
 
-    return res.json({ proyectosConNombreEstado });
+    return res.json({ proyecto: proyectoConNombreEstado });
   } catch (error) {
     console.log(error);
     if (error.kind === "ObjectId")
@@ -169,7 +190,47 @@ export const consultarProyecto = async (req, res) => {
 
 export const consultarProyectos = async (req, res) => {
   try {
-    const proyectos = await Proyecto.find();
+    const {
+      titulo,
+      descripcion,
+      nivel,
+      categoria,
+      nombreEscuela,
+      cueEscuela,
+      privada,
+      emailEscuela,
+      idResponsable,
+      fechaInscripcion,
+      estado,
+      videoPresentacion,
+      registroPedagogico,
+      carpetaCampo,
+      informeTrabajo,
+      sede,
+      autorizacionImagen,
+    } = req.query;
+
+    // Crear un objeto de filtro con los parámetros de consulta presentes
+    const filtro = {
+      ...(titulo && { titulo }),
+      ...(descripcion && { descripcion }),
+      ...(nivel && { nivel }),
+      ...(categoria && { categoria }),
+      ...(nombreEscuela && { nombreEscuela }),
+      ...(cueEscuela && { cueEscuela }),
+      ...(privada && { privada: privada === 'true' }),
+      ...(emailEscuela && { emailEscuela }),
+      ...(idResponsable && { idResponsable }),
+      ...(fechaInscripcion && { fechaInscripcion }),
+      ...(estado && { estado }),
+      ...(videoPresentacion && { videoPresentacion }),
+      ...(registroPedagogico && { registroPedagogico }),
+      ...(carpetaCampo && { carpetaCampo }),
+      ...(informeTrabajo && { informeTrabajo }),
+      ...(sede && { sede }),
+      ...(autorizacionImagen && { autorizacionImagen: autorizacionImagen === 'true' }),
+    };
+    const proyectos = await Proyecto.find(filtro);
 
     if (proyectos.length === 0)
       return res.status(204).json({ error: "No se han encontrado proyectos" });
@@ -180,72 +241,145 @@ export const consultarProyectos = async (req, res) => {
       nombreEstado: nombreEstado[proyecto.estado], // Obtenemos el nombre del estado según la clave
     }));
 
-    return res.json({ proyectosConNombreEstado });
+
+
+    return res.json({ proyectos: proyectosConNombreEstado  });
+    
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Error de servidor" });
   }
 };
 
-export const actualizarProyectoRegional = async (req, res) => {
+export const consultarMisProyectos = async (req, res) => {
   try {
-    const { id } = req.params;
+    const uid = req.uid;
+
     const {
+      titulo,
+      descripcion,
+      nivel,
+      categoria,
+      nombreEscuela,
+      cueEscuela,
+      privada,
+      emailEscuela,
+      idResponsable,
+      fechaInscripcion,
+      estado,
       videoPresentacion,
       registroPedagogico,
       carpetaCampo,
       informeTrabajo,
       sede,
       autorizacionImagen,
-      grupoProyecto,
-    } = req.body;
+    } = req.query;
 
-    let proyecto = await Proyecto.findById(id);
-    if (!proyecto)
-      return res.status(404).json({ error: "No existe el proyecto" });
-    if (proyecto.estado === estado.inactivo)
-      return res
-        .status(404)
-        .json({ error: "El proyecto ha sido dado de baja" });
-    if (proyecto.estado === estado.instanciaRegional)
-      return res.status(404).json({
-        error:
-          "El proyecto ya ha sido actualizado a etapa regional. Aún puede modificar los datos de proyecto",
-      });
+    const responsable = await Docente.findOne({ usuario: uid });
+    if(!responsable)  
+      return res.status(401).json({ error: "No existe el docente correspondiente a su usuario" });
 
-    let existeSede = await Sede.findById(sede);
-    if (!existeSede)
-      return res.status(404).json({ error: "No existe la sede" });
+    // Crear un objeto de filtro con los parámetros de consulta presentes
+    const filtro = {
+      ...(titulo && { titulo }),
+      ...(descripcion && { descripcion }),
+      ...(nivel && { nivel }),
+      ...(categoria && { categoria }),
+      ...(nombreEscuela && { nombreEscuela }),
+      ...(cueEscuela && { cueEscuela }),
+      ...(privada && { privada: privada === 'true' }),
+      ...(emailEscuela && { emailEscuela }),
+      ...(idResponsable && { idResponsable }),
+      ...(fechaInscripcion && { fechaInscripcion }),
+      ...(estado && { estado }),
+      ...(videoPresentacion && { videoPresentacion }),
+      ...(registroPedagogico && { registroPedagogico }),
+      ...(carpetaCampo && { carpetaCampo }),
+      ...(informeTrabajo && { informeTrabajo }),
+      ...(sede && { sede }),
+      ...(autorizacionImagen && { autorizacionImagen: autorizacionImagen === 'true' }),
+      idResponsable: responsable._id
+    };
 
-    if (!autorizacionImagen)
-      return res.status(404).json({
-        error:
-          "Para continuar, debe autorizar el uso y cesión de imagen de los estudiantes",
-      });
+    const proyectos = await Proyecto.find(filtro);
 
-    proyecto.videoPresentacion =
-      videoPresentacion ?? proyecto.videoPresentacion;
-    proyecto.registroPedagogico =
-      registroPedagogico ?? proyecto.registroPedagogico;
-    proyecto.carpetaCampo = carpetaCampo ?? proyecto.carpetaCampo;
-    proyecto.informeTrabajo = informeTrabajo ?? proyecto.informeTrabajo;
-    proyecto.sede = sede ?? proyecto.sede;
-    proyecto.autorizacionImagen =
-      autorizacionImagen ?? proyecto.autorizacionImagen;
-    proyecto.grupoProyecto = grupoProyecto ?? proyecto.grupoProyecto;
+    if (proyectos.length === 0)
+      return res.status(204).json({ error: "No se han encontrado proyectos" });
 
-    proyecto.estado = estado.instanciaRegional;
 
-    await proyecto.save();
+    // Agrega el nombre del estado y lo devuelve en el json de la consulta
+    const proyectosConNombreEstado = proyectos.map((proyecto) => ({
+      ...proyecto.toObject(),
+      nombreEstado: nombreEstado[proyecto.estado], // Obtenemos el nombre del estado según la clave
+    }));
 
-    return res.json({ proyecto });
+    return res.json({ proyectos: proyectosConNombreEstado  });
   } catch (error) {
     console.log(error);
-    if (error.kind === "ObjectId")
-      return res.status(403).json({ error: "Formato ID incorrecto" });
     res.status(500).json({ error: "Error de servidor" });
   }
 };
+
+// export const actualizarProyectoRegional = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const {
+//       videoPresentacion,
+//       registroPedagogico,
+//       carpetaCampo,
+//       informeTrabajo,
+//       sede,
+//       autorizacionImagen,
+//       grupoProyecto,
+//     } = req.body;
+
+//     let proyecto = await Proyecto.findById(id);
+//     if (!proyecto)
+//       return res.status(404).json({ error: "No existe el proyecto" });
+//     if (proyecto.estado === estado.inactivo)
+//       return res
+//         .status(404)
+//         .json({ error: "El proyecto ha sido dado de baja" });
+//     if (proyecto.estado === estado.instanciaRegional)
+//       return res
+//         .status(404)
+//         .json({
+//           error:
+//             "El proyecto ya ha sido actualizado a etapa regional. Aún puede modificar los datos de proyecto",
+//         });
+
+//     let existeSede = await Sede.findById(sede);
+//     if (!existeSede)
+//       return res.status(404).json({ error: "No existe la sede" });
+
+//     if (!autorizacionImagen)
+//       return res
+//         .status(404)
+//         .json({
+//           error:
+//             "Para continuar, debe autorizar el uso y cesión de imagen de los estudiantes",
+//         });
+
+//     proyecto.videoPresentacion = videoPresentacion ?? proyecto.videoPresentacion;
+//     proyecto.registroPedagogico = registroPedagogico ?? proyecto.registroPedagogico;
+//     proyecto.carpetaCampo = carpetaCampo ?? proyecto.carpetaCampo;
+//     proyecto.informeTrabajo = informeTrabajo ?? proyecto.informeTrabajo;
+//     proyecto.sede = sede ?? proyecto.sede;
+//     proyecto.autorizacionImagen = autorizacionImagen ?? proyecto.autorizacionImagen;
+//     proyecto.grupoProyecto = grupoProyecto ?? proyecto.grupoProyecto;
+
+//     proyecto.estado = estado.instanciaRegional;
+
+//     await proyecto.save();
+
+//     return res.json({ proyecto });
+//   } catch (error) {
+//     console.log(error);
+//     if (error.kind === "ObjectId")
+//       return res.status(403).json({ error: "Formato ID incorrecto" });
+//     res.status(500).json({ error: "Error de servidor" });
+//   }
+// };
 
 export const modificarProyectoRegional = async (req, res) => {
   try {
@@ -269,21 +403,26 @@ export const modificarProyectoRegional = async (req, res) => {
       grupoProyecto,
     } = req.body;
 
-    let proyecto = await Proyecto.findById(id);
+    const proyecto = await Proyecto.findById(id);
 
     if (!proyecto)
       return res.status(404).json({ error: "No existe el proyecto" });
+
     if (proyecto.estado === estado.inactivo)
       return res
         .status(404)
         .json({ error: "El proyecto ha sido dado de baja" });
 
-    if (proyecto.estado === estado.instanciaEscolar)
-      return res.status(404).json({
-        error: "El proyecto aún no ha sido actualizado a etapa regional",
-      });
 
-    let existeSede = await Sede.findById(sede);
+    if (titulo && titulo !== proyecto.titulo) {
+      const errorExisteProyecto = await existeProyecto(titulo);
+      if (errorExisteProyecto) {
+          return res.status(400).json(errorExisteProyecto);
+      }
+    }
+
+
+    const existeSede = await Sede.findById(sede);
     if (!existeSede)
       return res.status(404).json({ error: "No existe la sede" });
 
@@ -313,6 +452,9 @@ export const modificarProyectoRegional = async (req, res) => {
       autorizacionImagen ?? proyecto.autorizacionImagen;
     proyecto.grupoProyecto = grupoProyecto ?? proyecto.grupoProyecto;
 
+    if(proyecto.estado === estado.instanciaEscolar)
+      proyecto.estado = estado.instanciaRegional;
+
     await proyecto.save();
 
     return res.json({ proyecto });
@@ -323,6 +465,7 @@ export const modificarProyectoRegional = async (req, res) => {
     res.status(500).json({ error: "Error de servidor" });
   }
 };
+
 
 export const cargarArchivosRegional = async (req, res) => {
   //obtengo el usuario logueado
@@ -413,3 +556,4 @@ export const cargarArchivosRegional = async (req, res) => {
     });
   }
 };
+

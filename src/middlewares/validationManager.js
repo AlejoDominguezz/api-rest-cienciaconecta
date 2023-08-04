@@ -103,7 +103,6 @@ export const bodyInscribirProyectoValidator = [
   //validaciones de titulo
   body("titulo", "Nombre requerido").trim().notEmpty(),
   body("titulo", "Título máximo 40 caracteres").trim().isLength({ max: 40 }),
-  check("titulo").custom(existeProyecto),
 
   //validaciones de reseña
   body("descripcion", "Descripcion requerida").trim().notEmpty(),

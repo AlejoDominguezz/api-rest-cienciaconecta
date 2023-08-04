@@ -26,8 +26,13 @@ export const esPropietario = async (req, res, next) => {
     const { id } = req.params;
     const rolesData = req.roles;
 
-    if(rolesData !== roles.responsableProyecto)
+    if (!rolesData.includes(roles.responsableProyecto)) {
       return next();
+    }
+
+    if (rolesData.includes(roles.admin)) {
+      return next();
+    }
 
     if (!id) {
       return res

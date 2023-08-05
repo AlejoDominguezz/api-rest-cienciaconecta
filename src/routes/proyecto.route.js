@@ -17,7 +17,7 @@ import {
 } from "../middlewares/validationManager.js";
 import { checkRolAuth, esPropietario } from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
-import { BodyValidationDrive, validarExistArchivos , validarArchivosPDF  } from "../middlewares/validationDrive.js";
+import { BodyValidationDrive , validarArchivosPDF  } from "../middlewares/validationDrive.js";
 
 const routerProyectos = Router();
 
@@ -86,8 +86,7 @@ routerProyectos.post(
   BodyValidationDrive,
   checkRolAuth([roles.admin, roles.responsableProyecto]),
   esPropietario,
-  //validarExistArchivos,
-  //validarArchivosPDF,
+  validarArchivosPDF,
   cargarArchivosRegional
 );
 // requireToken , checkRolAuth([roles.admin, roles.responsableProyecto]), esPropietario,

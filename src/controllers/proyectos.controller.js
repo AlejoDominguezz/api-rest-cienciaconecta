@@ -471,89 +471,89 @@ export const cargarArchivosRegional = async (req, res) => {
   //obtengo el usuario logueado
   const uid = req.uid;
   console.log('paso')
-  const usuario = await Usuario.findById(uid);
+  // const usuario = await Usuario.findById(uid);
 
-  //obtengo el id del proyecto
-  const id_proyecto = req.params.id;
-  //busco el proyecto que pertenece ese id
-  const proyecto = await Proyecto.findById(id_proyecto);
-  //asigno nombre a la nueva carpeta
-  const name_folder = proyecto.titulo;
+  // //obtengo el id del proyecto
+  // const id_proyecto = req.params.id;
+  // //busco el proyecto que pertenece ese id
+  // const proyecto = await Proyecto.findById(id_proyecto);
+  // //asigno nombre a la nueva carpeta
+  // const name_folder = proyecto.titulo;
 
-  try {
-    const form = formidable({ multiples: false });
-    form.parse(req, async (err, fields, files) => {
-      if (err) {
-        console.error("Error al form-data", err.message);
-        res.status(500).send("Error al procesar el form-data");
-        return;
-      }
-      console.log(files);
-      //creo la nueva carpeta
-      const id_folder_new = await createFolder(name_folder, drive);
+  // try {
+  //   const form = formidable({ multiples: false });
+  //   form.parse(req, async (err, fields, files) => {
+  //     if (err) {
+  //       console.error("Error al form-data", err.message);
+  //       res.status(500).send("Error al procesar el form-data");
+  //       return;
+  //     }
+  //     console.log(files);
+  //     //creo la nueva carpeta
+  //     const id_folder_new = await createFolder(name_folder, drive);
 
-      //seteo el campo del proyecto "id_carpeta_drive" con el "id" de la carpeta creada
-      proyecto.id_carpeta_drive = id_folder_new;
+  //     //seteo el campo del proyecto "id_carpeta_drive" con el "id" de la carpeta creada
+  //     proyecto.id_carpeta_drive = id_folder_new;
 
-      console.log(id_folder_new);
+  //     console.log(id_folder_new);
 
-      //comparto la carpeta creada con el email del usuario creador del proyecto y con cienciaConceta
-      const email_user = usuario.email;
-      const email_ciencia_conecta = "cienciaconecta.utn@gmail.com";
-      await shareFolderWithPersonalAccount(
-        id_folder_new,
-        email_user,
-        drive,
-        "reader"
-      );
-      await shareFolderWithPersonalAccount(
-        id_folder_new,
-        email_ciencia_conecta,
-        drive,
-        "writer"
-      );
+  //     //comparto la carpeta creada con el email del usuario creador del proyecto y con cienciaConceta
+  //     const email_user = usuario.email;
+  //     const email_ciencia_conecta = "cienciaconecta.utn@gmail.com";
+  //     await shareFolderWithPersonalAccount(
+  //       id_folder_new,
+  //       email_user,
+  //       drive,
+  //       "reader"
+  //     );
+  //     await shareFolderWithPersonalAccount(
+  //       id_folder_new,
+  //       email_ciencia_conecta,
+  //       drive,
+  //       "writer"
+  //     );
 
-      const files_registroPedagogicopdf = files.registroPedagogicopdf;
-      const files_carpetaCampo = files.carpetaCampo;
-      const files_informeTrabajo = files.informeTrabajo;
+  //     const files_registroPedagogicopdf = files.registroPedagogicopdf;
+  //     const files_carpetaCampo = files.carpetaCampo;
+  //     const files_informeTrabajo = files.informeTrabajo;
 
-      const id_archivo_pdf = await sendFileToDrive(
-        files_registroPedagogicopdf,
-        id_folder_new,
-        drive
-      );
-      console.log(id_archivo_pdf);
-      proyecto.registroPedagogico = id_archivo_pdf;
-      const id_archivo_pdf_campo = await sendFileToDrive(
-        files_carpetaCampo,
-        id_folder_new,
-        drive
-      );
-      proyecto.carpetaCampo = id_archivo_pdf_campo;
-      const id_archivo_informeTrabajo = await sendFileToDrive(
-        files_informeTrabajo,
-        id_folder_new,
-        drive
-      );
-      proyecto.informeTrabajo = id_archivo_informeTrabajo;
-      console.log(proyecto.informeTrabajo);
-      if (id_archivo_pdf && id_archivo_pdf_campo && id_archivo_informeTrabajo) {
-        res.status(200).json({
-          id_inform_tranajp: proyecto.informeTrabajo,
-          msg: "Archivos enviados correctamente a drive",
-          proyecto,
-        });
-      } else {
-        res.status(400).json({
-          msg: "Error al subir los archivos a drive",
-        })
-      }
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({
-      msg: "Error al enviar archivos a drive!!! ",
-    });
-  };
+  //     const id_archivo_pdf = await sendFileToDrive(
+  //       files_registroPedagogicopdf,
+  //       id_folder_new,
+  //       drive
+  //     );
+  //     console.log(id_archivo_pdf);
+  //     proyecto.registroPedagogico = id_archivo_pdf;
+  //     const id_archivo_pdf_campo = await sendFileToDrive(
+  //       files_carpetaCampo,
+  //       id_folder_new,
+  //       drive
+  //     );
+  //     proyecto.carpetaCampo = id_archivo_pdf_campo;
+  //     const id_archivo_informeTrabajo = await sendFileToDrive(
+  //       files_informeTrabajo,
+  //       id_folder_new,
+  //       drive
+  //     );
+  //     proyecto.informeTrabajo = id_archivo_informeTrabajo;
+  //     console.log(proyecto.informeTrabajo);
+  //     if (id_archivo_pdf && id_archivo_pdf_campo && id_archivo_informeTrabajo) {
+  //       res.status(200).json({
+  //         id_inform_tranajp: proyecto.informeTrabajo,
+  //         msg: "Archivos enviados correctamente a drive",
+  //         proyecto,
+  //       });
+  //     } else {
+  //       res.status(400).json({
+  //         msg: "Error al subir los archivos a drive",
+  //       })
+  //     }
+  //   });
+  // } catch (error) {
+  //   console.error(error);
+  //   res.status(400).json({
+  //     msg: "Error al enviar archivos a drive!!! ",
+  //   });
+  // };
 };
 

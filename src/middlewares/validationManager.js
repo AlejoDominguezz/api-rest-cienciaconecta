@@ -3,7 +3,7 @@ import { validarCampos } from "./validar-campos.js";
 import axios from "axios";
 import { existsId, existeCuil, existeProyecto, existeCategoria, existeNivel } from "../helpers/db-validar.js";
 import { check } from "express-validator";
-import { getSedesActualesForValidation } from '../controllers/establecimientos.controller.js'
+import { checkEstablecimientoIsSede } from '../controllers/establecimientos.controller.js'
 import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js";
 
 export const bodyRegisterValidator = [
@@ -174,7 +174,7 @@ export const bodyActualizarProyectoRegionalValidator = [
     .withMessage('El ID de la sede no es válido')
     .custom(async (value) => {
       try {
-        const isSedeValid = await getSedesActualesForValidation(value);
+        const isSedeValid = await checkEstablecimientoIsSede(value);
   
         if (!isSedeValid) {
           throw new Error('El establecimiento elegido no es una sede actual');
@@ -202,12 +202,28 @@ export const bodyActualizarProyectoRegionalValidator = [
     .notEmpty()
     .withMessage("El apellido del miembro del grupo es requerido"),
   body("grupoProyecto.*.dni")
-    .isInt()
+    .trim()
+    .notEmpty()
     .isLength({ min: 7, max: 8 })
     .withMessage(
       "El DNI del miembro del grupo debe ser un número de entre 7 y 8 digitos"
-    ),
+    )
+    // Validación de DNIs no repetidos
+    .custom((dni, { req }) => {
+      const grupoProyecto = req.body.grupoProyecto;
+      const dniSet = new Set();
 
+      for (const miembro of grupoProyecto) {
+        if (dniSet.has(miembro.dni)) {
+          throw new Error("El DNI del miembro del grupo está repetido");
+        } else {
+          dniSet.add(miembro.dni);
+        }
+      }
+
+      return true;
+    }),
+  
   validarCampos,
 ];
 

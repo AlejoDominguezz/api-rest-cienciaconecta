@@ -76,7 +76,7 @@ export const getSedesActuales = async (req = request, res = response) => {
 };
 
 
-export const getSedesActualesForValidation = async (sedeId) => {
+export const checkEstablecimientoIsSede = async (sedeId) => {
     try {
       const feriaActiva = await Feria.findOne({ estado: { $ne: estadoFeria.finalizada } });
       if (!feriaActiva) {

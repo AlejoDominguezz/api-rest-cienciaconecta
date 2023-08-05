@@ -2,7 +2,6 @@ import { Proyecto, estado, nombreEstado } from "../models/Proyecto.js";
 import { Sede } from "../models/Sede.js";
 import { Docente } from "../models/Docente.js";
 import { Usuario } from "../models/Usuario.js";
-
 import { drive } from "../services/drive/drive.js";
 import {
   createFolder,
@@ -10,9 +9,9 @@ import {
   sendFileToDrive,
 } from "../services/drive/helpers-drive.js";
 import formidable from "formidable";
-
 import { existeProyecto } from "../helpers/db-validar.js";
 import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js";
+import { Feria, estadoFeria } from "../models/Feria.js";
 
 
 export const inscribirProyectoEscolar = async (req, res) => {
@@ -41,6 +40,10 @@ export const inscribirProyectoEscolar = async (req, res) => {
         .status(401)
         .json({ error: "No existe el docente correspondiente a su usuario" });
 
+    const feriaActiva = await Feria.findOne({ estado: { $ne: estadoFeria.finalizada }})
+    if(!feriaActiva)
+      return res.status(401).json({ error: "No existe una feria activa en este momento" });
+  
     const proyecto = new Proyecto({
       titulo,
       descripcion,
@@ -49,6 +52,7 @@ export const inscribirProyectoEscolar = async (req, res) => {
       establecimientoEducativo,
       emailEscuela,
       idResponsable: responsable._id,
+      feria: feriaActiva,
     });
 
     await proyecto.save();
@@ -192,6 +196,7 @@ export const consultarProyectos = async (req, res) => {
       emailEscuela,
       idResponsable,
       fechaInscripcion,
+      feria,
       estado,
       videoPresentacion,
       registroPedagogico,
@@ -211,6 +216,7 @@ export const consultarProyectos = async (req, res) => {
       ...(emailEscuela && { emailEscuela }),
       ...(idResponsable && { idResponsable }),
       ...(fechaInscripcion && { fechaInscripcion }),
+      ...(feria && { feria }),
       ...(estado && { estado }),
       ...(videoPresentacion && { videoPresentacion }),
       ...(registroPedagogico && { registroPedagogico }),
@@ -253,6 +259,7 @@ export const consultarMisProyectos = async (req, res) => {
       emailEscuela,
       idResponsable,
       fechaInscripcion,
+      feria,
       estado,
       videoPresentacion,
       registroPedagogico,
@@ -276,6 +283,7 @@ export const consultarMisProyectos = async (req, res) => {
       ...(emailEscuela && { emailEscuela }),
       ...(idResponsable && { idResponsable }),
       ...(fechaInscripcion && { fechaInscripcion }),
+      ...(feria && { feria }),
       ...(estado && { estado }),
       ...(videoPresentacion && { videoPresentacion }),
       ...(registroPedagogico && { registroPedagogico }),

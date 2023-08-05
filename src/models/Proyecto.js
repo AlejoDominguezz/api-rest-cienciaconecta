@@ -53,6 +53,11 @@ const ProyectoSchema = new Schema({
     type: Date,
     default: Date.now,
   },
+  feria: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: "Feria",
+  },
   estado: {
     type: String,
     default: '0',
@@ -94,7 +99,7 @@ const ProyectoSchema = new Schema({
         type: String,
       },
       dni: {
-        type: Number,
+        type: String,
       },
     },
   ],

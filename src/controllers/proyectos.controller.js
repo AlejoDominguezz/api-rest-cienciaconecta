@@ -470,7 +470,7 @@ export const modificarProyectoRegional = async (req, res) => {
 export const cargarArchivosRegional = async (req, res) => {
   //obtengo el usuario logueado
   const uid = req.uid;
-
+  console.log('paso')
   const usuario = await Usuario.findById(uid);
 
   //obtengo el id del proyecto
@@ -488,7 +488,7 @@ export const cargarArchivosRegional = async (req, res) => {
         res.status(500).send("Error al procesar el form-data");
         return;
       }
-
+      console.log(files);
       //creo la nueva carpeta
       const id_folder_new = await createFolder(name_folder, drive);
 
@@ -546,7 +546,7 @@ export const cargarArchivosRegional = async (req, res) => {
       } else {
         res.status(400).json({
           msg: "Error al subir los archivos a drive",
-        });
+        })
       }
     });
   } catch (error) {
@@ -554,6 +554,6 @@ export const cargarArchivosRegional = async (req, res) => {
     res.status(400).json({
       msg: "Error al enviar archivos a drive!!! ",
     });
-  }
+  };
 };
 

@@ -87,6 +87,12 @@ export const fechaAnteriorA = (fechaA) => {
     };
 };
 
+export const existeIdProyecto = async ( id ) => {
+    const existeId = await Proyecto.findById(id);
+    if(!existeId){
+        throw new Error(`El id ingresado no existe! `)
+    }
+}
 
 
 

@@ -13,7 +13,6 @@ import formidable from "formidable";
 
 import { existeProyecto } from "../helpers/db-validar.js";
 
-
 export const inscribirProyectoEscolar = async (req, res) => {
   const {
     titulo,
@@ -27,11 +26,9 @@ export const inscribirProyectoEscolar = async (req, res) => {
   } = req.body;
 
   try {
-
-    
     const errorExisteProyecto = await existeProyecto(titulo);
     if (errorExisteProyecto) {
-        return res.status(400).json(errorExisteProyecto); // Devuelves el mensaje de error en formato JSON
+      return res.status(400).json(errorExisteProyecto); // Devuelves el mensaje de error en formato JSON
     }
 
     const uid = req.uid;
@@ -94,10 +91,14 @@ export const bajaProyecto = async (req, res) => {
     if (!proyecto)
       return res.status(404).json({ error: "No existe el proyecto" });
 
-    const proyectoInactivo = proyecto.estado === estado.inactivo || proyecto.estado === estado.finalizado
-    console.log(proyectoInactivo)
-    if(proyectoInactivo)
-      return res.status(404).json({ error: "El proyecto ya se encuentra inactivo" });
+    const proyectoInactivo =
+      proyecto.estado === estado.inactivo ||
+      proyecto.estado === estado.finalizado;
+    console.log(proyectoInactivo);
+    if (proyectoInactivo)
+      return res
+        .status(404)
+        .json({ error: "El proyecto ya se encuentra inactivo" });
 
     proyecto.estado = estado.inactivo;
     await proyecto.save();
@@ -133,11 +134,11 @@ export const modificarProyectoEscolar = async (req, res) => {
       return res
         .status(404)
         .json({ error: "El proyecto ha sido dado de baja" });
-    
+
     if (titulo && titulo !== proyecto.titulo) {
       const errorExisteProyecto = await existeProyecto(titulo);
       if (errorExisteProyecto) {
-          return res.status(400).json(errorExisteProyecto); // Devuelves el mensaje de error en formato JSON
+        return res.status(400).json(errorExisteProyecto); // Devuelves el mensaje de error en formato JSON
       }
     }
 
@@ -218,7 +219,7 @@ export const consultarProyectos = async (req, res) => {
       ...(categoria && { categoria }),
       ...(nombreEscuela && { nombreEscuela }),
       ...(cueEscuela && { cueEscuela }),
-      ...(privada && { privada: privada === 'true' }),
+      ...(privada && { privada: privada === "true" }),
       ...(emailEscuela && { emailEscuela }),
       ...(idResponsable && { idResponsable }),
       ...(fechaInscripcion && { fechaInscripcion }),
@@ -228,7 +229,9 @@ export const consultarProyectos = async (req, res) => {
       ...(carpetaCampo && { carpetaCampo }),
       ...(informeTrabajo && { informeTrabajo }),
       ...(sede && { sede }),
-      ...(autorizacionImagen && { autorizacionImagen: autorizacionImagen === 'true' }),
+      ...(autorizacionImagen && {
+        autorizacionImagen: autorizacionImagen === "true",
+      }),
     };
     const proyectos = await Proyecto.find(filtro);
 
@@ -241,10 +244,7 @@ export const consultarProyectos = async (req, res) => {
       nombreEstado: nombreEstado[proyecto.estado], // Obtenemos el nombre del estado según la clave
     }));
 
-
-
-    return res.json({ proyectos: proyectosConNombreEstado  });
-    
+    return res.json({ proyectos: proyectosConNombreEstado });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Error de servidor" });
@@ -276,8 +276,10 @@ export const consultarMisProyectos = async (req, res) => {
     } = req.query;
 
     const responsable = await Docente.findOne({ usuario: uid });
-    if(!responsable)  
-      return res.status(401).json({ error: "No existe el docente correspondiente a su usuario" });
+    if (!responsable)
+      return res
+        .status(401)
+        .json({ error: "No existe el docente correspondiente a su usuario" });
 
     // Crear un objeto de filtro con los parámetros de consulta presentes
     const filtro = {
@@ -287,7 +289,7 @@ export const consultarMisProyectos = async (req, res) => {
       ...(categoria && { categoria }),
       ...(nombreEscuela && { nombreEscuela }),
       ...(cueEscuela && { cueEscuela }),
-      ...(privada && { privada: privada === 'true' }),
+      ...(privada && { privada: privada === "true" }),
       ...(emailEscuela && { emailEscuela }),
       ...(idResponsable && { idResponsable }),
       ...(fechaInscripcion && { fechaInscripcion }),
@@ -297,8 +299,10 @@ export const consultarMisProyectos = async (req, res) => {
       ...(carpetaCampo && { carpetaCampo }),
       ...(informeTrabajo && { informeTrabajo }),
       ...(sede && { sede }),
-      ...(autorizacionImagen && { autorizacionImagen: autorizacionImagen === 'true' }),
-      idResponsable: responsable._id
+      ...(autorizacionImagen && {
+        autorizacionImagen: autorizacionImagen === "true",
+      }),
+      idResponsable: responsable._id,
     };
 
     const proyectos = await Proyecto.find(filtro);
@@ -306,14 +310,13 @@ export const consultarMisProyectos = async (req, res) => {
     if (proyectos.length === 0)
       return res.status(204).json({ error: "No se han encontrado proyectos" });
 
-
     // Agrega el nombre del estado y lo devuelve en el json de la consulta
     const proyectosConNombreEstado = proyectos.map((proyecto) => ({
       ...proyecto.toObject(),
       nombreEstado: nombreEstado[proyecto.estado], // Obtenemos el nombre del estado según la clave
     }));
 
-    return res.json({ proyectos: proyectosConNombreEstado  });
+    return res.json({ proyectos: proyectosConNombreEstado });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Error de servidor" });
@@ -413,14 +416,12 @@ export const modificarProyectoRegional = async (req, res) => {
         .status(404)
         .json({ error: "El proyecto ha sido dado de baja" });
 
-
     if (titulo && titulo !== proyecto.titulo) {
       const errorExisteProyecto = await existeProyecto(titulo);
       if (errorExisteProyecto) {
-          return res.status(400).json(errorExisteProyecto);
+        return res.status(400).json(errorExisteProyecto);
       }
     }
-
 
     const existeSede = await Sede.findById(sede);
     if (!existeSede)
@@ -452,7 +453,7 @@ export const modificarProyectoRegional = async (req, res) => {
       autorizacionImagen ?? proyecto.autorizacionImagen;
     proyecto.grupoProyecto = grupoProyecto ?? proyecto.grupoProyecto;
 
-    if(proyecto.estado === estado.instanciaEscolar)
+    if (proyecto.estado === estado.instanciaEscolar)
       proyecto.estado = estado.instanciaRegional;
 
     await proyecto.save();
@@ -466,11 +467,9 @@ export const modificarProyectoRegional = async (req, res) => {
   }
 };
 
-
 export const cargarArchivosRegional = async (req, res) => {
   //obtengo el usuario logueado
   const uid = req.uid;
-
   const usuario = await Usuario.findById(uid);
 
   //obtengo el id del proyecto
@@ -479,16 +478,56 @@ export const cargarArchivosRegional = async (req, res) => {
   const proyecto = await Proyecto.findById(id_proyecto);
   //asigno nombre a la nueva carpeta
   const name_folder = proyecto.titulo;
-
+  console.log(name_folder);
   try {
     const form = formidable({ multiples: false });
+    console.log(form);
     form.parse(req, async (err, fields, files) => {
       if (err) {
         console.error("Error al form-data", err.message);
         res.status(500).send("Error al procesar el form-data");
         return;
       }
+      if (!files) {
+        return res.status(400).json({
+          msg: "Error, debe ingresar los archivos pdfs! no ha ingresado nada!",
+        });
+      }
+      const extensionValida = "application/pdf";
+      const archivosNoPDF = [];
+      const requiredFiles = [
+        "carpetaCampo",
+        "registroPedagogicopdf",
+        "informeTrabajo",
+      ];
 
+      const archivos_input = files;
+      // Obtener los nombres de los archivos subidos
+      const nombresArchivos = Object.keys(archivos_input);
+
+      for (const fieldName of requiredFiles) {
+        if (!nombresArchivos.includes(fieldName)) {
+          res
+            .status(400)
+            .json({
+              msg: `Falta el archivo con el nombre: ${fieldName} , ingresarlo!`,
+            });
+          return;
+        }
+
+        const archivo = archivos_input[fieldName];
+        if (archivo.mimetype !== extensionValida) {
+          archivosNoPDF.push(fieldName);
+        }
+      }
+      // // Verificar si se subió un archivo con el campo "archivoPDF"
+      if (archivosNoPDF.length > 0) {
+        return res.status(400).json({
+          msg: `Los archivos ingresados tienen que tener formato pdf!! revisar: ${archivosNoPDF}`,
+        });
+      }
+
+      
       //creo la nueva carpeta
       const id_folder_new = await createFolder(name_folder, drive);
 
@@ -498,14 +537,9 @@ export const cargarArchivosRegional = async (req, res) => {
       console.log(id_folder_new);
 
       //comparto la carpeta creada con el email del usuario creador del proyecto y con cienciaConceta
-      const email_user = usuario.email;
       const email_ciencia_conecta = "cienciaconecta.utn@gmail.com";
-      await shareFolderWithPersonalAccount(
-        id_folder_new,
-        email_user,
-        drive,
-        "reader"
-      );
+
+      //llamo a la funcion para que se comparta con el mail de ciencia conecta
       await shareFolderWithPersonalAccount(
         id_folder_new,
         email_ciencia_conecta,
@@ -517,26 +551,28 @@ export const cargarArchivosRegional = async (req, res) => {
       const files_carpetaCampo = files.carpetaCampo;
       const files_informeTrabajo = files.informeTrabajo;
 
+      //llamo la funcion para que se carguen los 3 archivos en google drive
       const id_archivo_pdf = await sendFileToDrive(
         files_registroPedagogicopdf,
         id_folder_new,
         drive
       );
-      console.log(id_archivo_pdf);
-      proyecto.registroPedagogico = id_archivo_pdf;
+      proyecto.registroPedagogico = `https://drive.google.com/file/d/${id_archivo_pdf}/preview`;
+
       const id_archivo_pdf_campo = await sendFileToDrive(
         files_carpetaCampo,
         id_folder_new,
         drive
       );
-      proyecto.carpetaCampo = id_archivo_pdf_campo;
+      proyecto.carpetaCampo = `https://drive.google.com/file/d/${id_archivo_pdf_campo}/preview`;
+
       const id_archivo_informeTrabajo = await sendFileToDrive(
         files_informeTrabajo,
         id_folder_new,
         drive
       );
-      proyecto.informeTrabajo = id_archivo_informeTrabajo;
-      console.log(proyecto.informeTrabajo);
+      proyecto.informeTrabajo = `https://drive.google.com/file/d/${id_archivo_informeTrabajo}/preview`;
+
       if (id_archivo_pdf && id_archivo_pdf_campo && id_archivo_informeTrabajo) {
         res.status(200).json({
           id_inform_tranajp: proyecto.informeTrabajo,
@@ -556,4 +592,3 @@ export const cargarArchivosRegional = async (req, res) => {
     });
   }
 };
-

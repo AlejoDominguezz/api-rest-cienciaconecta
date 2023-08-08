@@ -82,11 +82,11 @@ routerProyectos.delete(
 //recibo por parametro el id del proyecto y los archivos por form-data
 routerProyectos.post(
   "/regional/upload/:id",
-  requireToken,
-  BodyValidationDrive,
-  checkRolAuth([roles.admin, roles.responsableProyecto]),
-  esPropietario,
-  validarArchivosPDF,
+    requireToken,
+    BodyValidationDrive,
+    checkRolAuth([roles.admin, roles.responsableProyecto]),
+    esPropietario,
+    //validarArchivosPDF,
   cargarArchivosRegional
 );
 // requireToken , checkRolAuth([roles.admin, roles.responsableProyecto]), esPropietario,

@@ -1,9 +1,7 @@
 import { validarCampos } from "./validar-campos.js";
 import { check } from "express-validator";
 import { existeIdProyecto } from "../helpers/db-validar.js";
-import multer from "multer";
-const upload = multer();
-import mime from "mime-types";
+
 import formidable from "formidable";
 
 export const BodyValidationDrive = [
@@ -17,7 +15,8 @@ export const BodyValidationDrive = [
 
 export const validarArchivosPDF = (req, res, next) => {
 
-  const form = formidable({ multiples: false });
+  try {
+      const form = formidable({multiples:true});
 
   form.parse(req, async (err, fields, files) => {
     if (err) {
@@ -60,4 +59,9 @@ export const validarArchivosPDF = (req, res, next) => {
     // Si llegamos hasta aquí, el archivo es un PDF válido
     next();
   });
+  } catch (error) {
+    console.error(error);
+  }
+
+
 };

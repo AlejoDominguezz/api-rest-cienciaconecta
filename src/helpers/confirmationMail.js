@@ -40,10 +40,10 @@ export const confirmationMailHtml = (token) =>`
     <div class="shadow">
       <div class="container">
         <h2 style="color: #00ACE6;">¡Bienvenido a Ciencia Conecta!</h2>
-        <p class="black-text" style="font-size: 16px;">Estamos emocionados de tenerte como parte de nuestra comunidad</p>
-        <p class="black-text" style="font-size: 16px;">Haz clic en el siguiente botón para verificar tu cuenta:</p>
+        <p class="black-text" style="font-size: 16px;">Estamos emocionados de que formes parte de nuestra plataforma</p>
+        <p class="black-text" style="font-size: 16px;">Hacé clic en el siguiente botón para verificar tu cuenta:</p>
         <a href="http://localhost:5000/api/v1/auth/confirmar/${token}" style="display: inline-block; background-color: #00ACE6; color: #fff; padding: 10px 20px; text-decoration: none; font-size: 16px; border-radius: 5px; margin-top: 20px;">Verificar cuenta</a>
-        <p style="font-size: 14px; color: #888; margin-top: 20px;">Si tienes problemas con el botón de verificación, también puedes copiar y pegar el siguiente enlace en tu navegador:</p>
+        <p style="font-size: 14px; color: #888; margin-top: 20px;">Si tenés problemas con el botón de verificación, también podés copiar y pegar el siguiente enlace en tu navegador:</p>
         <p style="font-size: 14px; color: #888;"><a href="http://localhost:5000/api/v1/auth/confirmar/${token}" style="color: #00ACE6; text-decoration: none;">http://localhost:5000/api/v1/auth/confirmar/${token}</a></p>
         <img src="https://i.imgur.com/Cp5FCdR.jpg" alt="Marca de agua" style="position: absolute; bottom: 20px; right: 20px; max-width: 150px;">
       </div>

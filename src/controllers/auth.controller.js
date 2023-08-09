@@ -8,6 +8,7 @@ import { Docente } from "../models/Docente.js";
 import { transporter } from "../helpers/mailer.js";
 import {nanoid} from 'nanoid';
 import { confirmationMailHtml } from "../helpers/confirmationMail.js";
+import { recoveryMailHtml } from "../helpers/recoveryMail.js";
 
 // Función de Login
 export const login = async (req, res) => {
@@ -115,5 +116,69 @@ export const confirmarCuenta = async (req, res) => {
 
   } catch (error) {
     return res.status(500).json({ error: "Error de servidor" });
+  }
+}
+
+export async function solicitarRecuperacionContrasena(req, res) {
+  const { cuil } = req.body;
+
+  try {
+    // Generar el token de recuperación
+    const { token, expiresIn } = generateToken(cuil);
+
+    // Actualizar el usuario en la base de datos con el token de recuperación
+    const usuario = await Usuario.findOneAndUpdate(
+      { cuil },
+      { tokenRecuperacion: token },
+      { new: true }
+    );
+
+    if (!usuario) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    // Lógica de envío de correo de recuperación
+    const recoveryMail = recoveryMailHtml(token); // Puedes crear una función similar a confirmationMailHtml
+
+    await transporter.sendMail({
+      from: 'Ciencia Conecta',
+      to: usuario.email,
+      subject: "Recuperación de contraseña",
+      html: recoveryMail
+    });
+
+    const maskedEmail = usuario.email.replace(/^(.{4})(.*)(@.+)/, (_, p1, p2, p3) => `${p1}${'*'.repeat(p2.length)}${p3}`);
+    const responseMessage = `Correo de recuperación enviado al mail ${maskedEmail}`;
+    
+    res.json({ message: responseMessage, token, expiresIn });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al procesar la solicitud' });
+  }
+}
+
+export async function resetearContrasena(req, res) {
+
+  const { token, nuevaContrasena } = req.body;
+
+  try {
+    // Buscar el usuario por el token de recuperación
+    const usuario = await Usuario.findOne({ tokenRecuperacion: token });
+
+    if (!usuario) {
+      return res.status(400).json({ message: 'Token de recuperación inválido' });
+    }
+
+    // Actualizar la contraseña y el token de recuperación
+    usuario.password = nuevaContrasena;
+    usuario.tokenRecuperacion = null;
+
+    await usuario.save();
+
+    return res.status(200).json({ message: 'Contraseña restablecida exitosamente' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al procesar la solicitud' });
   }
 }

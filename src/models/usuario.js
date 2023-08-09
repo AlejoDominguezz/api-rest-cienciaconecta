@@ -39,7 +39,11 @@ const UsuarioSchema = new Schema({
   cuentaConfirmada: {
     type: Boolean,
     default: false,
-  }
+  },
+  tokenRecuperacion: {
+    type: String,
+    default: null,
+  },
 });
 
 

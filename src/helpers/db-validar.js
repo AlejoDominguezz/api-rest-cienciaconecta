@@ -66,7 +66,7 @@ export const fechaPosteriorA = (fechaA) => {
       const fechaInicio = new Date(fechaA);
       const fechaFin = new Date(fechaB);
   
-      if (fechaFin <= fechaInicio) {
+      if (fechaFin < fechaInicio) {
         throw new Error('La fecha ingresada debe ser posterior a ' + fechaInicio.toString());
       }
   
@@ -79,7 +79,7 @@ export const fechaAnteriorA = (fechaA) => {
       const fechaFin = new Date(fechaA);
       const fechaInicio = new Date(fechaB);
   
-      if (fechaFin <= fechaInicio) {
+      if (fechaFin < fechaInicio) {
         throw new Error('La fecha ingresada debe ser anterior a ' + fechaFin.toString());
       }
   

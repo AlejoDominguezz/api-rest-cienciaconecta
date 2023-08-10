@@ -66,6 +66,46 @@ export const getSedesActuales = async (req = request, res = response) => {
     }
 };
 
+export const crearEstablecimientoEducativo = async(req, res) => {
+    let { nombre, cue,  departamento, localidad, domicilio, CP, telefono, email, niveles } = req.body
+
+    try {
+
+        if (nombre) {
+            nombre = nombre.toUpperCase();
+        }
+        if (departamento) {
+            departamento = departamento.toUpperCase();
+        }
+        if (localidad) {
+            localidad = localidad.toUpperCase();
+        }
+        if (domicilio) {
+            domicilio = domicilio.toUpperCase();
+        }
+
+        const establecimiento = new EstablecimientoEducativo({
+            nombre,
+            cue, 
+            provincia: "Córdoba",
+            departamento,
+            localidad,
+            domicilio,
+            CP,
+            telefono,
+            email,
+            niveles,
+        })
+
+        await establecimiento.save()
+        return res.json({ establecimiento });
+
+    } catch (error) {
+        console.log(`Ha ocurrido un problema al crear un establecimiento educativo + ${error}`)
+        return res.status(500).json({ error: "Error de servidor" });
+    }
+
+}
 
 
 

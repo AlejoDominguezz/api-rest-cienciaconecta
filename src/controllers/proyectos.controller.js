@@ -572,7 +572,7 @@ export const cargarArchivosRegional = async (req, res) => {
         drive
       );
       proyecto.informeTrabajo = `https://drive.google.com/file/d/${id_archivo_informeTrabajo}/preview`;
-
+        proyecto.save();
       if (id_archivo_pdf && id_archivo_pdf_campo && id_archivo_informeTrabajo) {
         res.status(200).json({
           id_inform_tranajp: proyecto.informeTrabajo,
@@ -592,3 +592,32 @@ export const cargarArchivosRegional = async (req, res) => {
     });
   }
 };
+
+export const actualizarArchivosRegional = async (req, res) => {
+    const id = req.params.id;
+    const proyecto = await Proyecto.findById(id);
+    console.log(proyecto);
+
+    try {
+      const form = formidable({ multiples: false });
+      console.log(form);
+      form.parse(req, async (err, fields, files) => {
+        if (err) {
+          console.error("Error al form-data", err.message);
+          res.status(500).send("Error al procesar el form-data");
+          return;
+        }
+        if (!files) {
+          return res.status(400).json({
+            msg: "Error, debe ingresar los archivos pdfs! no ha ingresado nada!",
+          });
+        }
+        console.log(files)
+
+      });
+    } catch (error) {
+      console.error(error);
+    }
+
+};
+

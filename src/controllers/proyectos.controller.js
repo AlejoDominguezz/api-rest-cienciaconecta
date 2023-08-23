@@ -598,6 +598,12 @@ export const actualizarArchivosRegional = async (req, res) => {
     const proyecto = await Proyecto.findById(id);
     console.log(proyecto);
 
+    if(!proyecto.id_carpeta_drive){
+      return res.status(400).json({
+        msg: `El proyecto ${proyecto.titulo} no tiene carpeta de drive asociada`
+      }) 
+    }
+
     try {
       const form = formidable({ multiples: false });
       console.log(form);

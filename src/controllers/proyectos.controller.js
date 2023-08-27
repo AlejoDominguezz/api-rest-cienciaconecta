@@ -468,20 +468,15 @@ export const modificarProyectoRegional = async (req, res) => {
 };
 
 export const cargarArchivosRegional = async (req, res) => {
-  //obtengo el usuario logueado
-  const uid = req.uid;
-  const usuario = await Usuario.findById(uid);
-
   //obtengo el id del proyecto
   const id_proyecto = req.params.id;
   //busco el proyecto que pertenece ese id
   const proyecto = await Proyecto.findById(id_proyecto);
   //asigno nombre a la nueva carpeta
   const name_folder = proyecto.titulo;
-  console.log(name_folder);
+
   try {
     const form = formidable({ multiples: false });
-    console.log(form);
     form.parse(req, async (err, fields, files) => {
       if (err) {
         console.error("Error al form-data", err.message);
@@ -507,11 +502,9 @@ export const cargarArchivosRegional = async (req, res) => {
 
       for (const fieldName of requiredFiles) {
         if (!nombresArchivos.includes(fieldName)) {
-          res
-            .status(400)
-            .json({
-              msg: `Falta el archivo con el nombre: ${fieldName} , ingresarlo!`,
-            });
+          res.status(400).json({
+            msg: `Falta el archivo con el nombre: ${fieldName} , ingresarlo!`,
+          });
           return;
         }
 
@@ -527,60 +520,52 @@ export const cargarArchivosRegional = async (req, res) => {
         });
       }
 
-      
       //creo la nueva carpeta
       const id_folder_new = await createFolder(name_folder, drive);
 
       //seteo el campo del proyecto "id_carpeta_drive" con el "id" de la carpeta creada
       proyecto.id_carpeta_drive = id_folder_new;
 
-      console.log(id_folder_new);
-
-      //comparto la carpeta creada con el email del usuario creador del proyecto y con cienciaConceta
+      // Compartir la carpeta creada en paralelo
       const email_ciencia_conecta = "cienciaconecta.utn@gmail.com";
+      await Promise.all([
+        shareFolderWithPersonalAccount(
+          id_folder_new,
+          email_ciencia_conecta,
+          drive,
+          "writer"
+        ),
+      ]);
 
-      //llamo a la funcion para que se comparta con el mail de ciencia conecta
-      await shareFolderWithPersonalAccount(
-        id_folder_new,
-        email_ciencia_conecta,
-        drive,
-        "writer"
+      const uploadPromises = [];
+
+      // Subir los archivos en paralelo
+      uploadPromises.push(
+        sendFileToDrive(files.registroPedagogicopdf, id_folder_new, drive)
+      );
+      uploadPromises.push(
+        sendFileToDrive(files.carpetaCampo, id_folder_new, drive)
+      );
+      uploadPromises.push(
+        sendFileToDrive(files.informeTrabajo, id_folder_new, drive)
       );
 
-      const files_registroPedagogicopdf = files.registroPedagogicopdf;
-      const files_carpetaCampo = files.carpetaCampo;
-      const files_informeTrabajo = files.informeTrabajo;
+      const [id_archivo_pdf, id_archivo_pdf_campo, id_archivo_informeTrabajo] =
+        await Promise.all(uploadPromises);
 
-      //llamo la funcion para que se carguen los 3 archivos en google drive
-      const id_archivo_pdf = await sendFileToDrive(
-        files_registroPedagogicopdf,
-        id_folder_new,
-        drive
-      );
       proyecto.registroPedagogico = `https://drive.google.com/file/d/${id_archivo_pdf}/preview`;
-
-      const id_archivo_pdf_campo = await sendFileToDrive(
-        files_carpetaCampo,
-        id_folder_new,
-        drive
-      );
       proyecto.carpetaCampo = `https://drive.google.com/file/d/${id_archivo_pdf_campo}/preview`;
-
-      const id_archivo_informeTrabajo = await sendFileToDrive(
-        files_informeTrabajo,
-        id_folder_new,
-        drive
-      );
       proyecto.informeTrabajo = `https://drive.google.com/file/d/${id_archivo_informeTrabajo}/preview`;
-        proyecto.save();
+
       if (id_archivo_pdf && id_archivo_pdf_campo && id_archivo_informeTrabajo) {
-        res.status(200).json({
+        proyecto.save();
+        return res.status(200).json({
           id_inform_tranajp: proyecto.informeTrabajo,
           msg: "Archivos enviados correctamente a drive",
           proyecto,
         });
       } else {
-        res.status(400).json({
+        return res.status(400).json({
           msg: "Error al subir los archivos a drive",
         });
       }
@@ -594,36 +579,30 @@ export const cargarArchivosRegional = async (req, res) => {
 };
 
 export const actualizarArchivosRegional = async (req, res) => {
-    const id = req.params.id;
-    const proyecto = await Proyecto.findById(id);
-    console.log(proyecto);
+  const id = req.params.id;
+  const proyecto = await Proyecto.findById(id);
 
-    if(!proyecto.id_carpeta_drive){
-      return res.status(400).json({
-        msg: `El proyecto ${proyecto.titulo} no tiene carpeta de drive asociada`
-      }) 
-    }
+  if (!proyecto.id_carpeta_drive) {
+    return res.status(400).json({
+      msg: `El proyecto ${proyecto.titulo} no tiene carpeta de drive asociada`,
+    });
+  }
 
-    try {
-      const form = formidable({ multiples: false });
-      console.log(form);
-      form.parse(req, async (err, fields, files) => {
-        if (err) {
-          console.error("Error al form-data", err.message);
-          res.status(500).send("Error al procesar el form-data");
-          return;
-        }
-        if (!files) {
-          return res.status(400).json({
-            msg: "Error, debe ingresar los archivos pdfs! no ha ingresado nada!",
-          });
-        }
-        console.log(files)
-
-      });
-    } catch (error) {
-      console.error(error);
-    }
-
+  try {
+    const form = formidable({ multiples: false });
+    form.parse(req, async (err, fields, files) => {
+      if (err) {
+        console.error("Error al form-data", err.message);
+        res.status(500).send("Error al procesar el form-data");
+        return;
+      }
+      if (!files) {
+        return res.status(400).json({
+          msg: "Error, debe ingresar los archivos pdfs! no ha ingresado nada!",
+        });
+      }
+    });
+  } catch (error) {
+    console.error(error);
+  }
 };
-

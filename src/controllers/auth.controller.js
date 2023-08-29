@@ -50,7 +50,7 @@ export const login = async (req, res) => {
 
 //Función de Registro
 export const register = async (req, res) => {
-  const { nombre, apellido, cuil, email, password, dni, cue, telefono, cargo } =
+  const { nombre, apellido, cuil, email, password, telefono, cargo } =
     req.body;
   const estado = '2';
 
@@ -61,8 +61,8 @@ export const register = async (req, res) => {
       nombre,
       apellido,
       cuil,
-      dni,
-      cue,
+      //dni,
+      //cue,
       telefono,
       cargo,
       usuario: user._id,

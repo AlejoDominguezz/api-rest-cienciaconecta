@@ -397,12 +397,12 @@ export const modificarProyectoRegional = async (req, res) => {
       cueEscuela,
       privada,
       emailEscuela,
-      videoPresentacion,
-      registroPedagogico,
-      carpetaCampo,
-      informeTrabajo,
+      // videoPresentacion,
+      // registroPedagogico,
+      // carpetaCampo,
+      // informeTrabajo,
       sede,
-      autorizacionImagen,
+      // autorizacionImagen,
       grupoProyecto,
     } = req.body;
 
@@ -427,11 +427,11 @@ export const modificarProyectoRegional = async (req, res) => {
     if (!existeSede)
       return res.status(404).json({ error: "No existe la sede" });
 
-    if (!autorizacionImagen)
-      return res.status(404).json({
-        error:
-          "Para continuar, debe autorizar el uso y cesión de imagen de los estudiantes",
-      });
+    // if (!autorizacionImagen)
+    //   return res.status(404).json({
+    //     error:
+    //       "Para continuar, debe autorizar el uso y cesión de imagen de los estudiantes",
+    //   });
 
     proyecto.titulo = titulo ?? proyecto.titulo;
     proyecto.descripcion = descripcion ?? proyecto.descripcion;
@@ -442,15 +442,15 @@ export const modificarProyectoRegional = async (req, res) => {
     proyecto.privada = privada ?? proyecto.privada;
     proyecto.emailEscuela = emailEscuela ?? proyecto.emailEscuela;
 
-    proyecto.videoPresentacion =
-      videoPresentacion ?? proyecto.videoPresentacion;
-    proyecto.registroPedagogico =
-      registroPedagogico ?? proyecto.registroPedagogico;
-    proyecto.carpetaCampo = carpetaCampo ?? proyecto.carpetaCampo;
-    proyecto.informeTrabajo = informeTrabajo ?? proyecto.informeTrabajo;
+    // proyecto.videoPresentacion =
+    //   videoPresentacion ?? proyecto.videoPresentacion;
+    // proyecto.registroPedagogico =
+    //   registroPedagogico ?? proyecto.registroPedagogico;
+    // proyecto.carpetaCampo = carpetaCampo ?? proyecto.carpetaCampo;
+    // proyecto.informeTrabajo = informeTrabajo ?? proyecto.informeTrabajo;
     proyecto.sede = sede ?? proyecto.sede;
-    proyecto.autorizacionImagen =
-      autorizacionImagen ?? proyecto.autorizacionImagen;
+    // proyecto.autorizacionImagen =
+    //   autorizacionImagen ?? proyecto.autorizacionImagen;
     proyecto.grupoProyecto = grupoProyecto ?? proyecto.grupoProyecto;
 
     if (proyecto.estado === estado.instanciaEscolar)
@@ -494,6 +494,7 @@ export const cargarArchivosRegional = async (req, res) => {
         "carpetaCampo",
         "registroPedagogicopdf",
         "informeTrabajo",
+        "autorizacionImagen",
       ];
 
       const archivos_input = files;
@@ -549,15 +550,19 @@ export const cargarArchivosRegional = async (req, res) => {
       uploadPromises.push(
         sendFileToDrive(files.informeTrabajo, id_folder_new, drive)
       );
+      uploadPromises.push(
+        sendFileToDrive(files.autorizacionImagen, id_folder_new, drive)
+      );
 
-      const [id_archivo_pdf, id_archivo_pdf_campo, id_archivo_informeTrabajo] =
+      const [id_archivo_pdf, id_archivo_pdf_campo, id_archivo_informeTrabajo, id_archivo_autorizacionImagen] =
         await Promise.all(uploadPromises);
 
       proyecto.registroPedagogico = `https://drive.google.com/file/d/${id_archivo_pdf}/preview`;
       proyecto.carpetaCampo = `https://drive.google.com/file/d/${id_archivo_pdf_campo}/preview`;
       proyecto.informeTrabajo = `https://drive.google.com/file/d/${id_archivo_informeTrabajo}/preview`;
+      proyecto.autorizacionImagen = `https://drive.google.com/file/d/${id_archivo_autorizacionImagen}/preview`;
 
-      if (id_archivo_pdf && id_archivo_pdf_campo && id_archivo_informeTrabajo) {
+      if (id_archivo_pdf && id_archivo_pdf_campo && id_archivo_informeTrabajo && id_archivo_autorizacionImagen) {
         proyecto.save();
         return res.status(200).json({
           id_inform_tranajp: proyecto.informeTrabajo,

@@ -54,8 +54,8 @@ export const updateUser = async (req, res) => {
       //cuil,
       email,
       telefono,
-      dni,
-      cue,
+      //dni,
+      //cue,
       cargo,
       password,
       estado,
@@ -81,9 +81,9 @@ export const updateUser = async (req, res) => {
     docente.nombre = nombre || docente.nombre;
     docente.apellido = apellido || docente.apellido;
     docente.telefono = telefono || docente.telefono;
-    docente.dni = dni || docente.dni;
+    //docente.dni = dni || docente.dni;
     docente.cargo = cargo || docente.cargo;
-    docente.cue = cue || docente.cue;
+    //docente.cue = cue || docente.cue;
 
     await user.save();
     await docente.save();

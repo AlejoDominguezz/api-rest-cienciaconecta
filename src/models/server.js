@@ -66,7 +66,7 @@ class Server {
             next();
           });
 
-        const whitelist = [process.env.ORIGIN1, ]
+        const whitelist = [process.env.ORIGIN1, process.env.ORIGIN2, ]
 
         this.app.use(cors(
             {

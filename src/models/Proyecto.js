@@ -85,7 +85,8 @@ const ProyectoSchema = new Schema({
     ref: 'EstablecimientoEducativo'
   },
   autorizacionImagen: {
-    type: Boolean,
+    // type: Boolean,
+    type: String,
   },
   id_carpeta_drive: {
     type: String,

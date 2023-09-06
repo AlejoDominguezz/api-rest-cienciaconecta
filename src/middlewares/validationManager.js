@@ -49,19 +49,19 @@ export const bodyRegisterValidator = [
   check("cuil").custom(existeCuil),
 
   //validaciones de DNI
-  body("dni", "DNI requerido").trim().notEmpty(),
-  body("dni", "Formato de DNI incorrecto").trim().isString().isLength({ min: 7, max: 8 }),
+  // body("dni", "DNI requerido").trim().notEmpty(),
+  // body("dni", "Formato de DNI incorrecto").trim().isString().isLength({ min: 7, max: 8 }),
 
   //validaciones de CUE
-  body("cue", "El CUE es requerido y debe ser un string")
-    .trim()
-    .isString()
-    .notEmpty(),
+  // body("cue", "El CUE es requerido y debe ser un string")
+  //   .trim()
+  //   .isString()
+  //   .notEmpty(),
 
-  body("cue", "El CUE debe tener 7 caracteres")
-    .trim()
-    .isLength({ min: 7, max: 7 })
-    .isString(),
+  // body("cue", "El CUE debe tener 7 caracteres")
+  //   .trim()
+  //   .isLength({ min: 7, max: 7 })
+  //   .isString(),
 
   // Validacion de telefono
   body("telefono", "Formato de teléfono incorrecto")
@@ -145,30 +145,7 @@ export const bodyInscribirProyectoValidator = [
 ];
 
 export const bodyActualizarProyectoRegionalValidator = [
-  body("videoPresentacion")
-    .trim()
-    .notEmpty()
-    .withMessage("El video de presentación es requerido")
-    .isURL()
-    .withMessage("Formato de URL incorrecto"),
-  body("registroPedagogico")
-    .trim()
-    .notEmpty()
-    .withMessage("El registro pedagógico es requerido")
-    .isURL()
-    .withMessage("Formato de URL incorrecto"),
-  body("carpetaCampo")
-    .trim()
-    .notEmpty()
-    .withMessage("La carpeta de campo es requerida")
-    .isURL()
-    .withMessage("Formato de URL incorrecto"),
-  body("informeTrabajo")
-    .trim()
-    .notEmpty()
-    .withMessage("El informe de trabajo es requerido")
-    .isURL()
-    .withMessage("Formato de URL incorrecto"),
+  
   body('sede')
     .isMongoId()
     .withMessage('El ID de la sede no es válido')
@@ -184,10 +161,7 @@ export const bodyActualizarProyectoRegionalValidator = [
         throw new Error('El establecimiento elegido no es una sede actual');
       }
     }),
-  
-  body("autorizacionImagen")
-    .isBoolean()
-    .withMessage("Se debe indicar que se autoriza el uso y cesión de imagen"),
+
   body("grupoProyecto")
     .isArray({ min: 1 })
     .withMessage(
@@ -249,11 +223,11 @@ export const bodyUpdateValidator = [
   //   .trim()
   //   .isLength({ min: 10, max: 11 })
   //   .withMessage("Formato de CUIL incorrecto"),
-  body("dni", "Formato de DNI incorrecto").optional().trim().isLength({ min: 7, max: 8 }),
-  body("cue", "El CUE debe tener 7 caracteres numéricos")
-    .trim()
-    .isLength({ min: 7, max: 7 })
-    .isString(),
+  // body("dni", "Formato de DNI incorrecto").optional().trim().isLength({ min: 7, max: 8 }),
+  // body("cue", "El CUE debe tener 7 caracteres numéricos")
+  //   .trim()
+  //   .isLength({ min: 7, max: 7 })
+  //   .isString(),
   body("telefono", "Formato de teléfono incorrecto")
     .optional()
     .trim()

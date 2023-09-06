@@ -13,14 +13,14 @@ const DocenteSchema = new Schema({
     type: String,
     required: [true, "El CUIL es obligatorio"],
   },
-  dni: {
-    type: String,
-    required: [true, "El número de DNI es obligatorio"],
-  },
-  cue: {
-    type: String,
-    required: [true, "El CUE es obligatorio"],
-  },
+  // dni: {
+  //   type: String,
+  //   required: [true, "El número de DNI es obligatorio"],
+  // },
+  // cue: {
+  //   type: String,
+  //   required: [true, "El CUE es obligatorio"],
+  // },
   telefono: {
     type: String,
     required: [true, "El número de teléfono es obligatorio"],

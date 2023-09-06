@@ -10,6 +10,7 @@ import {
   modificarProyectoEscolar,
   modificarProyectoRegional,
   cargarArchivosRegional,
+  actualizarArchivosRegional
 } from "../controllers/proyectos.controller.js";
 import {
   bodyInscribirProyectoValidator,
@@ -89,5 +90,15 @@ routerProyectos.post(
     //validarArchivosPDF,
   cargarArchivosRegional
 );
+
+routerProyectos.patch(
+  "/regional/upload/:id",
+    requireToken,
+    BodyValidationDrive,
+    checkRolAuth([roles.admin, roles.responsableProyecto]),
+    esPropietario,
+    actualizarArchivosRegional
+);
+
 // requireToken , checkRolAuth([roles.admin, roles.responsableProyecto]), esPropietario,
 export default routerProyectos;

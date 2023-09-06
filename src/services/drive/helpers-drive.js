@@ -44,29 +44,61 @@ export const shareFolderWithPersonalAccount = async (
   }
 };
 
-export const sendFileToDrive = async (files_pdf, myFolder, drive) => {
-  try {
-    const { originalFilename: pdfName, filepath: pdfPath } = files_pdf;
+// export const sendFileToDrive = async (files_pdf, myFolder, drive) => {
+//   try {
+//     const { originalFilename: pdfName, filepath: pdfPath } = files_pdf;
 
-    const fileMetadata = {
-      name: pdfName,
-      parents: [myFolder],
-      mimeType: "application/pdf",
-    };
+//     const fileMetadata = {
+//       name: pdfName,
+//       parents: [myFolder],
+//       mimeType: "application/pdf",
+//     };
 
-    const response = await drive.files.create({
-      resource: fileMetadata,
-      media: {
+//     const response = await drive.files.create({
+//       resource: fileMetadata,
+//       media: {
+//         mimeType: "application/pdf",
+//         body: fs.createReadStream(pdfPath),
+//       },
+//       fields: "id",
+//     });
+//     //Eliminar el archivo temporal después de subirlo a Drive
+//     fs.unlinkSync(pdfPath);
+//     console.log("Archivo PDF subido. ID:", response.data.id);
+//     return response.data.id;
+//   } catch (error) {
+//     console.error("Error al subir el archivo:", error.message);
+//   }
+// };
+
+export const sendFileToDrive = (files_pdf, myFolder, drive) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const { originalFilename: pdfName, filepath: pdfPath } = files_pdf;
+
+      const fileMetadata = {
+        name: pdfName,
+        parents: [myFolder],
         mimeType: "application/pdf",
-        body: fs.createReadStream(pdfPath),
-      },
-      fields: "id",
-    });
-    //Eliminar el archivo temporal después de subirlo a Drive
-    fs.unlinkSync(pdfPath);
-    console.log("Archivo PDF subido. ID:", response.data.id);
-    return response.data.id;
-  } catch (error) {
-    console.error("Error al subir el archivo:", error.message);
-  }
+      };
+
+      const response = await drive.files.create({
+        resource: fileMetadata,
+        media: {
+          mimeType: "application/pdf",
+          body: fs.createReadStream(pdfPath),
+        },
+        fields: "id",
+      });
+
+      // Eliminar el archivo temporal después de subirlo a Drive
+      fs.unlinkSync(pdfPath);
+
+      console.log("Archivo PDF subido. ID:", response.data.id);
+      resolve(response.data.id);
+    } catch (error) {
+      console.error("Error al subir el archivo:", error.message);
+      reject(error);
+    }
+  });
 };

@@ -17,3 +17,28 @@ const NivelSchema = new Schema({
 
 
 export const Nivel = model('Nivel', NivelSchema);
+
+
+// DOCUMENTACION SWAGGER
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Nivel:
+ *       type: object
+ *       properties:
+ *         nombre:
+ *           type: string
+ *           description: El nombre del nivel.
+ *         abreviatura:
+ *           type: string
+ *           description: La abreviatura del nivel.
+ *         codigo:
+ *           type: string
+ *           description: El código del nivel.
+ *       required:
+ *         - nombre
+ *         - abreviatura
+ *         - codigo
+ */

@@ -69,3 +69,50 @@ UsuarioSchema.methods.comparePassword = async function(candidatePassword){
 
 
 export const Usuario = model('Usuario', UsuarioSchema);
+
+
+
+// DOCUMENTACION SWAGGER
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Usuario:
+ *       type: object
+ *       properties:
+ *         cuil:
+ *           type: string
+ *           description: El CUIL del usuario.
+ *         email:
+ *           type: string
+ *           description: La dirección de correo electrónico del usuario.
+ *         password:
+ *           type: string
+ *           description: La contraseña del usuario.
+ *         estado:
+ *           type: string
+ *           enum:
+ *             - '0'
+ *             - '1'
+ *             - '2'
+ *           description: El estado del usuario (0=inactivo, 1=activo, 2=pendiente).
+ *         roles:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Los roles del usuario.
+ *         tokenConfirm:
+ *           type: string
+ *           description: Token de confirmación del usuario (opcional).
+ *         cuentaConfirmada:
+ *           type: boolean
+ *           description: Indica si la cuenta del usuario está confirmada o no.
+ *         tokenRecuperacion:
+ *           type: string
+ *           description: Token de recuperación de contraseña del usuario (opcional).
+ *       required:
+ *         - cuil
+ *         - email
+ *         - password
+ *         - estado
+ */

@@ -38,3 +38,40 @@ const DocenteSchema = new Schema({
 
 
 export const Docente = model('Docente', DocenteSchema);
+
+
+
+// DOCUMENTACION SWAGGER
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Docente:
+ *       type: object
+ *       properties:
+ *         nombre:
+ *           type: string
+ *           description: El nombre del docente.
+ *         apellido:
+ *           type: string
+ *           description: El apellido del docente.
+ *         cuil:
+ *           type: string
+ *           description: El CUIL del docente.
+ *         telefono:
+ *           type: string
+ *           description: El número de teléfono del docente.
+ *         cargo:
+ *           type: string
+ *           description: El cargo del docente en la institución.
+ *         usuario:
+ *           type: string
+ *           description: El ID del usuario asociado al docente.
+ *       required:
+ *         - nombre
+ *         - apellido
+ *         - cuil
+ *         - telefono
+ *         - cargo
+ *         - usuario
+ */

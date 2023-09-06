@@ -214,3 +214,204 @@ export const estadoFeria = {
 // Estado [0 = “inactiva“, 1 = “inicio”, 2 = “instancia escolar”, 3 = “instancia regional”, 4 = “evaluación regional”, 5 = “instancia provincial“,  6 = “evaluación provincial”, 7 = “finalización”] (Estados provisorios) * ---
 
 // * Requerido
+
+
+
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Feria:
+ *       type: object
+ *       properties:
+ *         nombre:
+ *           type: string
+ *           description: El nombre de la feria.
+ *         descripcion:
+ *           type: string
+ *           description: La descripción de la feria.
+ *         logo:
+ *           type: string
+ *           description: El logo de la feria (opcional).
+ *         fechaInicioFeria:
+ *           type: string
+ *           format: date
+ *           description: La fecha de inicio de la feria.
+ *         fechaFinFeria:
+ *           type: string
+ *           format: date
+ *           description: La fecha de fin de la feria.
+ *         instancias:
+ *           type: object
+ *           properties:
+ *             instanciaEscolar:
+ *               type: object
+ *               properties:
+ *                 fechaInicioInstancia:
+ *                   type: string
+ *                   format: date
+ *                   description: La fecha de inicio de la instancia escolar.
+ *                 fechaFinInstancia:
+ *                   type: string
+ *                   format: date
+ *                   description: La fecha de fin de la instancia escolar.
+ *                 estado:
+ *                   type: string
+ *                   enum:
+ *                     - '0'
+ *                     - '1'
+ *                     - '2'
+ *                     - '3'
+ *                     - '4'
+ *                     - '5'
+ *                     - '6'
+ *                   description: El estado de la instancia escolar.
+ *             instanciaRegional:
+ *               type: object
+ *               properties:
+ *                 fechaInicioEvaluacionTeorica:
+ *                   type: string
+ *                   format: date
+ *                   description: La fecha de inicio de la evaluación teórica de la instancia regional.
+ *                 fechaFinEvaluacionTeorica:
+ *                   type: string
+ *                   format: date
+ *                   description: La fecha de fin de la evaluación teórica de la instancia regional.
+ *                 fechaInicioEvaluacionPresencial:
+ *                   type: string
+ *                   format: date
+ *                   description: La fecha de inicio de la evaluación presencial de la instancia regional.
+ *                 fechaFinEvaluacionPresencial:
+ *                   type: string
+ *                   format: date
+ *                   description: La fecha de fin de la evaluación presencial de la instancia regional.
+ *                 estado:
+ *                   type: string
+ *                   enum:
+ *                     - '0'
+ *                     - '1'
+ *                     - '2'
+ *                     - '3'
+ *                     - '4'
+ *                     - '5'
+ *                     - '6'
+ *                   description: El estado de la instancia regional.
+ *                 cupos:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       sede:
+ *                         type: string
+ *                         description: ID de la sede asociada.
+ *                       nivel:
+ *                         type: string
+ *                         description: ID del nivel asociado.
+ *                       cantidad:
+ *                         type: integer
+ *                         description: La cantidad de cupos disponibles.
+ *                 sedes:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                     description: Lista de IDs de sedes asociadas a la instancia regional.
+ *             instanciaProvincial:
+ *               type: object
+ *               properties:
+ *                 fechaInicioEvaluacionPresencial:
+ *                   type: string
+ *                   format: date
+ *                   description: La fecha de inicio de la evaluación presencial de la instancia provincial.
+ *                 fechaFinEvaluacionPresencial:
+ *                   type: string
+ *                   format: date
+ *                   description: La fecha de fin de la evaluación presencial de la instancia provincial.
+ *                 estado:
+ *                   type: string
+ *                   enum:
+ *                     - '0'
+ *                     - '1'
+ *                     - '2'
+ *                     - '3'
+ *                     - '4'
+ *                     - '5'
+ *                     - '6'
+ *                   description: El estado de la instancia provincial.
+ *                 cupos:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       nivel:
+ *                         type: string
+ *                         description: ID del nivel asociado.
+ *                       cantidad:
+ *                         type: integer
+ *                         description: La cantidad de cupos disponibles.
+ *                 sede:
+ *                   type: string
+ *                   description: ID del establecimiento educativo asociado (opcional).
+ *         fechaInicioPostulacionEvaluadores:
+ *           type: string
+ *           format: date
+ *           description: La fecha de inicio de la postulación de evaluadores (opcional).
+ *         fechaFinPostulacionEvaluadores:
+ *           type: string
+ *           format: date
+ *           description: La fecha de fin de la postulación de evaluadores (opcional).
+ *         fechaInicioAsignacionProyectos:
+ *           type: string
+ *           format: date
+ *           description: La fecha de inicio de la asignación de proyectos (opcional).
+ *         fechaFinAsignacionProyectos:
+ *           type: string
+ *           format: date
+ *           description: La fecha de fin de la asignación de proyectos (opcional).
+ *         criteriosEvaluacion:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               nombreRubrica:
+ *                 type: string
+ *                 description: El nombre de la rúbrica.
+ *               criterios:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     nombre:
+ *                       type: string
+ *                       description: El nombre del criterio.
+ *                     opciones:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                         description: Lista de opciones para el criterio.
+ *                     ponderacion:
+ *                       type: number
+ *                       description: La ponderación del criterio (entre 0 y 1).
+ *         estado:
+ *           type: string
+ *           enum:
+ *             - '0'
+ *             - '1'
+ *             - '2'
+ *             - '3'
+ *             - '4'
+ *             - '5'
+ *             - '6'
+ *           description: El estado de la feria.
+ *         usuarioResponsable:
+ *           type: string
+ *           description: ID del usuario responsable de la feria.
+ *       required:
+ *         - nombre
+ *         - descripcion
+ *         - fechaInicioFeria
+ *         - fechaFinFeria
+ *         - instancias
+ *         - estado
+ *         - usuarioResponsable
+ */

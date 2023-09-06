@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import multer from 'multer';
+import {swaggerDocs} from '../swagger.js';
 import routerFerias from '../routes/feria.route.js';
 import routerUsuarios from '../routes/usuario.route.js';
 import routerAuth from '../routes/auth.route.js'
@@ -15,6 +16,7 @@ import routerNiveles from '../routes/nivel.route.js';
 import routerDepartamentos from '../routes/departamento.route.js';
 import routerLocalidades from '../routes/localidad.route.js';
 import routerEstablecimiento from '../routes/establecimiento.route.js';
+
 
 
 
@@ -130,7 +132,8 @@ class Server {
     listen(){
         this.app.listen( this.port , () => {
             console.log('servidor corriendo en puerto' , process.env.PORT );
-            console.log("🔥🔥🔥 http://localhost:5000") 
+            console.log("🔥🔥🔥 http://localhost:5000");
+            swaggerDocs(this.app, process.env.PORT);
         });
     }
 

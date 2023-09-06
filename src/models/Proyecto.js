@@ -126,3 +126,102 @@ export const nombreEstado = [
 ]
 
 export const Proyecto = model("Proyecto", ProyectoSchema);
+
+
+
+
+// DOCUMENTACION SWAGGER
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Proyecto:
+ *       type: object
+ *       properties:
+ *         titulo:
+ *           type: string
+ *           description: El título del proyecto.
+ *         descripcion:
+ *           type: string
+ *           description: La descripción del proyecto.
+ *         nivel:
+ *           type: string
+ *           description: ID del nivel del proyecto.
+ *         categoria:
+ *           type: string
+ *           description: ID de la categoría del proyecto.
+ *         establecimientoEducativo:
+ *           type: string
+ *           description: ID del establecimiento educativo asociado al proyecto.
+ *         emailEscuela:
+ *           type: string
+ *           description: El correo electrónico de contacto de la escuela.
+ *         idResponsable:
+ *           type: string
+ *           description: ID del docente responsable del proyecto.
+ *         fechaInscripcion:
+ *           type: string
+ *           format: date
+ *           description: La fecha de inscripción del proyecto.
+ *         feria:
+ *           type: string
+ *           description: ID de la feria a la que pertenece el proyecto.
+ *         estado:
+ *           type: string
+ *           enum:
+ *             - '0'
+ *             - '1'
+ *             - '2'
+ *             - '3'
+ *             - '4'
+ *             - '5'
+ *             - '6'
+ *           description: El estado del proyecto.
+ *         videoPresentacion:
+ *           type: string
+ *           description: URL del video de presentación del proyecto.
+ *         registroPedagogico:
+ *           type: string
+ *           description: URL del registro pedagógico del proyecto.
+ *         carpetaCampo:
+ *           type: string
+ *           description: URL de la carpeta de campo del proyecto.
+ *         informeTrabajo:
+ *           type: string
+ *           description: URL del informe de trabajo del proyecto.
+ *         sede:
+ *           type: string
+ *           description: ID de la sede asociada al proyecto.
+ *         autorizacionImagen:
+ *           type: string
+ *           description: Autorización para usar imágenes (opcional).
+ *         id_carpeta_drive:
+ *           type: string
+ *           description: ID de la carpeta de Google Drive del proyecto.
+ *         grupoProyecto:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *                 description: El nombre de un miembro del grupo.
+ *               apellido:
+ *                 type: string
+ *                 description: El apellido de un miembro del grupo.
+ *               dni:
+ *                 type: string
+ *                 description: El DNI de un miembro del grupo.
+ *       required:
+ *         - titulo
+ *         - descripcion
+ *         - nivel
+ *         - categoria
+ *         - establecimientoEducativo
+ *         - emailEscuela
+ *         - idResponsable
+ *         - fechaInscripcion
+ *         - feria
+ *         - estado
+ */
+

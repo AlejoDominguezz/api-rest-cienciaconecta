@@ -3,6 +3,8 @@ import { validarCampos } from "./validar-campos.js";
 import axios from "axios";
 import { existsId, existeCuil, existeProyecto, existeCategoria, existeNivel } from "../helpers/db-validar.js";
 import { check } from "express-validator";
+import { checkEstablecimientoIsSede } from '../controllers/establecimientos.controller.js'
+import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js";
 
 export const bodyRegisterValidator = [
   //validaciones de email correcto formato
@@ -120,29 +122,24 @@ export const bodyInscribirProyectoValidator = [
     .isMongoId().withMessage("ID de Categoria incorrecto"),
   check("categoria").custom(existeCategoria),
 
-  //validaciones de nombre escuela
-  body("nombreEscuela", "Nombre escuela requerido").trim().notEmpty(),
-  body("nombreEscuela", "Nombre escuela máximo 40 caracteres")
-    .trim()
-    .isLength({ max: 40 }),
-
-  //validaciones de CUE
-  body("cueEscuela", "El CUE es requerido").trim().notEmpty(),
-
-  body("cueEscuela", "El CUE debe tener 7 caracteres")
-    .trim()
-    .isString()
-    .isLength({ min: 7, max: 7 }),
-
-  //validaciones de tipo escuela
-  body("privada", "El tipo de escuela es requerido").trim().notEmpty(),
-  body("privada", "El tipo de escuela debe ser boolean").trim().isBoolean(),
+  //validaciones de establecimiento educativo
+  body('establecimientoEducativo')
+    .isMongoId()
+    .withMessage('El ID del establecimiento no es válido')
+    .custom(async (value) => {
+      const establecimiento = await EstablecimientoEducativo.findById(value);
+      if (!establecimiento) {
+        throw new Error('El establecimiento no existe');
+      }
+    }),
 
   //validaciones de email escuela
   body("emailEscuela", "El email de contacto de la escuela es requerido")
     .trim()
     .notEmpty(),
-  body("emailEscuela", "Email con formato incorrecto").trim().isEmail(),
+  body("emailEscuela", "Email con formato incorrecto")
+    .trim()
+    .isEmail(),
 
   validarCampos,
 ];
@@ -172,12 +169,22 @@ export const bodyActualizarProyectoRegionalValidator = [
     .withMessage("El informe de trabajo es requerido")
     .isURL()
     .withMessage("Formato de URL incorrecto"),
-  body("sede")
-    .trim()
-    .isString()
-    .withMessage("El ID de sede se debe enviar como un tipo String")
-    .isLength({ max: 24, min: 24 })
-    .withMessage("El ID de sede debe tener 24 caracteres alfanuméricos"),
+  body('sede')
+    .isMongoId()
+    .withMessage('El ID de la sede no es válido')
+    .custom(async (value) => {
+      try {
+        const isSedeValid = await checkEstablecimientoIsSede(value);
+  
+        if (!isSedeValid) {
+          throw new Error('El establecimiento elegido no es una sede actual');
+        }
+      } catch (error) {
+        console.error('Error al obtener la sede actual:', error);
+        throw new Error('El establecimiento elegido no es una sede actual');
+      }
+    }),
+  
   body("autorizacionImagen")
     .isBoolean()
     .withMessage("Se debe indicar que se autoriza el uso y cesión de imagen"),
@@ -195,14 +202,31 @@ export const bodyActualizarProyectoRegionalValidator = [
     .notEmpty()
     .withMessage("El apellido del miembro del grupo es requerido"),
   body("grupoProyecto.*.dni")
-    .isInt()
+    .trim()
+    .notEmpty()
     .isLength({ min: 7, max: 8 })
     .withMessage(
       "El DNI del miembro del grupo debe ser un número de entre 7 y 8 digitos"
-    ),
+    )
+    // Validación de DNIs no repetidos
+    .custom((dni, { req }) => {
+      const grupoProyecto = req.body.grupoProyecto;
+      const dniSet = new Set();
 
+      for (const miembro of grupoProyecto) {
+        if (dniSet.has(miembro.dni)) {
+          throw new Error("El DNI del miembro del grupo está repetido");
+        } else {
+          dniSet.add(miembro.dni);
+        }
+      }
+
+      return true;
+    }),
+  
   validarCampos,
 ];
+
 export const bodyDeleteValidator = [
   check("id", "no es un ID valido de mongo").isMongoId(),
   check("id").custom(existsId),

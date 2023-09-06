@@ -23,17 +23,22 @@ const ProyectoSchema = new Schema({
     required: true,
     ref: "Categoria",
   },
-  nombreEscuela: {
-    type: String,
-    required: [true, "El nombre de la escuela es requerido"],
-  },
-  cueEscuela: {
-    type: String,
-    required: [true, "El CUE de la escuela es requerido"],
-  },
-  privada: {
-    type: Boolean,
-    required: [true, "Se debe indicar si la escuela es privada o pública"],
+  // nombreEscuela: {
+  //   type: String,
+  //   required: [true, "El nombre de la escuela es requerido"],
+  // },
+  // cueEscuela: {
+  //   type: String,
+  //   required: [true, "El CUE de la escuela es requerido"],
+  // },
+  // privada: {
+  //   type: Boolean,
+  //   required: [true, "Se debe indicar si la escuela es privada o pública"],
+  // },
+  establecimientoEducativo: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: "EstablecimientoEducativo",
   },
   emailEscuela: {
     type: String,
@@ -47,6 +52,11 @@ const ProyectoSchema = new Schema({
   fechaInscripcion: {
     type: Date,
     default: Date.now,
+  },
+  feria: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: "Feria",
   },
   estado: {
     type: String,
@@ -72,7 +82,7 @@ const ProyectoSchema = new Schema({
   },
   sede:{
     type: Schema.Types.ObjectId,
-    ref: 'Sede'
+    ref: 'EstablecimientoEducativo'
   },
   autorizacionImagen: {
     type: Boolean,
@@ -89,7 +99,7 @@ const ProyectoSchema = new Schema({
         type: String,
       },
       dni: {
-        type: Number,
+        type: String,
       },
     },
   ],

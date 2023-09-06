@@ -186,7 +186,7 @@ const feriaSchema = new Schema({
 export const Feria = model('Feria', feriaSchema);
 
 export const estadoFeria = {
-    inactiva: '0',
+    //inactiva: '0',
     creada: '1',
     instanciaEscolar: '2',
     instanciaRegional: '3',

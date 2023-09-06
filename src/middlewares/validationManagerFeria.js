@@ -6,6 +6,10 @@ import { Sede } from "../models/Sede.js";
 import { Nivel } from "../models/Nivel.js";
 import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js";
 
+const fechaActual = Date.now();
+const fechaActualAjustada = new Date(fechaActual);
+fechaActualAjustada.setHours(0, 0, 0, 0); // Ajustar a las 00:00:00
+
 export const bodyCrearFeriaValidator = [
     //validaciones de nombre
     body("nombre")
@@ -39,7 +43,7 @@ export const bodyCrearFeriaValidator = [
             .isLength({ max: 1000 })
             .withMessage("Longitud URL de logo máximo 1000 caracteres")
             .isURL()
-            .withMessage("URL inválido"),
+            .withMessage("URL inválido"),        
 
     //validaciones de fecha de inicio de feria
     body("fechaInicioFeria")
@@ -48,7 +52,7 @@ export const bodyCrearFeriaValidator = [
         .withMessage("Fecha de inicio de Feria requerida")
         .isISO8601()
         .withMessage("Formato incorrecto de Fecha de inicio de Feria"),
-    check("fechaInicioFeria").custom(fechaPosteriorA(Date.now())),
+    check("fechaInicioFeria").custom(fechaPosteriorA(fechaActualAjustada)),
 
     //validaciones de fecha de fin de feria
     body("fechaFinFeria")
@@ -85,7 +89,10 @@ export const bodyCrearFeriaValidator = [
         .withMessage('La fecha de fin de instancia escolar debe ser una fecha válida')
         .custom((fechaFinInstancia, { req }) => {
         return fechaPosteriorA(req.body.instancias.instanciaEscolar.fechaInicioInstancia)(fechaFinInstancia);
-        }),
+        })
+        .custom((fechaFinInstancia, { req }) => {
+            return fechaAnteriorA(req.body.fechaFinFeria)(fechaFinInstancia);
+            }),
 
     // Validaciones de estado (opcional)
     body('instancias.instanciaRegional.estado')
@@ -102,7 +109,10 @@ export const bodyCrearFeriaValidator = [
         .withMessage('La fecha de inicio de evaluación teórica de instancia regional debe ser una fecha válida')
         .custom((fechaInicioEvaluacionTeorica, { req }) => {
         return fechaPosteriorA(req.body.instancias.instanciaEscolar.fechaFinInstancia)(fechaInicioEvaluacionTeorica);
-        }),
+        })
+        .custom((fechaInicioEvaluacionTeorica, { req }) => {
+            return fechaAnteriorA(req.body.fechaFinFeria)(fechaInicioEvaluacionTeorica);
+            }),
 
     //validaciones de fecha de fin de evaluacion teorica
     body('instancias.instanciaRegional.fechaFinEvaluacionTeorica')
@@ -112,7 +122,10 @@ export const bodyCrearFeriaValidator = [
         .withMessage('La fecha de fin de evaluación teórica de instancia regional debe ser una fecha válida')
         .custom((fechaFinEvaluacionTeorica, { req }) => {
         return fechaPosteriorA(req.body.instancias.instanciaRegional.fechaInicioEvaluacionTeorica)(fechaFinEvaluacionTeorica);
-        }),
+        })
+        .custom((fechaFinEvaluacionTeorica, { req }) => {
+            return fechaAnteriorA(req.body.fechaFinFeria)(fechaFinEvaluacionTeorica);
+            }),
 
     //validaciones de fecha de inicio de evaluacion presencial
     body('instancias.instanciaRegional.fechaInicioEvaluacionPresencial')
@@ -122,7 +135,10 @@ export const bodyCrearFeriaValidator = [
         .withMessage('La fecha de inicio de evaluación presencial de instancia regional debe ser una fecha válida')
         .custom((fechaInicioEvaluacionPresencial, { req }) => {
         return fechaPosteriorA(req.body.instancias.instanciaRegional.fechaFinEvaluacionTeorica)(fechaInicioEvaluacionPresencial);
-        }),
+        })
+        .custom((fechaInicioEvaluacionPresencial, { req }) => {
+            return fechaAnteriorA(req.body.fechaFinFeria)(fechaInicioEvaluacionPresencial);
+            }),
 
     //validaciones de fecha de fin de evaluacion presencial
     body('instancias.instanciaRegional.fechaFinEvaluacionPresencial')
@@ -132,7 +148,10 @@ export const bodyCrearFeriaValidator = [
         .withMessage('La fecha de fin de evaluación presencial de instancia regional debe ser una fecha válida')
         .custom((fechaFinEvaluacionPresencial, { req }) => {
         return fechaPosteriorA(req.body.instancias.instanciaRegional.fechaInicioEvaluacionPresencial)(fechaFinEvaluacionPresencial);
-        }),
+        })
+        .custom((fechaFinEvaluacionPresencial, { req }) => {
+            return fechaAnteriorA(req.body.fechaFinFeria)(fechaFinEvaluacionPresencial);
+            }),
 
     //validaciones de cupo
     body('instancias.instanciaRegional.cupos')
@@ -212,7 +231,10 @@ export const bodyCrearFeriaValidator = [
         .withMessage('La fecha de inicio de evaluación presencial de instancia provincial debe ser una fecha válida')
         .custom((fechaInicioEvaluacionPresencial, { req }) => {
             return fechaPosteriorA(req.body.instancias.instanciaRegional.fechaFinEvaluacionPresencial)(fechaInicioEvaluacionPresencial);
-        }),
+        })
+        .custom((fechaInicioEvaluacionPresencial, { req }) => {
+            return fechaAnteriorA(req.body.fechaFinFeria)(fechaInicioEvaluacionPresencial);
+            }),
 
     //validaciones de fecha de fin de evaluacion
     body('instancias.instanciaProvincial.fechaFinEvaluacionPresencial')
@@ -297,7 +319,10 @@ export const bodyCrearFeriaValidator = [
         .withMessage('La fecha de fin de postulación de evaluadores debe ser una fecha válida')
         .custom((fechaFinPostulacionEvaluadores, { req }) => {
         return fechaPosteriorA(req.body.fechaInicioPostulacionEvaluadores)(fechaFinPostulacionEvaluadores);
-        }),
+        })
+        .custom((fechaFinPostulacionEvaluadores, { req }) => {
+            return fechaAnteriorA(req.body.instancias.instanciaRegional.fechaInicioEvaluacionTeorica)(fechaFinPostulacionEvaluadores);
+            }),
 
     //validacion para fecha de inicio de asignacion de evaluadores a proyectos
     body('fechaInicioAsignacionProyectos')
@@ -306,7 +331,10 @@ export const bodyCrearFeriaValidator = [
         .withMessage('La fecha de inicio de asignación de proyectos debe ser una fecha válida')
         .custom((fechaInicioAsignacionProyectos, { req }) => {
         return fechaPosteriorA(req.body.fechaFinPostulacionEvaluadores)(fechaInicioAsignacionProyectos);
-        }),
+        })
+        .custom((fechaInicioAsignacionProyectos, { req }) => {
+            return fechaAnteriorA(req.body.instancias.instanciaRegional.fechaInicioEvaluacionTeorica)(fechaInicioAsignacionProyectos);
+            }),
 
     //validacion para fecha de fin de asignacion de evaluadores a proyectos
     body('fechaFinAsignacionProyectos')

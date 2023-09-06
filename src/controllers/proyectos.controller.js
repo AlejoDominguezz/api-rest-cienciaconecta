@@ -12,6 +12,7 @@ import formidable from "formidable";
 import { existeProyecto } from "../helpers/db-validar.js";
 import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js";
 import { Feria, estadoFeria } from "../models/Feria.js";
+import { roles } from "../helpers/roles.js";
 
 
 export const inscribirProyectoEscolar = async (req, res) => {
@@ -58,7 +59,7 @@ export const inscribirProyectoEscolar = async (req, res) => {
     await proyecto.save();
 
     // Cambio estado del usuario: de docente a responsable de proyecto
-    if (!usuario.roles.includes("2")) usuario.roles.push("2");
+    if (!usuario.roles.includes(roles.responsableProyecto)) usuario.roles.push(roles.responsableProyecto);
     await usuario.save();
 
     return res.json({ ok: true });
@@ -75,6 +76,26 @@ export const eliminarProyecto = async (req, res) => {
 
     if (!proyecto)
       return res.status(404).json({ error: "No existe el proyecto" });
+
+    // Para quitar el rol de responsable, si no tiene más proyectos: busco si tiene proyectos
+    const tieneProyectos = await Proyecto.findOne({
+      idResponsable: proyecto.idResponsable,
+      _id: { $ne: proyecto._id }, // Excluye el proyecto actual por su ID
+      estado: { $nin: [estado.inactivo, estado.finalizado] }, // No incluye proyectos con estado "inactivo" o "finalizado"
+    });
+
+    // Si no tiene proyectos, elimino el rol de responsable
+    if(!tieneProyectos){
+      const docente = await Docente.findOne({id: proyecto.idResponsable});
+      const usuario = await Usuario.findById(docente.usuario);
+      
+      const indiceRol = usuario.roles.indexOf(roles.responsableProyecto);
+      if (indiceRol !== -1) {
+        usuario.roles.splice(indiceRol, 1);
+      await usuario.save();
+      }
+    };
+      
 
     await proyecto.deleteOne();
 
@@ -101,6 +122,26 @@ export const bajaProyecto = async (req, res) => {
       return res.status(404).json({ error: "El proyecto ya se encuentra inactivo" });
 
     proyecto.estado = estado.inactivo;
+
+    // Para quitar el rol de responsable, si no tiene más proyectos: busco si tiene proyectos
+    const tieneProyectos = await Proyecto.findOne({
+      idResponsable: proyecto.idResponsable,
+      _id: { $ne: proyecto._id }, // Excluye el proyecto actual por su ID
+      estado: { $nin: [estado.inactivo, estado.finalizado] }, // No incluye proyectos con estado "inactivo" o "finalizado"
+    });
+
+    // Si no tiene proyectos, elimino el rol de responsable
+    if(!tieneProyectos){
+      const docente = await Docente.findById(proyecto.idResponsable);
+      const usuario = await Usuario.findById(docente.usuario);
+
+      const indiceRol = usuario.roles.indexOf(roles.responsableProyecto);
+      if (indiceRol !== -1) {
+        usuario.roles.splice(indiceRol, 1);
+      await usuario.save();
+      }
+    };
+
     await proyecto.save();
 
     return res.json({ proyecto });
@@ -170,9 +211,14 @@ export const consultarProyecto = async (req, res) => {
         .status(404)
         .json({ error: "El proyecto ha sido dado de baja" });
 
+    const establecimiento = await EstablecimientoEducativo.findOne({ _id: proyecto.establecimientoEducativo });
+    if(!establecimiento)  
+      return res.status(401).json({ error: "No existe el establecimiento educativo correspondiente al proyecto" });
+
     // Agrega el nombre del estado y lo devuelve en el json de la consulta
     const proyectoConNombreEstado = {
       ...proyecto.toObject(),
+      establecimientoEducativo: establecimiento,
       nombreEstado: nombreEstado[proyecto.estado],
     }; // Obtenemos el nombre del estado según la clave;
 
@@ -230,13 +276,17 @@ export const consultarProyectos = async (req, res) => {
     if (proyectos.length === 0)
       return res.status(204).json({ error: "No se han encontrado proyectos" });
 
+    
+    const establecimiento = await EstablecimientoEducativo.findOne({ id: establecimientoEducativo });
+    if(!establecimiento)  
+      return res.status(401).json({ error: "No existe el establecimiento educativo correspondiente al proyecto" });
+
     // Agrega el nombre del estado y lo devuelve en el json de la consulta
     const proyectosConNombreEstado = proyectos.map((proyecto) => ({
       ...proyecto.toObject(),
+      establecimientoEducativo: establecimiento,
       nombreEstado: nombreEstado[proyecto.estado], // Obtenemos el nombre del estado según la clave
     }));
-
-
 
     return res.json({ proyectos: proyectosConNombreEstado  });
     
@@ -273,6 +323,10 @@ export const consultarMisProyectos = async (req, res) => {
     if(!responsable)  
       return res.status(401).json({ error: "No existe el docente correspondiente a su usuario" });
 
+    const establecimiento = await EstablecimientoEducativo.findOne({ id: establecimientoEducativo });
+      if(!establecimiento)  
+        return res.status(401).json({ error: "No existe el establecimiento educativo correspondiente al proyecto" });
+
     // Crear un objeto de filtro con los parámetros de consulta presentes
     const filtro = {
       ...(titulo && { titulo }),
@@ -303,6 +357,7 @@ export const consultarMisProyectos = async (req, res) => {
     // Agrega el nombre del estado y lo devuelve en el json de la consulta
     const proyectosConNombreEstado = proyectos.map((proyecto) => ({
       ...proyecto.toObject(),
+      establecimientoEducativo: establecimiento,
       nombreEstado: nombreEstado[proyecto.estado], // Obtenemos el nombre del estado según la clave
     }));
 

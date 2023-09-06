@@ -279,19 +279,29 @@ export const consultarProyectos = async (req, res) => {
     if (proyectos.length === 0)
       return res.status(204).json({ error: "No se han encontrado proyectos" });
 
+    // Agrega el nombre del estado y establecimiento, y lo devuelve en el json de la consulta
+    const proyectosModificado = await Promise.all(
+      proyectos.map(async (proyecto) => {
+        // Busca el establecimiento educativo para cada proyecto
+        const establecimientoProyecto = await EstablecimientoEducativo.findOne({
+          _id: proyecto.establecimientoEducativo,
+        });
     
-    const establecimiento = await EstablecimientoEducativo.findOne({ id: establecimientoEducativo });
-    if(!establecimiento)  
-      return res.status(401).json({ error: "No existe el establecimiento educativo correspondiente al proyecto" });
-
-    // Agrega el nombre del estado y lo devuelve en el json de la consulta
-    const proyectosConNombreEstado = proyectos.map((proyecto) => ({
-      ...proyecto.toObject(),
-      establecimientoEducativo: establecimiento,
-      nombreEstado: nombreEstado[proyecto.estado], // Obtenemos el nombre del estado según la clave
-    }));
-
-    return res.json({ proyectos: proyectosConNombreEstado  });
+        if (!establecimientoProyecto) {
+          return {
+            ...proyecto.toObject(),
+            establecimientoEducativo: null, // O puedes manejarlo de otra manera si el establecimiento no se encuentra
+            nombreEstado: nombreEstado[proyecto.estado],
+          };
+        }
+    
+        return {
+          ...proyecto.toObject(),
+          establecimientoEducativo: establecimientoProyecto,
+          nombreEstado: nombreEstado[proyecto.estado],
+        };
+      })
+    );
     
   } catch (error) {
     console.log(error);
@@ -328,10 +338,6 @@ export const consultarMisProyectos = async (req, res) => {
         .status(401)
         .json({ error: "No existe el docente correspondiente a su usuario" });
 
-    const establecimiento = await EstablecimientoEducativo.findOne({ id: establecimientoEducativo });
-      if(!establecimiento)  
-        return res.status(401).json({ error: "No existe el establecimiento educativo correspondiente al proyecto" });
-
     // Crear un objeto de filtro con los parámetros de consulta presentes
     const filtro = {
       ...(titulo && { titulo }),
@@ -360,18 +366,38 @@ export const consultarMisProyectos = async (req, res) => {
     if (proyectos.length === 0)
       return res.status(204).json({ error: "No se han encontrado proyectos" });
 
-    // Agrega el nombre del estado y lo devuelve en el json de la consulta
-    const proyectosConNombreEstado = proyectos.map((proyecto) => ({
-      ...proyecto.toObject(),
-      establecimientoEducativo: establecimiento,
-      nombreEstado: nombreEstado[proyecto.estado], // Obtenemos el nombre del estado según la clave
-    }));
+    // Agrega el nombre del estado y establecimiento, y lo devuelve en el json de la consulta
+    const proyectosModificado = await Promise.all(
+      proyectos.map(async (proyecto) => {
+        // Busca el establecimiento educativo para cada proyecto
+        const establecimientoProyecto = await EstablecimientoEducativo.findOne({
+          _id: proyecto.establecimientoEducativo,
+        });
+    
+        if (!establecimientoProyecto) {
+          return {
+            ...proyecto.toObject(),
+            establecimientoEducativo: null, // O puedes manejarlo de otra manera si el establecimiento no se encuentra
+            nombreEstado: nombreEstado[proyecto.estado],
+          };
+        }
+    
+        return {
+          ...proyecto.toObject(),
+          establecimientoEducativo: establecimientoProyecto,
+          nombreEstado: nombreEstado[proyecto.estado],
+        };
+      })
+    );
+    
+    return res.json({ proyectos: proyectosModificado });
 
-    return res.json({ proyectos: proyectosConNombreEstado });
+
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Error de servidor" });
   }
+
 };
 
 // export const actualizarProyectoRegional = async (req, res) => {

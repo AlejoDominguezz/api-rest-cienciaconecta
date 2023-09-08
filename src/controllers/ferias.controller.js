@@ -47,6 +47,24 @@ export const getFerias = async(req = request, res = response) => {
 }
 
 
+// Funcion para visualizar la feria activa actual --------------------------
+export const getFeriaActiva = async(req = request, res = response) => {
+
+  try {
+    const feriaActiva = await Feria.findOne({ estado: { $ne: estadoFeria.finalizada }})
+    if(!feriaActiva)
+      return res.status(401).json({ error: "No existe una feria activa en este momento" });
+
+    res.json({
+      feriaActiva
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Error de servidor" });
+  }
+}
+
+
 // Funcion para crear una feria --------------------------
 export const crearFeria = async (req, res) => {
     const {

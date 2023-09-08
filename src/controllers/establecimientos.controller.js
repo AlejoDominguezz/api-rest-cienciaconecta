@@ -27,45 +27,68 @@ export const getEstablecimientosEducativos = async (req = request, res = respons
     }
 };
 
-export const getSedesActuales = async (req = request, res = response) => {
+export const getEstablecimientoById = async (req = request, res = response) => {
+    try {
+        const { id } = req.params;
+
+        const establecimiento = await EstablecimientoEducativo.findById(id);
+
+        res.json({
+            establecimiento
+        });
+    } catch (error) {
+        console.error('Error al obtener el establecimiento educativo:', error);
+        return res.status(500).json({
+            error: 'Error al obtener el establecimiento educativo'
+        });
+    }
+};
+
+
+export const getSedesRegionalesActuales = async (req = request, res = response) => {
     try {
         const feriaActiva = await Feria.findOne({ estado: { $ne: estadoFeria.finalizada }})
         if (!feriaActiva) {
             return res.status(404).json({ error: 'No existe una feria activa en este momento' });
         }
 
-        // Obtener las sedes de ambas instancias de la feria activa
+        // Obtener las sedes regionales de la feria activa
         const sedesRegionales = feriaActiva.instancias.instanciaRegional.sedes;
-        const sedeProvincial = feriaActiva.instancias.instanciaProvincial.sede;
 
         // Obtener los detalles de las sedes desde el modelo EstablecimientoEducativo
-        const sedesDetalles = await EstablecimientoEducativo.find({
-            _id: { $in: [...sedesRegionales, sedeProvincial] }
-        });
-
-        // Agregar información de las instancias a cada sede
-        const sedesDetallesConInstancias = sedesDetalles.map(sede => {
-            const instancias = [];
-            if (sedesRegionales.includes(sede._id.toString())) {
-                instancias.push('regional');
-            }
-            if (sede._id.toString() === sedeProvincial.toString()) {
-                instancias.push('provincial');
-            }
-            return { ...sede.toObject(), instancias };
+        const sedesRegionalesDetalles = await EstablecimientoEducativo.find({
+            _id: { $in: [...sedesRegionales] }
         });
 
         res.json({
-            sedes: sedesDetallesConInstancias
+            sedes: sedesRegionalesDetalles
         });
 
-        // return sedesDetalles.map(sede => ({
-        //     _id: sede._id.toString(),
-        //     instancias: [
-        //         ...(sedesRegionales.includes(sede._id.toString()) ? ['regional'] : []),
-        //         ...(sede._id.toString() === sedeProvincial.toString() ? ['provincial'] : [])
-        //     ]
-        // }));
+    } catch (error) {
+        console.error('Error al obtener las sedes:', error);
+        return res.status(500).json({
+            error: 'Error al obtener las sedes:'
+        });
+    }
+};
+
+
+export const getSedeProvincialActual = async (req = request, res = response) => {
+    try {
+        const feriaActiva = await Feria.findOne({ estado: { $ne: estadoFeria.finalizada }})
+        if (!feriaActiva) {
+            return res.status(404).json({ error: 'No existe una feria activa en este momento' });
+        }
+
+        // Obtener la sede provincial de la feria activa
+        const sedeProvincial = feriaActiva.instancias.instanciaProvincial.sede;
+
+        // Obtener los detalles de las sedes desde el modelo EstablecimientoEducativo
+        const sedeProvincialDetalles = await EstablecimientoEducativo.findById(sedeProvincial);
+
+        res.json({
+            sede: sedeProvincialDetalles
+        });
 
     } catch (error) {
         console.error('Error al obtener las sedes:', error);

@@ -54,15 +54,25 @@ export default routerEvaluadores;
  *                   type: string
  *                 description: Lista de IDs de categorías a las que está asociado el evaluador.
  *               sede:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Lista de IDs de sedes en las cuales se quiere evaluar el evaluador.
+ *                 type: string
+ *                 description: ID de la sede en la cual se quiere evaluar el evaluador.
  *               antecedentes:
  *                 type: array
  *                 items:
  *                   type: string
  *                 description: Lista de años de las ferias en las que participó anteriormente.
+ *           example:
+ *             docente: true
+ *             niveles:
+ *               - "64c59c19422f390a0e16d67c"
+ *               - "64c59c19422f390a0e16d67d"
+ *             categorias:
+ *               - "64b5a117a958eae55ff4cd31"
+ *               - "64b5a117a958eae55ff4cd32"
+ *             sede: "64ca8d128984adacd9288c4d"
+ *             antecedentes:
+ *               - "2019"
+ *               - "2020"
  *     responses:
  *       '200':
  *         description: Evaluador postulado con éxito

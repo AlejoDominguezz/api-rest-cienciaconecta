@@ -7,6 +7,8 @@ import {
   createFolder,
   shareFolderWithPersonalAccount,
   sendFileToDrive,
+  getIdByUrl,
+  deleteFile
 } from "../services/drive/helpers-drive.js";
 import formidable from "formidable";
 import { existeProyecto } from "../helpers/db-validar.js";
@@ -621,12 +623,12 @@ export const cargarArchivosRegional = async (req, res) => {
       const [id_archivo_pdf, id_archivo_pdf_campo, id_archivo_informeTrabajo, id_archivo_autorizacionImagen] =
         await Promise.all(uploadPromises);
 
-      proyecto.registroPedagogico = `https://drive.google.com/file/d/${id_archivo_pdf}/preview`;
-      proyecto.carpetaCampo = `https://drive.google.com/file/d/${id_archivo_pdf_campo}/preview`;
-      proyecto.informeTrabajo = `https://drive.google.com/file/d/${id_archivo_informeTrabajo}/preview`;
-      proyecto.autorizacionImagen = `https://drive.google.com/file/d/${id_archivo_autorizacionImagen}/preview`;
 
       if (id_archivo_pdf && id_archivo_pdf_campo && id_archivo_informeTrabajo && id_archivo_autorizacionImagen) {
+        proyecto.registroPedagogico = `https://drive.google.com/file/d/${id_archivo_pdf}/preview`;
+        proyecto.carpetaCampo = `https://drive.google.com/file/d/${id_archivo_pdf_campo}/preview`;
+        proyecto.informeTrabajo = `https://drive.google.com/file/d/${id_archivo_informeTrabajo}/preview`;
+        proyecto.autorizacionImagen = `https://drive.google.com/file/d/${id_archivo_autorizacionImagen}/preview`;
         proyecto.save();
         return res.status(200).json({
           id_inform_tranajp: proyecto.informeTrabajo,
@@ -648,16 +650,16 @@ export const cargarArchivosRegional = async (req, res) => {
 };
 
 export const actualizarArchivosRegional = async (req, res) => {
-  const id = req.params.id;
-  const proyecto = await Proyecto.findById(id);
-
-  if (!proyecto.id_carpeta_drive) {
-    return res.status(400).json({
-      msg: `El proyecto ${proyecto.titulo} no tiene carpeta de drive asociada`,
-    });
-  }
-
   try {
+    const id = req.params.id;
+    const proyecto = await Proyecto.findById(id);
+  
+    if (!proyecto.id_carpeta_drive) {
+      return res.status(400).json({
+        msg: `El proyecto ${proyecto.titulo} no tiene carpeta de drive asociada`,
+      });
+    }
+
     const form = formidable({ multiples: false });
     form.parse(req, async (err, fields, files) => {
       if (err) {
@@ -670,8 +672,35 @@ export const actualizarArchivosRegional = async (req, res) => {
           msg: "Error, debe ingresar los archivos pdfs! no ha ingresado nada!",
         });
       }
+      const id_folder = proyecto.id_carpeta_drive;
+      const uploadFiles = [];
+
+      if(files.registroPedagogicopdf){
+        const id_registro = await getIdByUrl(proyecto.registroPedagogico);
+        const delete_file = await deleteFile(id_registro , drive);
+        if(delete_file){
+          uploadFiles.push(sendFileToDrive(files.registroPedagogicopdf , id_folder , drive ))
+        }
+      }
+      const [id_archivo_pdf ] = await Promise.all(uploadFiles);
+      console.log(id_archivo_pdf)
+      if(id_archivo_pdf) {
+        proyecto.registroPedagogico = `https://drive.google.com/file/d/${id_archivo_pdf}/preview`;
+        proyecto.save();
+      }
+      // if (files.carpetaCampo){
+      // }
+      // if(files.autorizacionImagen){
+      // }
+      // if(files.informeTrabajo){
+      // }
+
+
     });
+
   } catch (error) {
     console.error(error);
   }
+
+
 };

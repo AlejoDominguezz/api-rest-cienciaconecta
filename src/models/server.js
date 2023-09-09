@@ -132,7 +132,7 @@ class Server {
     listen(){
         this.app.listen( this.port , () => {
             console.log('servidor corriendo en puerto' , process.env.PORT );
-            console.log("🔥🔥🔥 http://localhost:5000");
+            console.log(`Servidor corriendo: ` , process.env.ORIGIN1);
             swaggerDocs(this.app, process.env.PORT);
         });
     }

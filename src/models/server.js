@@ -16,6 +16,7 @@ import routerNiveles from '../routes/nivel.route.js';
 import routerDepartamentos from '../routes/departamento.route.js';
 import routerLocalidades from '../routes/localidad.route.js';
 import routerEstablecimiento from '../routes/establecimiento.route.js';
+import routerEvaluadores from '../routes/evaluador.route.js';
 
 
 
@@ -40,6 +41,7 @@ class Server {
             departamento:   '/api/v1/departamento',
             localidad:      '/api/v1/localidad',
             establecimiento:'/api/v1/establecimiento',
+            evaluador:      '/api/v1/evaluador'
         }
 
         
@@ -124,8 +126,11 @@ class Server {
         //path de localidades
         this.app.use(this.paths.localidad, routerLocalidades);
 
-        //path de estasblecimientos educativos
+        //path de establecimientos educativos
         this.app.use(this.paths.establecimiento, routerEstablecimiento);
+
+        //path de evaluadores
+        this.app.use(this.paths.evaluador, routerEvaluadores);
     }
 
 

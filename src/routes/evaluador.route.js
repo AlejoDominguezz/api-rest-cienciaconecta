@@ -9,14 +9,14 @@ import { Router } from "express";
 import { requireToken } from '../middlewares/requireToken.js';
 import { checkRolAuth } from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
-import { postularEvaluador } from "../controllers/evaluadores.controller.js";
-import { bodyPostularEvaluadorValidator } from "../middlewares/validationManagerEvaluador.js";
+import { postularEvaluador, getPostulaciones, seleccionarEvaluadores } from "../controllers/evaluadores.controller.js";
+import { bodyPostularEvaluadorValidator, bodySeleccionarEvaluadorValidator } from "../middlewares/validationManagerEvaluador.js";
 
 const routerEvaluadores = Router();
 
 routerEvaluadores.post("/postular", requireToken, checkRolAuth([roles.admin, roles.docente]), bodyPostularEvaluadorValidator, postularEvaluador);
-//routerEvaluadores.post("/seleccionar", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), seleccionarEvaluador);
-//routerEvaluadores.get("/postulaciones", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), getPostulaciones);
+routerEvaluadores.post("/seleccionar", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), bodySeleccionarEvaluadorValidator, seleccionarEvaluadores);
+routerEvaluadores.get("/postulaciones", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), getPostulaciones);
 
 export default routerEvaluadores;
 
@@ -27,16 +27,29 @@ export default routerEvaluadores;
 
 /**
  * @swagger
- * /api/evaluadores/postular:
+ * /api/v1/evaluador/postular:
  *   post:
  *     summary: Postular un evaluador
- *     tags: [Evaluadores]
- *     security:
- *       - bearerAuth: []
+ *     tags:
+ *       - Evaluadores
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
+ *           example:
+ *             docente: true
+ *             niveles:
+ *               - "64fd1a8cad4c6e68aac561bc"
+ *               - "64fd1a8cad4c6e68aac561bd"
+ *             categorias:
+ *               - "64fd1a8cad4c6e68aac561ca"
+ *               - "64fd1a8cad4c6e68aac561cb"
+ *             sede: "64fd1a95ad4c6e68aac561e4"
+ *             antecedentes:
+ *               - year: "2019"
+ *                 rol: "2"
+ *               - year: "2012"
+ *                 rol: "1"
  *           schema:
  *             type: object
  *             properties:
@@ -47,37 +60,167 @@ export default routerEvaluadores;
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Lista de IDs de niveles a los que está asociado el evaluador.
+ *                   description: Lista de IDs de niveles a los que está asociado el evaluador.
  *               categorias:
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Lista de IDs de categorías a las que está asociado el evaluador.
+ *                   description: Lista de IDs de categorías a las que está asociado el evaluador.
  *               sede:
  *                 type: string
  *                 description: ID de la sede en la cual se quiere evaluar el evaluador.
  *               antecedentes:
  *                 type: array
  *                 items:
- *                   type: string
- *                 description: Lista de años de las ferias en las que participó anteriormente.
- *           example:
- *             docente: true
- *             niveles:
- *               - "64c59c19422f390a0e16d67c"
- *               - "64c59c19422f390a0e16d67d"
- *             categorias:
- *               - "64b5a117a958eae55ff4cd31"
- *               - "64b5a117a958eae55ff4cd32"
- *             sede: "64ca8d128984adacd9288c4d"
- *             antecedentes:
- *               - "2019"
- *               - "2020"
+ *                   type: object
+ *                   properties:
+ *                     year:
+ *                       type: string
+ *                       description: Año de participación en la feria.
+ *                     rol:
+ *                       type: string
+ *                       description: Rol del evaluador en la feria (1=Referente, 2=Evaluador, 3=Responsable).
+ *                 description: Detalles de los antecedentes del evaluador en ferias.
  *     responses:
- *       '200':
- *         description: Evaluador postulado con éxito
- *       '401':
- *         description: No existe una feria activa en este momento o el usuario no es un docente
- *       '500':
- *         description: Error de servidor
+ *       200:
+ *         description: Se ha registrado la postulación exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 evaluador:
+ *                   $ref: '#/components/schemas/Evaluador'
+ *       401:
+ *         description: No existe el docente o No existe una feria activa en este momento.
+ *       403:
+ *         description: El usuario ya se ha postulado como evaluador.
+ *       500:
+ *         description: Error de servidor.
+ */
+
+/**
+ * @swagger
+ * /api/v1/evaluador/postulaciones:
+ *   get:
+ *     summary: Obtener postulaciones pendientes con datos de docente y postulación
+ *     tags:
+ *       - Evaluadores
+ *     responses:
+ *       200:
+ *         description: Lista de postulaciones pendientes con datos de docente y postulación.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 postulaciones:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         description: ID de la postulación.
+ *                       docente:
+ *                         type: object
+ *                         properties:
+ *                           nombre:
+ *                             type: string
+ *                             description: Nombre del docente.
+ *                           apellido:
+ *                             type: string
+ *                             description: Apellido del docente.
+ *                           cuil:
+ *                             type: string
+ *                             description: CUIL del docente.
+ *                           telefono:
+ *                             type: string
+ *                             description: Número de teléfono del docente.
+ *                           cargo:
+ *                             type: string
+ *                             description: Cargo del docente en la institución.
+ *                       niveles:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                           description: Lista de IDs de niveles asociados al evaluador.
+ *                       categorias:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                           description: Lista de IDs de categorías asociadas al evaluador.
+ *                       sede:
+ *                         type: string
+ *                         description: ID de la sede en la cual se quiere evaluar el evaluador.
+ *                       CV:
+ *                         type: string
+ *                         description: Enlace al currículum vitae del evaluador.
+ *                       antecedentes:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             year:
+ *                               type: string
+ *                               description: Año de participación en la feria.
+ *                             rol:
+ *                               type: string
+ *                               description: Rol del evaluador en la feria (1=Referente, 2=Evaluador, 3=Responsable).
+ *                           description: Detalles de los antecedentes del evaluador en ferias.
+ *                       feria:
+ *                         type: string
+ *                         description: ID de la feria para la cual se ha postulado el evaluador.
+ *                       idDocente:
+ *                         type: string
+ *                         description: ID del docente que se ha postulado.
+ *                       fechaPostulacion:
+ *                         type: string
+ *                         description: Fecha de postulación del evaluador.
+ *                       pendiente:
+ *                         type: boolean
+ *                         description: Indica si la evaluación está pendiente.
+ *                   description: Lista de postulaciones pendientes con datos del docente y la postulación asociada.
+ *       204:
+ *         description: No se han encontrado postulaciones pendientes.
+ *       401:
+ *         description: No se tienen los permisos adecuados para acceder a esta función.
+ *       500:
+ *         description: Error de servidor.
+ */
+
+/**
+ * @swagger
+ * /api/v1/evaluador/seleccionar:
+ *   post:
+ *     summary: Seleccionar evaluadores
+ *     tags:
+ *       - Evaluadores
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               idSeleccionados:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Lista de IDs de las postulaciones de evaluadores a seleccionar.
+ *     responses:
+ *       200:
+ *         description: Los evaluadores han sido seleccionados exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ok:
+ *                   type: boolean
+ *                   description: Indica si la selección fue exitosa.
+ *       401:
+ *         description: No existe la postulación, el docente asociado a la postulación o el usuario ya tiene el rol de evaluador (si pasa esto, algo está mal).
+ *       500:
+ *         description: Error de servidor.
  */

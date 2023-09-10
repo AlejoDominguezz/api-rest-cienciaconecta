@@ -168,3 +168,27 @@ export const bodyPostularEvaluadorValidator = [
     validarCampos,
 
 ];
+
+
+export const bodySeleccionarEvaluadorValidator = [
+  body("postulaciones")
+  .notEmpty()
+  .withMessage("Se deben indicar los IDs de los postulados seleccionados")
+  .isArray()
+  .withMessage("Se debe enviar un array de IDs")
+  .custom((value) => {
+    // Verificar si el array está vacío
+    if (!value || value.length === 0) {
+      throw new Error("Debe haber al menos un elemento en el array de postulaciones");
+    }
+    return true;
+  })
+  .withMessage("Debe haber al menos un elemento en el array de postulaciones"),
+  
+  body("postulaciones.*")
+  .isMongoId()
+  .withMessage("Al menos un ID no es valido"),
+
+  validarCampos,
+
+];

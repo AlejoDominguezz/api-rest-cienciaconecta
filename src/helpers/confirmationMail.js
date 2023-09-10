@@ -30,6 +30,18 @@ export const confirmationMailHtml = (token) =>`
       box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.1);
       z-index: -1;
     }
+
+    .marca-agua-container {
+      text-align: center;
+      margin-top: 10px; /* Separación del párrafo anterior */
+    }
+    .marca-agua {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 24px;
+      font-weight: bold; 
+      color: #00ACE6;
+    }
+
     .black-text {
       color: #000000; /* Color negro (#000000) */
     }
@@ -45,7 +57,9 @@ export const confirmationMailHtml = (token) =>`
         <a href="http://localhost:5000/api/v1/auth/confirmar/${token}" style="display: inline-block; background-color: #00ACE6; color: #fff; padding: 10px 20px; text-decoration: none; font-size: 16px; border-radius: 5px; margin-top: 20px;">Verificar cuenta</a>
         <p style="font-size: 14px; color: #888; margin-top: 20px;">Si tenés problemas con el botón de verificación, también podés copiar y pegar el siguiente enlace en tu navegador:</p>
         <p style="font-size: 14px; color: #888;"><a href="http://localhost:5000/api/v1/auth/confirmar/${token}" style="color: #00ACE6; text-decoration: none;">http://localhost:5000/api/v1/auth/confirmar/${token}</a></p>
-        <img src="https://i.imgur.com/Cp5FCdR.jpg" alt="Marca de agua" style="position: absolute; bottom: 20px; right: 20px; max-width: 150px;">
+        <div class="marca-agua-container">
+          <p class="marca-agua">CienciaConecta</p>
+        </div>
       </div>
     </div>
   </div>

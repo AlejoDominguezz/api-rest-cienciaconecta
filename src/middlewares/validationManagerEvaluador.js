@@ -127,7 +127,7 @@ export const bodyPostularEvaluadorValidator = [
     .notEmpty()
     .withMessage('Se debe indicar la sede en la cual se quiere evaluar'),
 
-   // Validación del campo antecedentes
+    // Validación del campo antecedentes ----------------------------------------------------------------
     body('antecedentes')
     .optional()
     .custom((value) => {
@@ -135,17 +135,35 @@ export const bodyPostularEvaluadorValidator = [
       if (!value) {
         return true;
       }
-      // Si se proporciona el campo, asegurarse de que no sea un array vacío
+      // Si se proporciona el campo, asegurarse de que sea un array no vacío
       if (!Array.isArray(value) || value.length === 0) {
-        throw new Error('El campo antecedentes no puede ser un array vacío');
+        throw new Error('Si se proporciona el campo antecedentes, debe contener al menos un elemento');
       }
-      // Validar que cada elemento del array sea un string de 4 caracteres
-      if (!value.every((antecedente) => typeof antecedente === 'string' && antecedente.length === 4)) {
-        throw new Error('Cada antecedente debe ser un string de 4 caracteres');
+      // Validar que cada elemento del array sea un objeto con "year" y "rol"
+      if (!value.every((antecedente) => {
+        return antecedente.year && antecedente.rol;
+      })) {
+        throw new Error('Cada antecedente debe contener "year" y "rol"');
+      }
+      // Validar que "year" y "rol" de cada elemento sean strings y tengan valores válidos
+      if (!value.every((antecedente) => {
+        return typeof antecedente.year === 'string' && typeof antecedente.rol === 'string' &&
+          antecedente.year.length > 0 && antecedente.rol.length > 0 &&
+          ['1', '2', '3'].includes(antecedente.rol);
+      })) {
+        throw new Error('Cada "year" debe ser un string no vacío y cada "rol" debe ser "1", "2" o "3"');
+      }
+      // Validar que no existan dos elementos con el mismo valor en "year"
+      const yearSet = new Set();
+      for (const antecedente of value) {
+        if (yearSet.has(antecedente.year)) {
+          throw new Error('No pueden existir dos elementos con el mismo valor en "year"');
+        }
+        yearSet.add(antecedente.year);
       }
       return true;
     })
-    .withMessage('Si se proporciona, el campo antecedentes no puede ser un array vacío y cada antecedente debe ser un string de 4 caracteres'),
+    .withMessage('Si se proporciona, el campo antecedentes debe contener al menos un elemento con "year" y "rol" válidos, y no puede haber dos elementos con el mismo valor en "year"'),
     
     validarCampos,
 

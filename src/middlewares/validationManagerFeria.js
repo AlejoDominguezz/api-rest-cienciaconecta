@@ -363,13 +363,18 @@ export const bodyCrearFeriaValidator = [
             for (const criterioItem of criterio.criterios) {
             totalPonderacion += criterioItem.ponderacion;
             }
+
+            // Validar que la sumatoria de las ponderaciones sea igual a 1
+            if (totalPonderacion !== 1) {
+                throw new Error(
+                "La sumatoria de las ponderaciones de los criterios debe ser igual a 1"
+                );
+            }
+
+            totalPonderacion = 0;
         }
-        // Validar que la sumatoria de las ponderaciones sea igual a 1
-        if (totalPonderacion !== 1) {
-            throw new Error(
-            "La sumatoria de las ponderaciones de los criterios debe ser igual a 1"
-            );
-        }
+        
+        
         return true;
         }),
 
@@ -738,13 +743,19 @@ export const bodyModificarFeriaValidator = [
             for (const criterioItem of criterio.criterios) {
             totalPonderacion += criterioItem.ponderacion;
             }
+
+            // Validar que la sumatoria de las ponderaciones sea igual a 1
+            if (totalPonderacion !== 1) {
+
+                throw new Error(
+                "La sumatoria de las ponderaciones de los criterios debe ser igual a 1"
+                );
+            }
+
+            totalPonderacion = 0;
+
         }
-        // Validar que la sumatoria de las ponderaciones sea igual a 1
-        if (totalPonderacion !== 1) {
-            throw new Error(
-            "La sumatoria de las ponderaciones de los criterios debe ser igual a 1"
-            );
-        }
+        
         return true;
         }),
 

@@ -24,10 +24,17 @@ const EvaluadorSchema = new Schema({
     type: String,
     required: false
   },
-  antecedentes: {
-    type: [String],
-    required: [true,"Se debe indicar el año de las ferias en las que participó anteriormente"],
-  },
+  antecedentes: [{
+    year: {
+      type: String,
+      required: true,
+    },
+    rol: {
+      type: String,
+      required: true,
+      enum:['1', '2', '3'] // 1=Referente, 2=Evaluador, 3=Responsable
+    },
+  }],
   feria:{
     type:  Schema.Types.ObjectId,
     required: [true, "Se debe indicar la feria para la cual se ha postulado"],

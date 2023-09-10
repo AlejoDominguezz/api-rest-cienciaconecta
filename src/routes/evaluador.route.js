@@ -210,7 +210,10 @@ export default routerEvaluadores;
  *                 description: Lista de IDs de las postulaciones de evaluadores a seleccionar.
  *     responses:
  *       200:
- *         description: Los evaluadores han sido seleccionados exitosamente.
+ *         description: Los evaluadores han sido seleccionados exitosamente. El primer y segundo elemento en
+ *                      en responseMessage es en el caso en que uno o más mails no puedan enviarse,
+ *                      se incluye un string por error. En caso de que se envien todos correctamente,
+ *                      la salida será el tercer string.
  *         content:
  *           application/json:
  *             schema:
@@ -219,8 +222,19 @@ export default routerEvaluadores;
  *                 ok:
  *                   type: boolean
  *                   description: Indica si la selección fue exitosa.
+ *                 responseMessage:
+ *                   type: array  
+ *                   items:
+ *                     type: string
+ *                     description: Mensaje de respuesta.
+ *                   example: 
+ *                     - "Fallo en el envío de mail a aximilianoluna3645@gmail.com"
+ *                     - "Fallo en el envío de mail a otro_mail_incorrecto@gmail.com"
+ *                     - "Se han enviado todos los emails correctamente"
  *       401:
- *         description: No existe la postulación, el docente asociado a la postulación o el usuario ya tiene el rol de evaluador (si pasa esto, algo está mal).
+ *         description: No existe la postulación, el docente asociado a la postulación o el usuario. 
+ *       403:
+ *         description: El usuario ya tiene el rol de evaluador.
  *       500:
  *         description: Error de servidor.
  */

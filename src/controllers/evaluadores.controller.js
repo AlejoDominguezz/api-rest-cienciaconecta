@@ -114,7 +114,7 @@ export const seleccionarEvaluadores = async (req, res) => {
                 }
 
             } else {
-                return res.status(401).json({ error: "Este usuario ya posee el rol de evaluador" });
+                return res.status(403).json({ error: "Este usuario ya posee el rol de evaluador" });
             }
             
         }

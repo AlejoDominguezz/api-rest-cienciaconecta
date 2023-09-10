@@ -195,6 +195,23 @@ export const estadoFeria = {
     finalizada: '6',
   };
 
+export const fechasFeria = {
+    fechaInicio: "fechaInicioFeria",
+    fechaFin: "fechaFinFeria",
+    fechaInicioEscolar: "instancias.instanciaEscolar.fechaInicioInstancia",
+    fechaFinEscolar: "instancias.instanciaEscolar.fechaFinInstancia",
+    fechaInicioEvaluacionRegional: "instancias.instanciaRegional.fechaInicioEvaluacionTeorica",
+    fechaFinEvaluacionRegional: "instancias.instanciaRegional.fechaFinEvaluacionTeorica",
+    fechaInicioExposicionRegional: "instancias.instanciaRegional.fechaInicioEvaluacionPresencial",
+    fechaFinExposicionRegional: "instancias.instanciaRegional.fechaFinEvaluacionPresencial",
+    fechaInicioExposicionProvincial: "instancias.instanciaProvincial.fechaInicioEvaluacionPresencial",
+    fechaFinExposicionProvincial: "instancias.instanciaProvincial.fechaFinEvaluacionPresencial",
+    fechaInicioPostulacion: "fechaInicioPostulacionEvaluadores",
+    fechaFinPostulacion: "fechaFinPostulacionEvaluadores",
+    fechaInicioAsignacion: "fechaInicioAsignacionProyectos",
+    fechaFinAsignacion: "fechaFinAsignacionProyectos",
+}
+
 // Atributos de Feria --------------------------------------------
 
 // Nombre y descripción de la feria * ----

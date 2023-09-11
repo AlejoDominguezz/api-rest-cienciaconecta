@@ -253,7 +253,7 @@ export default routerAuth;
  */
 /**
  * @swagger
- * /api/v1/auth/confirmar/{token}:
+ * /api/v1/auth/confirmar/:token:
  *   get:
  *     summary: Confirmar cuenta de correo electrónico.
  *     tags: [Auth]

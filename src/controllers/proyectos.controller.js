@@ -696,20 +696,23 @@ export const actualizarArchivosRegional = async (req, res) => {
       }
       const id_folder = proyecto.id_carpeta_drive;
       let id_archivo_pdf = null;
-      //let id_carpeta_campo = null;
+      let id_carpeta_campo = null;
 
       if (files.registroPedagogicopdf) {
         if (proyecto.registroPedagogico) {
           const id_registro = await getIdByUrl(proyecto.registroPedagogico);
-          const delete_file = await deleteFile(id_registro, drive);
-          if (delete_file) {
-            id_archivo_pdf = await sendFileToDrive(
-              files.registroPedagogicopdf,
-              id_folder,
-              drive
-            );
+          if(id_registro){
+            const delete_file = await deleteFile(id_registro, drive);
+            if (delete_file) {
+              id_archivo_pdf = await sendFileToDrive(
+                files.registroPedagogicopdf,
+                id_folder,
+                drive
+              );
+            }
           }
         } else {
+          console.log('camino else')
           id_archivo_pdf = await sendFileToDrive(
             files.registroPedagogicopdf,
             id_folder,
@@ -717,47 +720,44 @@ export const actualizarArchivosRegional = async (req, res) => {
           );
         }
         if (id_archivo_pdf) {
+          console.log(id_archivo_pdf)
           proyecto.registroPedagogico = `https://drive.google.com/file/d/${id_archivo_pdf}/preview`;
         }
       }
-
-      // if (files.carpetaCampo) {
-      //   if (proyecto.carpetaCampo) {
-      //     console.log("test if", proyecto.carpetaCampo);
-      //     const id_carpetaCampo = await getIdByUrl(proyecto.carpetaCampo);
-      //     const delete_file = await deleteFile(id_carpetaCampo, drive);
-      //     if (delete_file) {
-      //       const id_carpeta_campo = await sendFileToDrive(
-      //         files.carpetaCampo,
-      //         id_folder,
-      //         drive
-      //       );
-      //     }
-      //   } else {
-      //     const id_carpeta_campo = await sendFileToDrive(
-      //       files.carpetaCampo,
-      //       id_folder,
-      //       drive
-      //     );
-      //   }
-      //   if (id_carpeta_campo) {
-      //     proyecto.carpetaCampo = `https://drive.google.com/file/d/${id_carpeta_campo}/preview`;
-      //     console.log(proyecto.carpetaCampo);
-      //     proyecto.save();
-      //   }
-      // }
-
-      // if(files.autorizacionImagen){
-      // }
-      // if(files.informeTrabajo){
-      // }
+      //si existe carpetaCampo...
+      if (files.carpetaCampo) {
+        if (proyecto.carpetaCampo) {
+          const id_campo = await getIdByUrl(proyecto.carpetaCampo);
+          if(id_campo){
+            const delete_campo = await deleteFile(id_campo, drive);
+            if (delete_campo) {
+              id_carpeta_campo = await sendFileToDrive(
+                files.carpetaCampo,
+                id_folder,
+                drive
+              );
+            }
+          }
+        } else {
+          console.log('camino else')
+          id_carpeta_campo = await sendFileToDrive(
+            files.carpetaCampo,
+            id_folder,
+            drive
+          );
+        }
+        if (id_carpeta_campo) {
+          console.log(id_carpeta_campo)
+          proyecto.carpetaCampo = `https://drive.google.com/file/d/${id_carpeta_campo}/preview`;
+        }
+      }
 
 
-      await proyecto.save();
-
-      if (id_archivo_pdf) {
+      if (id_archivo_pdf || id_carpeta_campo) {
+        await proyecto.save();
         return res.status(200).json({
           msg: "Archivos actualizados correctamente",
+          proyecto
         });
       }
     });

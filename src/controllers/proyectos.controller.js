@@ -687,11 +687,23 @@ export const actualizarArchivosRegional = async (req, res) => {
         res.status(500).send("Error al procesar el form-data");
         return;
       }
-      if (!files) {
+      if (!files || Object.keys(files).length === 0) {
         return res.status(400).json({
           msg: "Error, debe ingresar los archivos pdfs! no ha ingresado nada!",
         });
       }
+
+      const extensionValida = "application/pdf";
+      for (const archivoKey in files) {
+        if (files.hasOwnProperty(archivoKey)) {
+          const archivo = files[archivoKey];
+          if(archivo.mimetype !== extensionValida)
+          return res.status(400).json({message: "ERROR, DEBE INGRESAR ARCHIVOS EN FORMATO PDF!"})
+        }
+      }
+
+
+      
       const id_folder = proyecto.id_carpeta_drive;
       let id_archivo_pdf = null;
       let id_carpeta_campo = null;

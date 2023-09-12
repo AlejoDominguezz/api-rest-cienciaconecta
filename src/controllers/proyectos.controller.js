@@ -228,12 +228,10 @@ export const consultarProyecto = async (req, res) => {
       _id: proyecto.establecimientoEducativo,
     });
     if (!establecimiento)
-      return res
-        .status(401)
-        .json({
-          error:
-            "No existe el establecimiento educativo correspondiente al proyecto",
-        });
+      return res.status(401).json({
+        error:
+          "No existe el establecimiento educativo correspondiente al proyecto",
+      });
 
     // Agrega el nombre del estado y lo devuelve en el json de la consulta
     const proyectoConNombreEstado = {
@@ -697,11 +695,13 @@ export const actualizarArchivosRegional = async (req, res) => {
       const id_folder = proyecto.id_carpeta_drive;
       let id_archivo_pdf = null;
       let id_carpeta_campo = null;
+      let id_informe_trabajo = null;
+      let id_autorizacion_imagen = null;
 
       if (files.registroPedagogicopdf) {
         if (proyecto.registroPedagogico) {
           const id_registro = await getIdByUrl(proyecto.registroPedagogico);
-          if(id_registro){
+          if (id_registro) {
             const delete_file = await deleteFile(id_registro, drive);
             if (delete_file) {
               id_archivo_pdf = await sendFileToDrive(
@@ -712,7 +712,7 @@ export const actualizarArchivosRegional = async (req, res) => {
             }
           }
         } else {
-          console.log('camino else')
+          console.log("camino else");
           id_archivo_pdf = await sendFileToDrive(
             files.registroPedagogicopdf,
             id_folder,
@@ -720,7 +720,7 @@ export const actualizarArchivosRegional = async (req, res) => {
           );
         }
         if (id_archivo_pdf) {
-          console.log(id_archivo_pdf)
+          console.log(id_archivo_pdf);
           proyecto.registroPedagogico = `https://drive.google.com/file/d/${id_archivo_pdf}/preview`;
         }
       }
@@ -728,7 +728,7 @@ export const actualizarArchivosRegional = async (req, res) => {
       if (files.carpetaCampo) {
         if (proyecto.carpetaCampo) {
           const id_campo = await getIdByUrl(proyecto.carpetaCampo);
-          if(id_campo){
+          if (id_campo) {
             const delete_campo = await deleteFile(id_campo, drive);
             if (delete_campo) {
               id_carpeta_campo = await sendFileToDrive(
@@ -739,7 +739,7 @@ export const actualizarArchivosRegional = async (req, res) => {
             }
           }
         } else {
-          console.log('camino else')
+          console.log("camino else");
           id_carpeta_campo = await sendFileToDrive(
             files.carpetaCampo,
             id_folder,
@@ -747,92 +747,75 @@ export const actualizarArchivosRegional = async (req, res) => {
           );
         }
         if (id_carpeta_campo) {
-          console.log(id_carpeta_campo)
+          console.log(id_carpeta_campo);
           proyecto.carpetaCampo = `https://drive.google.com/file/d/${id_carpeta_campo}/preview`;
         }
       }
 
+      //si existe informeTrabajo...
+      if (files.informeTrabajo) {
+        if (proyecto.informeTrabajo) {
+          const id_informe = await getIdByUrl(proyecto.informeTrabajo);
+          if (id_informe) {
+            const delete_informe = await deleteFile(id_informe, drive);
+            if (delete_informe) {
+              id_informe_trabajo = await sendFileToDrive(
+                files.informeTrabajo,
+                id_folder,
+                drive
+              );
+            }
+          }
+        } else {
+          id_informe_trabajo = await sendFileToDrive(
+            files.informeTrabajo,
+            id_folder,
+            drive
+          );
+        }
+        if (id_informe_trabajo) {
+          proyecto.informeTrabajo = `https://drive.google.com/file/d/${id_informe_trabajo}/preview`;
+        }
+      }
 
-      if (id_archivo_pdf || id_carpeta_campo) {
+      //si existe autorizacionImagen
+      if (files.autorizacionImagen) {
+        if (proyecto.autorizacionImagen) {
+          const id_informe_ = await getIdByUrl(proyecto.autorizacionImagen);
+          if (id_informe_) {
+            const delete_informe_ = await deleteFile(id_informe_, drive);
+            if (delete_informe_) {
+              id_autorizacion_imagen = await sendFileToDrive(
+                files.autorizacionImagen,
+                id_folder,
+                drive
+              );
+            }
+          }
+        } else {
+          id_autorizacion_imagen = await sendFileToDrive(
+            files.autorizacionImagen,
+            id_folder,
+            drive
+          );
+        }
+        if (id_autorizacion_imagen) {
+          proyecto.autorizacionImagen = `https://drive.google.com/file/d/${id_autorizacion_imagen}/preview`;
+        }
+      }
+
+      if (id_archivo_pdf || id_carpeta_campo || id_autorizacion_imagen || id_informe_trabajo) {
         await proyecto.save();
         return res.status(200).json({
           msg: "Archivos actualizados correctamente",
-          proyecto
+          proyecto,
         });
       }
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({
-      msg: "Error del servidor"
-    })
+      msg: "Error del servidor",
+    });
   }
 };
-
-// export const actualizarArchivosRegional = async (req, res) => {
-//   try {
-
-//     const id = req.params.id;
-//     const proyecto = await Proyecto.findById(id);
-
-//     if (!proyecto.id_carpeta_drive) {
-//       return res.status(400).json({
-//         msg: `El proyecto ${proyecto.titulo} no tiene carpeta de drive asociada`,
-//       });
-//     }
-//     console.log(upload.fields)
-//     // Utilizar multer para manejar la carga de archivos
-//     upload.fields([
-//       { name: 'registroPedagogicopdf', maxCount: 1 },
-//       { name: 'carpetaCampo', maxCount: 1 },
-//     ])(req, res, async (err) => {
-//       if (err) {
-//         console.error("Error al subir los archivos", err.message);
-//         return res.status(500).send("Error al subir los archivos");
-//       }
-
-//       const uploadFiles = [];
-
-//       // Procesar el archivo 'registroPedagogicopdf'
-//       if (req.files['registroPedagogicopdf']) {
-//         const file_pedagogico = req.files['registroPedagogicopdf'][0];
-//         const id_registro = await getIdByUrl(proyecto.registroPedagogico);
-//         const delete_file = await deleteFile(id_registro, drive);
-
-//         if (delete_file) {
-//           uploadFiles.push(
-//             updateFiles(file_pedagogico, proyecto.id_carpeta_drive, drive)
-//           );
-//         }
-//       }
-
-//       // Procesar el archivo 'carpetaCampo'
-//       if (req.files['carpetaCampo']) {
-//         const file_campo = req.files['carpetaCampo'][0];
-//         // Lógica para obtener el ID actual de la carpetaCampo (debes implementar getIdByUrl y deleteFile)
-//         const id_carpetaCampo = await getIdByUrl(proyecto.carpetaCampo);
-//         const delete_file_carpetaCampo = await deleteFile(id_carpetaCampo, drive);
-
-//         if (delete_file_carpetaCampo) {
-//           uploadFiles.push(
-//             updateFiles(file_campo, proyecto.id_carpeta_drive, drive)
-//           );
-//         }
-//       }
-
-//       const [id_archivo_pdf, id_archivo_carpetaCampo] = await Promise.all(uploadFiles);
-
-//       if (id_archivo_pdf) {
-//         proyecto.registroPedagogico = `https://drive.google.com/file/d/${id_archivo_pdf}/preview`;
-//       }
-//       if (id_archivo_carpetaCampo) {
-//         proyecto.carpetaCampo = `https://drive.google.com/file/d/${id_archivo_carpetaCampo}/preview`; // Reemplaza con la URL correcta
-//       }
-
-//       proyecto.save();
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).send("Error en el servidor");
-//   }
-// };

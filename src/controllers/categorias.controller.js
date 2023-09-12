@@ -11,4 +11,3 @@ export const getCategorias = async(req = request, res = response) => {
     });
 
 }
-

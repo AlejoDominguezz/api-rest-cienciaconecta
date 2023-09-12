@@ -6,22 +6,48 @@
  */
 
 import { Router } from "express";
-import { requireToken } from '../middlewares/requireToken.js';
+import { requireToken } from "../middlewares/requireToken.js";
 import { checkRolAuth } from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
-import { postularEvaluador, getPostulaciones, seleccionarEvaluadores } from "../controllers/evaluadores.controller.js";
-import { bodyPostularEvaluadorValidator, bodySeleccionarEvaluadorValidator } from "../middlewares/validationManagerEvaluador.js";
+import {
+  postularEvaluador,
+  getPostulaciones,
+  seleccionarEvaluadores,
+} from "../controllers/evaluadores.controller.js";
+import {
+  bodyPostularEvaluadorValidator,
+  bodySeleccionarEvaluadorValidator,
+} from "../middlewares/validationManagerEvaluador.js";
+import { fecha } from "../middlewares/validar-fechas.js";
+import { fechasFeria } from "../models/Feria.js";
 
 const routerEvaluadores = Router();
 
-routerEvaluadores.post("/postular", requireToken, checkRolAuth([roles.admin, roles.docente]), bodyPostularEvaluadorValidator, postularEvaluador);
-routerEvaluadores.post("/seleccionar", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), bodySeleccionarEvaluadorValidator, seleccionarEvaluadores);
-routerEvaluadores.get("/postulaciones", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), getPostulaciones);
+routerEvaluadores.post(
+  "/postular",
+  requireToken,
+  checkRolAuth([roles.admin, roles.docente]),
+  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaFinPostulacion),
+  bodyPostularEvaluadorValidator,
+  postularEvaluador
+);
+routerEvaluadores.post(
+  "/seleccionar",
+  requireToken,
+  checkRolAuth([roles.admin, roles.comAsesora]),
+  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
+  bodySeleccionarEvaluadorValidator,
+  seleccionarEvaluadores
+);
+routerEvaluadores.get(
+  "/postulaciones",
+  requireToken,
+  checkRolAuth([roles.admin, roles.comAsesora]),
+  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
+  getPostulaciones
+);
 
 export default routerEvaluadores;
-
-
-
 
 // DOCUMENTACION SWAGGER --------------------------------------------------------------------------------------
 
@@ -223,16 +249,16 @@ export default routerEvaluadores;
  *                   type: boolean
  *                   description: Indica si la selección fue exitosa.
  *                 responseMessage:
- *                   type: array  
+ *                   type: array
  *                   items:
  *                     type: string
  *                     description: Mensaje de respuesta.
- *                   example: 
+ *                   example:
  *                     - "Fallo en el envío de mail a aximilianoluna3645@gmail.com"
  *                     - "Fallo en el envío de mail a otro_mail_incorrecto@gmail.com"
  *                     - "Se han enviado todos los emails correctamente"
  *       401:
- *         description: No existe la postulación, el docente asociado a la postulación o el usuario. 
+ *         description: No existe la postulación, el docente asociado a la postulación o el usuario.
  *       403:
  *         description: El usuario ya tiene el rol de evaluador.
  *       500:

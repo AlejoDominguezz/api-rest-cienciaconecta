@@ -9,6 +9,7 @@ import { transporter } from "../helpers/mailer.js";
 import {nanoid} from 'nanoid';
 import { confirmationMailHtml } from "../helpers/confirmationMail.js";
 import { recoveryMailHtml } from "../helpers/recoveryMail.js";
+import { logger } from "../logger.js";
 
 // Función de Login
 export const login = async (req, res) => {
@@ -41,6 +42,7 @@ export const login = async (req, res) => {
     // Genero Refresh Token
     generateRefreshToken(id, res);
 
+    logger.fatal(`El usuario ${id} ha iniciado sesión`)
     return res.json({ token, expiresIn, id, userCuil, roles });
   } catch (error) {
     console.log(error);

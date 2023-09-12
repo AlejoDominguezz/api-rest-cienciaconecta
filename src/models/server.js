@@ -17,6 +17,7 @@ import routerDepartamentos from '../routes/departamento.route.js';
 import routerLocalidades from '../routes/localidad.route.js';
 import routerEstablecimiento from '../routes/establecimiento.route.js';
 import routerEvaluadores from '../routes/evaluador.route.js';
+import { logger } from '../logger.js';
 
 
 
@@ -136,8 +137,8 @@ class Server {
 
     listen(){
         this.app.listen( this.port , () => {
-            console.log('servidor corriendo en puerto' , process.env.PORT );
-            console.log(`Servidor corriendo en: ${process.env.ORIGIN1}` );
+            logger.info(`Servidor corriendo en puerto: ${process.env.PORT} `);
+            logger.info(`Servidor corriendo en: ${process.env.ORIGIN1}` );
             swaggerDocs(this.app, process.env.PORT);
         });
     }

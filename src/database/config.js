@@ -1,13 +1,14 @@
 import mongoose from 'mongoose';
+import { logger } from '../logger.js';
 
 const dbConnection = async() =>{
 
     try {
         await mongoose.connect( process.env.URI_MONGODB)
-        console.log('bd se encuentra on-line')
+        logger.info('Mongo DB se encuentra online')
     } catch (error) {
-        console.log(error)
-        throw new Error('Error a la hora de inciar la base de datos - revisar')
+        logger.error(error)
+        throw new Error('Error a la hora de inciar la base de datos')
     }
 
 }

@@ -1,5 +1,6 @@
 import swaggerJSDoc from "swagger-jsdoc";
 import SwaggerUI from "swagger-ui-express";
+import { logger } from "./logger.js";
 
 const options = {
     definition : {
@@ -25,5 +26,5 @@ export const swaggerDocs = (app, port) => {
         res.setHeader('Content-Type', 'application/json');
     });
 
-    console.log(`📖 Version 1 Docs are available at http://localhost:${port}/api/docs`)
+    logger.info(`Version 1 Docs are available at http://localhost:${port}/api/docs`)
 }

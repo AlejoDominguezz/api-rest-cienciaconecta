@@ -156,16 +156,33 @@ const feriaSchema = new Schema({
                 required: true,
             },
             opciones: [{
-                type: String,
-                required: true,
+                nombre: {
+                    type: String,
+                    required: true,
+                },
+                puntaje: {
+                    type: Number,
+                    required: true, // Puntaje de 0 a 100
+                }
+                
             }],
             ponderacion: {
                 type: Number,
                 required: true,
                 min: 0,
-                max: 1,
+                max: 100,
             },
         }],
+        ponderacion: {
+            type: Number,
+            required: true,
+            min: 0,
+            max: 100,
+        },
+        exposicion: {
+            type: Boolean,      // True = Rubrica sólo para exposicion
+            required: true,     // False = Rubrica sólo para evaluación teórica
+        }
     }],
 
     estado: {

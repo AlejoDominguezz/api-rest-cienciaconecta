@@ -3,6 +3,9 @@
 import { Docente } from "../models/Docente.js";
 import { Proyecto } from "../models/Proyecto.js";
 import { roles } from "../helpers/roles.js";
+import { Evaluador } from "../models/Evaluador.js";
+import { Feria } from "../models/Feria.js";
+import { esActiva } from "../controllers/ferias.controller.js"
 
 export const checkRolAuth = (roles) => async (req, res, next) => {
   try {
@@ -62,3 +65,47 @@ export const esPropietario = async (req, res, next) => {
     res.status(409).json({ error: "Error al comprobar el propietario" });
   }
 };
+
+
+export const esEvaluadorDelProyecto = async (req, res, next) => {
+  
+  try {
+    const { id } =  req.params; // ID Proyecto
+    const uid = req.uid;
+
+    const proyecto = await Proyecto.findById(id)
+    if(!proyecto){
+        return res.status(404).json({ error: "No existe el proyecto" });
+    }
+
+    const feria = await Feria.findById(proyecto.feria)
+    if(!esActiva(feria)){
+        return res.status(401).json({ error: "El proyecto tiene asignado una Feria que ya ha finalizado" });
+    }
+
+    const docente = await Docente.findOne({usuario: uid})
+    if(!docente){
+        return res.status(404).json({ error: "No existe el docente asociado al usuario" });
+    }
+
+    const evaluador = await Evaluador.findOne({idDocente: docente.id})
+    if(!evaluador){
+        return res.status(404).json({ error: "No existe el evaluador asociado al docente" });
+    }
+
+    if(!proyecto.evaluadoresRegionales.includes(evaluador.id)){
+        return res.status(401).json({ error: "No estás asignado como evaluador de este proyecto" });
+    }
+
+    req.proyecto = proyecto;
+    req.evaluador = evaluador;
+    req.feria = feria;
+
+    next();
+
+  } catch (error) {
+    console.log(error);
+    res.status(409).json({ error: "Error al comprobar si el usuario es evaluador del proyecto" });
+  }
+
+}

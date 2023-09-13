@@ -104,6 +104,12 @@ const ProyectoSchema = new Schema({
       },
     },
   ],
+  evaluadoresRegionales: {
+    type: [Schema.Types.ObjectId],
+    required: false,
+    ref: "Evaluador",
+  }
+
 });
 
 export const estado = {

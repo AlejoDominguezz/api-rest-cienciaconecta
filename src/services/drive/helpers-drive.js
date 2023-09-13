@@ -102,3 +102,29 @@ export const sendFileToDrive = (files_pdf, myFolder, drive) => {
     }
   });
 };
+
+export const downloadCv = async (drive, fileId, res) => {
+  try {
+    const response = await drive.files.get(
+      {
+        fileId: fileId,
+        alt: 'media',
+      },
+      { responseType: 'stream' }
+    );
+
+    // Obtener el nombre del archivo desde la respuesta de Google Drive
+    const fileName = response.headers['content-disposition'].split('filename=')[1];
+
+    // Configurar las cabeceras de respuesta con el nombre del archivo
+    res.setHeader('Content-disposition', `attachment; filename="${fileName}"`);
+    res.setHeader('Content-type', response.headers['content-type']);
+
+    response.data.pipe(res);
+  } catch (err) {
+    console.error('Error al descargar el archivo desde Drive:', err);
+    res.status(500).json({
+      message: 'Error al descargar el archivo desde Drive',
+    });
+  }
+};

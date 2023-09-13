@@ -13,6 +13,8 @@ import {
   postularEvaluador,
   getPostulaciones,
   seleccionarEvaluadores,
+  cargarCv,
+  getCv
 } from "../controllers/evaluadores.controller.js";
 import {
   bodyPostularEvaluadorValidator,
@@ -47,6 +49,21 @@ routerEvaluadores.get(
   getPostulaciones
 );
 
+routerEvaluadores.post(
+  "/upload/cv",
+  requireToken,
+  checkRolAuth([roles.admin, roles.docente]),
+  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
+  cargarCv
+);
+
+routerEvaluadores.get(
+  "/download/cv/:id",
+  requireToken,
+  checkRolAuth([roles.admin, roles.docente]),
+  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
+  getCv
+);
 export default routerEvaluadores;
 
 // DOCUMENTACION SWAGGER --------------------------------------------------------------------------------------

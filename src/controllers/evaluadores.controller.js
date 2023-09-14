@@ -135,7 +135,7 @@ export const seleccionarEvaluadores = async (req, res) => {
 
 const enviarMailSeleccion = async (usuario, docente) => {
     try {
-        await transporter.sendMail({
+        const info = await transporter.sendMail({
             from: 'Ciencia Conecta',
             to: usuario.email,
             subject: "Resultado de Postulación como Evaluador",

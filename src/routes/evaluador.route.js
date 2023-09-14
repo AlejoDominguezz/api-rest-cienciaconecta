@@ -14,7 +14,8 @@ import {
   getPostulaciones,
   seleccionarEvaluadores,
   cargarCv,
-  getCv
+  getCv,
+  getCvV2
 } from "../controllers/evaluadores.controller.js";
 import {
   bodyPostularEvaluadorValidator,
@@ -58,11 +59,19 @@ routerEvaluadores.post(
 );
 
 routerEvaluadores.get(
-  "/download/cv/:id",
+  "/download/v1/cv/:id",
   requireToken,
   checkRolAuth([roles.admin, roles.docente]),
   //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
   getCv
+);
+
+routerEvaluadores.get(
+  "/download/v2/cv/:id",
+  requireToken,
+  checkRolAuth([roles.admin, roles.docente]),
+  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
+  getCvV2
 );
 export default routerEvaluadores;
 

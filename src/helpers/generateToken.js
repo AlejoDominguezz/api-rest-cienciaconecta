@@ -26,6 +26,9 @@ export const generateRefreshToken = (uid, res) => {
             secure: !(process.env.MODO === "developer"),
             expires: new Date(Date.now() + expiresIn  * 1000) //*1000 porque está en milisegundos
         })
+        const refreshExpiresIn = new Date(Date.now() + expiresIn * 1000)
+        return refreshExpiresIn;
+
 
     } catch (error) {
         console.log(error)

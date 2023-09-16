@@ -168,3 +168,35 @@ export const downloadCvTwo = async (drive, fileId, res) => {
     });
   }
 };
+
+export const download_Cv = async (drive, fileId, res) => {
+  try {
+    const response = await drive.files.get(
+      {
+        fileId: fileId,
+        alt: "media",
+      },
+      { responseType: "stream" }
+    );
+
+    let fileName =
+      response.headers["content-disposition"].match(/filename="(.+)"/);
+    if (fileName && fileName[1]) {
+      fileName = fileName[1];
+    } else {
+      // Si no se encuentra un nombre de archivo válido, proporciona un nombre predeterminado
+      fileName = "cv.pdf";
+    }
+    
+    // Configurar las cabeceras de respuesta para mostrar el PDF en lugar de descargarlo
+    res.setHeader("Content-disposition", `inline; filename="${fileName}"`);
+    res.setHeader("Content-type", "application/pdf");
+
+    response.data.pipe(res);
+  } catch (err) {
+    console.error("Error al descargar el archivo desde Drive:", err);
+    res.status(500).json({
+      message: "Error al descargar el archivo desde Drive",
+    });
+  }
+};

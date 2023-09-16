@@ -12,7 +12,8 @@ import {
   shareFolderWithPersonalAccount,
   sendFileToDrive,
   downloadCv,
-  downloadCvTwo
+  downloadCvTwo,
+  download_Cv
 } from "../services/drive/helpers-drive.js";
 
 export const postularEvaluador = async (req, res) => {
@@ -252,6 +253,23 @@ export const getCvV2 = async(req, res) => {
     if(evaluador){
       await downloadCvTwo(drive , evaluador.CV , res);
     }
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "ERROR AL DESCARGAR EL CV - ERROR DEL SERVIDOR",
+    });
+  }
+}
+export const getCv_ = async(req, res) => {
+  try {
+    const id = req.params.id;
+    const evaluador = await Evaluador.findById(id);
+    if(evaluador){
+      await download_Cv(drive , evaluador.CV , res);
+    }
+
+
 
   } catch (error) {
     console.error(error);

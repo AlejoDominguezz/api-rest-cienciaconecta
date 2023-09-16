@@ -34,7 +34,7 @@ export const evaluarProyecto = async (req, res) => {
       evaluacion_anterior.evaluacion = evaluacion;
       evaluacion_anterior.comentarios = comentarios;
       evaluacion_anterior.evaluadorId = [evaluador.id];
-      evaluacion_anterior.puntaje = obtenerPuntaje(Object.values(evaluacion), evaluacion_estructura_teorica);
+      evaluacion_anterior.puntajeTeorico = obtenerPuntaje(Object.values(evaluacion), evaluacion_estructura_teorica);
       evaluacion_anterior.ultimaEvaluacion = evaluador.id;
       evaluacion_anterior.evaluando = null;
       evaluacion_anterior.estado = estadoEvaluacion.abierta;
@@ -57,7 +57,7 @@ export const evaluarProyecto = async (req, res) => {
         evaluacion_anterior.evaluadorId.push(evaluador.id);
       }
       
-      evaluacion_anterior.puntaje = obtenerPuntaje(Object.values(evaluacion), evaluacion_estructura_teorica);
+      evaluacion_anterior.puntajeTeorico = obtenerPuntaje(Object.values(evaluacion), evaluacion_estructura_teorica);
       evaluacion_anterior.ultimaEvaluacion = evaluador.id;
       evaluacion_anterior.evaluando = null;
       evaluacion_anterior.estado = estadoEvaluacion.abierta;
@@ -70,7 +70,7 @@ export const evaluarProyecto = async (req, res) => {
     
 }
   
-
+// Funcion para obtener puntaje de una evaluacion teorica ---------------------------------------------------------------------------
   const obtenerPuntaje = (evaluacion, estructuraCriterios) => {
     let puntajeTotal = 0;
   
@@ -108,7 +108,7 @@ export const evaluarProyecto = async (req, res) => {
   };
 
 
-
+// Obtener estructura de evaluacion, exista o no una evaluacion previa -------------------------------------------------------
 export const getEstructuraEvaluacion = async (req, res) => {
   const feria = req.feria;
   const proyecto = req.proyecto;
@@ -127,10 +127,12 @@ export const getEstructuraEvaluacion = async (req, res) => {
       if (!rubrica.exposicion) {
         // Copiar la rubrica eliminando los atributos no deseados
         const rubricaTeorica = {
+          _id: rubrica._id,
           nombreRubrica: rubrica.nombreRubrica,
           criterios: rubrica.criterios.map((criterio) => {
             // Copiar el criterio eliminando los atributos no deseados
             const criterioSinPonderacion = {
+              _id: criterio._id,
               nombre: criterio.nombre,
               opciones: criterio.opciones.map((opcion) => {
                 // Copiar la opción eliminando el atributo "puntaje"
@@ -151,7 +153,7 @@ export const getEstructuraEvaluacion = async (req, res) => {
       evaluacion: null,
       evaluadorId: [],
       proyectoId: proyecto.id,
-      puntaje: -1,
+      puntajeTeorico: -1,
       listo: [],
       estado: estadoEvaluacion.enEvaluacion,
       ultimaEvaluacion: null,
@@ -188,6 +190,7 @@ export const getEstructuraEvaluacion = async (req, res) => {
 
         // Copiar la rubrica eliminando los atributos no deseados
         const rubricaConSeleccionada = {
+          _id: rubrica._id,
           nombreRubrica: rubrica.nombreRubrica,
           comentario: comentario,
           criterios: rubrica.criterios.map((criterio) => {
@@ -202,6 +205,7 @@ export const getEstructuraEvaluacion = async (req, res) => {
 
             // Copiar el criterio eliminando los atributos no deseados
             const criterioConSeleccionada = {
+              _id: criterio._id,
               nombre: criterio.nombre,
               seleccionada: opcionSeleccionada, // Inicializamos la propiedad seleccionada
               opciones: criterio.opciones.map((opcion) => {
@@ -235,6 +239,7 @@ export const getEstructuraEvaluacion = async (req, res) => {
 export const confirmarEvaluacion = async (req, res) => {
   const proyecto = req.proyecto;
   const evaluador = req.evaluador;
+  let responseMessage = "Se ha confirmado la evaluación"
 
   const evaluacion_anterior = await Evaluacion.findOne({proyectoId: proyecto.id})
   if(proyecto.evaluadoresRegionales.length !== evaluacion_anterior.evaluadorId.length){
@@ -249,10 +254,139 @@ export const confirmarEvaluacion = async (req, res) => {
 
   if(evaluacion_anterior.listo.length == evaluacion_anterior.evaluadorId.length) {
     evaluacion_anterior.estado = estadoEvaluacion.cerrada;
+    responseMessage = `Todos los evaluadores han confirmado la evaluación. La evaluación del proyecto '${proyecto.titulo}' ha finalizado`;
   }
 
   evaluacion_anterior.save()
 
-  return res.json({ ok: true });
+  return res.json({ ok: true , responseMessage });
 
+}
+
+
+// Funcion para visualizar una evaluacion realizada ------------------------------------------------------------------------
+export const visualizarEvaluacion = async (req, res) => {
+  const feria = req.feria;
+  const proyecto = req.proyecto;
+  const evaluacion = await Evaluacion.findOne({ proyectoId: proyecto.id });
+
+  // Obtengo la estructura de rubricas de la feria
+  const evaluacion_estructura = feria.criteriosEvaluacion;
+
+  // Si no existe evaluación, construye la estructura sin "seleccionada"
+  if (!evaluacion || evaluacion.evaluacion == null) {
+
+    // Obtengo la estructura de rubricas sólo para la evaluación teórica
+    const evaluacion_estructura_teorica = [];
+    for (const rubrica of evaluacion_estructura) {
+      if (!rubrica.exposicion) {
+        // Copiar la rubrica eliminando los atributos no deseados
+        const rubricaTeorica = {
+          _id: rubrica._id,
+          nombreRubrica: rubrica.nombreRubrica,
+          criterios: rubrica.criterios.map((criterio) => {
+            // Copiar el criterio eliminando los atributos no deseados
+            const criterioSinPonderacion = {
+              _id: criterio._id,
+              nombre: criterio.nombre,
+              opciones: criterio.opciones.map((opcion) => {
+                // Copiar la opción eliminando el atributo "puntaje"
+                const { puntaje, ...opcionSinPuntaje } = opcion.toObject();
+                return opcionSinPuntaje;
+                
+              }),
+            };
+            return criterioSinPonderacion;
+          }),
+        };
+        evaluacion_estructura_teorica.push(rubricaTeorica);
+      }
+    }
+
+    // Devolver la estructura de evaluación teórica con o sin evaluacion existente
+    return res.json(evaluacion_estructura_teorica);
+
+
+} else {// Si existe evaluación, construir la estructura con "seleccionada"
+  const evaluacion_estructura_teorica = evaluacion_estructura.map(
+    (rubrica) => {
+      
+      // Buscamos en la evaluación encontrada, cual es el comentario realizado para la rubrica actual
+      const comentario = evaluacion.comentarios.find(
+        (comentarioRubrica) => 
+          comentarioRubrica.rubricaId.toString() ===
+            rubrica._id.toString())
+
+      // Copiar la rubrica eliminando los atributos no deseados
+      const rubricaConSeleccionada = {
+        _id: rubrica._id,
+        nombreRubrica: rubrica.nombreRubrica,
+        comentario: comentario,
+        criterios: rubrica.criterios.map((criterio) => {
+
+          // Buscamos en la evaluacion encontrada, cual es la opcion seleccionada del criterio actual
+          const opcionSeleccionada = evaluacion.evaluacion.find(
+            (evaluacionItem) =>
+              evaluacionItem.rubricaId.toString() ===
+                rubrica._id.toString() &&
+              evaluacionItem.criterioId.toString() ===
+                criterio._id.toString())
+
+          // Copiar el criterio eliminando los atributos no deseados
+          const criterioConSeleccionada = {
+            _id: criterio._id,
+            nombre: criterio.nombre,
+            seleccionada: opcionSeleccionada, // Inicializamos la propiedad seleccionada
+            opciones: criterio.opciones.map((opcion) => {
+                const opcionConSeleccionada = {
+                  nombre: opcion.nombre,
+                  _id: opcion._id
+                }
+                return opcionConSeleccionada;
+              }
+            )
+          }
+          return criterioConSeleccionada;
+          },
+          ),
+        };
+        return rubricaConSeleccionada;
+      });
+
+      // Devolver la estructura de evaluación teórica con o sin evaluacion existente
+      return res.json(evaluacion_estructura_teorica);
+
+  }
+}
+
+
+export const cancelarEvaluacion = async (req, res) =>  {
+
+  try {
+    const proyecto = req.proyecto;
+    const evaluador = req.evaluador;
+    const feria = req.feria;
+
+    const evaluacion_pendiente = await Evaluacion.findOne({proyectoId: proyecto.id, estado: estadoEvaluacion.enEvaluacion})
+    if(!evaluacion_pendiente) {
+      return res.status(401).json({ error: "No existe una evaluación pendiente para este proyecto" });
+    }
+
+    if(evaluacion_pendiente.evaluando.toString() != evaluador._id.toString()){
+      return res.status(401).json({ error: "No puedes cancelar la evaluación si no eres el usuario que está evaluando en este momento" });
+    }
+
+    if(evaluacion_pendiente.evaluacion == null){
+      evaluacion_pendiente.deleteOne()
+    } else {
+      evaluacion_pendiente.evaluando = null;
+      evaluacion_pendiente.estado = estadoEvaluacion.abierta;
+
+      evaluacion_pendiente.save();
+    }
+
+    return res.json({ ok: true });
+  } catch (error) {
+    return res.status(500).json({ error: "Error de servidor" });
+  }
 }

@@ -5,6 +5,7 @@ import { Feria, estadoFeria } from "../models/Feria.js";
 import { roles } from "../helpers/roles.js";
 import { seleccionMailHtml } from "../helpers/seleccionMail.js";
 import { transporter } from "../helpers/mailer.js";
+import { getFeriaActivaFuncion } from "../controllers/ferias.controller.js"
 
 export const postularEvaluador = async (req, res) => {
     try {
@@ -14,10 +15,6 @@ export const postularEvaluador = async (req, res) => {
         if(!_docente)  
             return res.status(401).json({ error: "No existe el docente" });
 
-        const postulacion = await Evaluador.findOne({idDocente: _docente._id})
-        if(postulacion)
-            return res.status(403).json({ error: "Este usuario ya se ha postulado como evaluador" });
-
         const {
             docente,
             niveles,
@@ -26,9 +23,13 @@ export const postularEvaluador = async (req, res) => {
             antecedentes,
         } = req.body;
 
-        const feriaActiva = await Feria.findOne({ estado: { $ne: estadoFeria.finalizada }})
+        const feriaActiva = await getFeriaActivaFuncion();
         if(!feriaActiva)
             return res.status(401).json({ error: "No existe una feria activa en este momento" });
+
+        const postulacion = await Evaluador.findOne({idDocente: _docente._id, feria: feriaActiva._id})
+        if(postulacion)
+            return res.status(403).json({ error: "Este usuario ya se ha postulado como evaluador en esta feria" });
 
         const evaluador = new Evaluador({
             docente,

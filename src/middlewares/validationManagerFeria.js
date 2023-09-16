@@ -356,41 +356,55 @@ export const bodyCrearFeriaValidator = [
     .isArray({ min: 1 })
     .withMessage("Debe proporcionar al menos un criterio de evaluación")
     .custom((criteriosEvaluacion) => {
-        let totalPonderacion = 0;
-
-        for (const criterio of criteriosEvaluacion) {
-        validarRubrica(criterio);
-
-        // Sumar la ponderación de la rubrica actual al total
-        totalPonderacion += criterio.ponderacion;
-
-        // Validar que la ponderación de la rubrica sea un valor entre 0 y 100
-        if (!Number.isInteger(criterio.ponderacion) || criterio.ponderacion < 0 || criterio.ponderacion > 100) {
+        let totalPonderacionTeorica = 0;
+        let totalPonderacionExposicion = 0;
+    
+        for (const rubrica of criteriosEvaluacion) {
+          validarRubrica(rubrica);
+    
+          if (rubrica.exposicion) {
+            // Sumar la ponderación de la rubrica de exposición al total de exposición
+            totalPonderacionExposicion += rubrica.ponderacion;
+          } else {
+            // Sumar la ponderación de la rubrica teórica al total de teóricas
+            totalPonderacionTeorica += rubrica.ponderacion;
+          }
+    
+          // Validar que la ponderación de la rubrica sea un valor entre 0 y 100
+          if (!Number.isInteger(rubrica.ponderacion) || rubrica.ponderacion < 0 || rubrica.ponderacion > 100) {
             throw new Error("La ponderación de la rubrica debe ser un número entero entre 0 y 100");
-        }
+          }
 
-        // Validar que cada criterio tenga ponderación que sume 100
-        const ponderacionCriterios = criterio.criterios.reduce(
-            (sum, criterioItem) => sum + criterioItem.ponderacion,
-            0
-        );
+          let totalPonderacionCriterios = 0;
 
-        if (ponderacionCriterios !== 100) {
-            throw new Error(
-            "La sumatoria de las ponderaciones de los criterios de la rubrica debe ser igual a 100"
-            );
-        }
-        }
+          for (const criterio of rubrica.criterios) {
+            totalPonderacionCriterios += criterio.ponderacion;
 
-        // Validar que la sumatoria de las ponderaciones de las rubricas sea 100
-        if (totalPonderacion !== 100) {
-        throw new Error(
-            "La sumatoria de las ponderaciones de las rubricas debe ser igual a 100"
-        );
-        }
+            // Validar que la ponderación de cada criterio sea un valor entre 0 y 100
+            if (!Number.isInteger(criterio.ponderacion) || criterio.ponderacion < 0 || criterio.ponderacion > 100) {
+                throw new Error("La ponderación de cada criterio debe ser un número entero entre 0 y 100");
+            }
+          }
 
+          // Validar que la sumatoria de las ponderaciones de los criterios sea igual a 100
+          if (totalPonderacionCriterios !== 100) {
+              throw new Error("La sumatoria de las ponderaciones de los criterios de la rubrica debe ser igual a 100");
+          }
+
+        }
+    
+        // Validar que la sumatoria de las ponderaciones de las rubricas teóricas sea 100
+        if (totalPonderacionTeorica !== 100) {
+          throw new Error("La sumatoria de las ponderaciones de las rubricas teóricas debe ser igual a 100");
+        }
+    
+        // Validar que la sumatoria de las ponderaciones de las rubricas de exposición sea 100
+        if (totalPonderacionExposicion !== 100) {
+          throw new Error("La sumatoria de las ponderaciones de las rubricas de exposición debe ser igual a 100");
+        }
+    
         return true;
-    }),
+      }),
 
 
     //validacion de estado de feria
@@ -777,41 +791,55 @@ export const bodyModificarFeriaValidator = [
     .isArray({ min: 1 })
     .withMessage("Debe proporcionar al menos un criterio de evaluación")
     .custom((criteriosEvaluacion) => {
-        let totalPonderacion = 0;
-
-        for (const criterio of criteriosEvaluacion) {
-        validarRubrica(criterio);
-
-        // Sumar la ponderación de la rubrica actual al total
-        totalPonderacion += criterio.ponderacion;
-
-        // Validar que la ponderación de la rubrica sea un valor entre 0 y 100
-        if (!Number.isInteger(criterio.ponderacion) || criterio.ponderacion < 0 || criterio.ponderacion > 100) {
+        let totalPonderacionTeorica = 0;
+        let totalPonderacionExposicion = 0;
+    
+        for (const rubrica of criteriosEvaluacion) {
+          validarRubrica(rubrica);
+    
+          if (rubrica.exposicion) {
+            // Sumar la ponderación de la rubrica de exposición al total de exposición
+            totalPonderacionExposicion += rubrica.ponderacion;
+          } else {
+            // Sumar la ponderación de la rubrica teórica al total de teóricas
+            totalPonderacionTeorica += rubrica.ponderacion;
+          }
+    
+          // Validar que la ponderación de la rubrica sea un valor entre 0 y 100
+          if (!Number.isInteger(rubrica.ponderacion) || rubrica.ponderacion < 0 || rubrica.ponderacion > 100) {
             throw new Error("La ponderación de la rubrica debe ser un número entero entre 0 y 100");
-        }
+          }
 
-        // Validar que cada criterio tenga ponderación que sume 100
-        const ponderacionCriterios = criterio.criterios.reduce(
-            (sum, criterioItem) => sum + criterioItem.ponderacion,
-            0
-        );
+          let totalPonderacionCriterios = 0;
 
-        if (ponderacionCriterios !== 100) {
-            throw new Error(
-            "La sumatoria de las ponderaciones de los criterios de la rubrica debe ser igual a 100"
-            );
-        }
-        }
+          for (const criterio of rubrica.criterios) {
+            totalPonderacionCriterios += criterio.ponderacion;
 
-        // Validar que la sumatoria de las ponderaciones de las rubricas sea 100
-        if (totalPonderacion !== 100) {
-        throw new Error(
-            "La sumatoria de las ponderaciones de las rubricas debe ser igual a 100"
-        );
-        }
+            // Validar que la ponderación de cada criterio sea un valor entre 0 y 100
+            if (!Number.isInteger(criterio.ponderacion) || criterio.ponderacion < 0 || criterio.ponderacion > 100) {
+                throw new Error("La ponderación de cada criterio debe ser un número entero entre 0 y 100");
+            }
+          }
 
+          // Validar que la sumatoria de las ponderaciones de los criterios sea igual a 100
+          if (totalPonderacionCriterios !== 100) {
+              throw new Error("La sumatoria de las ponderaciones de los criterios de la rubrica debe ser igual a 100");
+          }
+
+        }
+    
+        // Validar que la sumatoria de las ponderaciones de las rubricas teóricas sea 100
+        if (totalPonderacionTeorica !== 100) {
+          throw new Error("La sumatoria de las ponderaciones de las rubricas teóricas debe ser igual a 100");
+        }
+    
+        // Validar que la sumatoria de las ponderaciones de las rubricas de exposición sea 100
+        if (totalPonderacionExposicion !== 100) {
+          throw new Error("La sumatoria de las ponderaciones de las rubricas de exposición debe ser igual a 100");
+        }
+    
         return true;
-    }),
+      }),
 
 
     //validacion de estado de feria ------------------------------------------------------------------------------

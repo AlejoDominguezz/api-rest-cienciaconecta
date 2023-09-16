@@ -34,9 +34,17 @@ const evaluacionSchema = new Schema({
     required: true,
     ref: 'Evaluador',
   }],
-  puntaje: {
+  puntajeTeorico: {
     type: Number,
     required: true,
+  },
+  puntajeExposicion: {
+    type: Number,
+    required: false,
+  },
+  puntajeFinal: {
+    type: Number,
+    required: false,
   },
   proyectoId: {
     type: Schema.Types.ObjectId,

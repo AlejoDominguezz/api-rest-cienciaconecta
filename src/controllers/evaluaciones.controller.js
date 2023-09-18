@@ -108,8 +108,8 @@ export const evaluarProyecto = async (req, res) => {
   };
 
 
-// Obtener estructura de evaluacion, exista o no una evaluacion previa -------------------------------------------------------
-export const getEstructuraEvaluacion = async (req, res) => {
+// Obtener estructura de evaluacion para iniciar la evaluación, exista o no una evaluacion previa ----------------------------
+export const iniciarEvaluacion = async (req, res) => {
   const feria = req.feria;
   const proyecto = req.proyecto;
   const evaluador = req.evaluador;

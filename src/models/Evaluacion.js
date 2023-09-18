@@ -86,3 +86,84 @@ export const estadoEvaluacion = {
   abierta: "2", // Cuando nadie está evaluando el proyecto, pero se aún es posible evaluar
   cerrada: "3" // Cuando todos han dado "Listo" o el período de evaluación ha finalizado
 }
+
+
+// DOCUMENTACION SWAGGER -------------------------------------------------------------------------------------------------
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Evaluacion:
+ *       type: object
+ *       properties:
+ *         evaluacion:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               rubricaId:
+ *                 type: string
+ *                 description: ID de la rubrica asociada a la evaluación.
+ *               criterioId:
+ *                 type: string
+ *                 description: ID del criterio asociado a la evaluación.
+ *               opcionSeleccionada:
+ *                 type: string
+ *                 description: ID de la opción seleccionada en la evaluación.
+ *           description: Lista de evaluaciones asociadas al proyecto.
+ *         comentarios:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               rubricaId:
+ *                 type: string
+ *                 description: ID de la rubrica asociada al comentario.
+ *               comentario:
+ *                 type: string
+ *                 description: Comentario asociado a la rubrica.
+ *           description: Lista de comentarios asociados al proyecto.
+ *         evaluadorId:
+ *           type: array
+ *           items:
+ *             type: string
+ *             description: ID del evaluador asociado a la evaluación.
+ *           description: Lista de evaluadores asociados al proyecto.
+ *         puntajeTeorico:
+ *           type: number
+ *           description: Puntaje teórico asignado al proyecto.
+ *         puntajeExposicion:
+ *           type: number
+ *           description: Puntaje de exposición asignado al proyecto.
+ *         puntajeFinal:
+ *           type: number
+ *           description: Puntaje final asignado al proyecto.
+ *         proyectoId:
+ *           type: string
+ *           description: ID del proyecto asociado a la evaluación.
+ *         listo:
+ *           type: array
+ *           items:
+ *             type: string
+ *             description: ID de los evaluadores que han dado "Listo".
+ *           description: Lista de evaluadores que han dado "Listo".
+ *         estado:
+ *           type: string
+ *           description: Estado de la evaluación (1=enEvaluacion, 2=abierta, 3=cerrada).
+ *         tokenSesion:
+ *           type: string
+ *           description: Token de sesión asociado a la evaluación.
+ *         ultimaEvaluacion:
+ *           type: string
+ *           description: ID del evaluador que haya realizado la última evaluación.
+ *         evaluando:
+ *           type: string
+ *           description: ID del evaluador que está realizando la evaluación.
+ *       required:
+ *         - evaluacion
+ *         - evaluadorId
+ *         - puntajeTeorico
+ *         - proyectoId
+ *         - estado
+ */

@@ -414,3 +414,145 @@ export default routerAuth;
  *       500:
  *         description: Error interno del servidor.
  */
+
+
+/**
+ * @swagger
+ * /api/v1/auth/alta:
+ *   post:
+ *     summary: Dar de alta usuarios
+ *     description: Dar de alta usuarios pendientes y enviar correos de notificación.
+ *     tags: [Auth]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               usuarios:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *             example:
+ *               usuarios: ["64fd28b1ce385972c9d23b15", "64fd28b1ce385972c9d23b16"]
+ *     responses:
+ *       200:
+ *         description: Éxito. Se han enviado los correos correctamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ok:
+ *                   type: boolean
+ *                   example: true
+ *                 responseMessage:
+ *                   type: string
+ *                   example: "Se han enviado todos los emails correctamente"
+ *       401:
+ *         description: Error. No existe el usuario ingresado o el docente asociado al usuario.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "No existe el usuario ingresado"
+ *       403:
+ *         description: Error. Este usuario ya ha sido dado de alta.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Este usuario ya ha sido dado de alta"
+ *       500:
+ *         description: Error de servidor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Error de servidor"
+ */
+
+
+/**
+ * @swagger
+ * /api/v1/auth/pendientes:
+ *   get:
+ *     summary: Consultar usuarios pendientes
+ *     description: Consulta y devuelve usuarios pendientes sin ciertos atributos confidenciales.
+ *     tags: [Auth]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Éxito. Se han consultado usuarios pendientes.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 usuarios:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       cuil:
+ *                         type: string
+ *                       email:
+ *                         type: string
+ *                       datos_docente:
+ *                         type: object
+ *                         properties:
+ *                           nombre:
+ *                             type: string
+ *                           apellido:
+ *                             type: string
+ *                           telefono:
+ *                             type: string
+ *                           cargo:
+ *                             type: string
+ *             example:
+ *               usuarios:
+ *                 - id: "64fd28b1ce385972c9d23b15"
+ *                   cuil: "20431877001"
+ *                   email: "maximilianoluna3645@gmail.com"
+ *                   datos_docente:
+ *                     nombre: "Usuario"
+ *                     apellido: "Responsable"
+ *                     telefono: "351511233"
+ *                     cargo: "Responsable"
+ *                     id: "64fd28b1ce385972c9d23b16"
+ *       204:
+ *         description: No se han encontrado usuarios pendientes.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "No se han encontrado usuarios pendientes"
+ *       500:
+ *         description: Error de servidor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Error de servidor"
+ */

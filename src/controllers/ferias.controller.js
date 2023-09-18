@@ -81,6 +81,13 @@ export const getFeriaActivaFuncion = async() => {
   }
 }
 
+export const esActiva = (feria) => {
+  if(feria.estado == estadoFeria.finalizada){
+    return false;
+  }
+  return true;
+}
+
 
 // Funcion para crear una feria --------------------------
 export const crearFeria = async (req, res) => {

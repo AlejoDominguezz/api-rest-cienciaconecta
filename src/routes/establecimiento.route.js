@@ -19,8 +19,7 @@ routerEstablecimiento.get("/sedes/provincial", requireToken, checkRolAuth([roles
 routerEstablecimiento.get("/id/:id", requireToken, checkRolAuth([roles.admin, roles.comAsesora, roles.docente, roles.responsableProyecto, roles.evaluador]), getEstablecimientoById);
 routerEstablecimiento.get("/:localidad", requireToken, checkRolAuth([roles.admin, roles.comAsesora, roles.docente, roles.responsableProyecto, roles.evaluador]), getEstablecimientosEducativos);
 
-
-routerEstablecimiento.post("/", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), bodyCrearEstablecimientoValidator, crearEstablecimientoEducativo)
+//routerEstablecimiento.post("/", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), bodyCrearEstablecimientoValidator, crearEstablecimientoEducativo)
 
 export default routerEstablecimiento;
 
@@ -127,6 +126,73 @@ export default routerEstablecimiento;
  *               $ref: '#/components/schemas/EstablecimientoEducativo'
  *       '500':
  *         description: Error del servidor
+ *     security:
+ *       - bearerAuth: []
+ *       - roles: [admin, comAsesora]
+ */
+
+/**
+ * @swagger
+ * /api/v1/establecimiento:
+ *   post:
+ *     summary: Crear un establecimiento educativo
+ *     tags: [Establecimientos Educativos]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *                 description: Nombre del establecimiento educativo.
+ *               cue:
+ *                 type: string
+ *                 description: Código Único de Establecimiento (CUE) del establecimiento.
+ *               departamento:
+ *                 type: string
+ *                 description: Departamento del establecimiento.
+ *               localidad:
+ *                 type: string
+ *                 description: Localidad del establecimiento.
+ *               domicilio:
+ *                 type: string
+ *                 description: Domicilio del establecimiento.
+ *               CP:
+ *                 type: string
+ *                 description: Código Postal del establecimiento.
+ *               telefono:
+ *                 type: string
+ *                 description: Teléfono de contacto del establecimiento.
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Correo electrónico de contacto del establecimiento.
+ *               niveles:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Niveles educativos ofrecidos por el establecimiento.
+ *     responses:
+ *       '200':
+ *         description: Establecimiento educativo creado exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 establecimiento:
+ *                   type: object
+ *       '500':
+ *         description: Error de servidor al crear el establecimiento educativo.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
  *     security:
  *       - bearerAuth: []
  *       - roles: [admin, comAsesora]

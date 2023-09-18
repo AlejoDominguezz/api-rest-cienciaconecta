@@ -1,10 +1,12 @@
 import {Router} from 'express';
-import { confirmarCuenta, login, logout, register, resetearContrasena, solicitarRecuperacionContrasena } from '../controllers/auth.controller.js';
+import { altaUsuarios, confirmarCuenta, consultarPendientes, login, logout, register, resetearContrasena, solicitarRecuperacionContrasena } from '../controllers/auth.controller.js';
 import { bodyLoginValidator, bodyRegisterValidator } from '../middlewares/validationManager.js';
 import { requireToken } from '../middlewares/requireToken.js';
 import { requireRefreshToken } from '../middlewares/requireRefreshToken.js';
 import { refreshToken } from '../middlewares/refreshToken.js';
 import { prueba } from '../middlewares/prueba.js';
+import { checkRolAuth } from "../middlewares/validar-roles.js";
+import { roles } from "../helpers/roles.js";
 
 const routerAuth = Router();
 
@@ -16,6 +18,8 @@ routerAuth.get('/refresh', requireRefreshToken, refreshToken);
 routerAuth.get('/confirmar/:token', confirmarCuenta)
 routerAuth.post('/reset-password', resetearContrasena);
 routerAuth.post('/recuperar-contrasena', solicitarRecuperacionContrasena);
+routerAuth.post('/alta', requireToken, checkRolAuth([roles.admin, roles.comAsesora]), altaUsuarios)
+routerAuth.get('/pendientes', requireToken, checkRolAuth([roles.admin, roles.comAsesora]), consultarPendientes)
 
 
 export default routerAuth;

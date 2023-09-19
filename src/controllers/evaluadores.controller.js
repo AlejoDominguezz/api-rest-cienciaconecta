@@ -166,29 +166,52 @@ export const cargarCv = async (req, res) => {
     const uid = req.uid;
     const _docente = await Docente.findOne({ usuario: uid });
     const evaluador = await Evaluador.findOne({ idDocente: _docente.id });
+
     if (!_docente) {
       return res.status(401).json({ message: "NO EXISTE EL DOCENTE" });
+    }
+    if(evaluador.id_carpeta_cv){
+      res.status(400).json({
+        message: "ERROR, YA EXISTE UNA CARPETA DE DRIVE ASOCIADA A ESTE EVALUADOR, DEBE ACTUALIZAR EL CV, NO INTENTAR CARGARLO POR PRIMERA VEZ."
+      })
     }
 
     const form = formidable({ multiples: false });
 
     form.parse(req, async (err, fields, files) => {
+
       if (err) {
         console.error("ERROR EN FORM DATA AL PROCESARLO", err.message);
         res.status(500).send("ERROR AL PROCESAR EL FORM DATA");
         return;
       }
 
+      if(!files.cv){
+        return res.status(400).json({
+          msg: "DEBE INGRESAR EL ARCHIVO PDF LLAMADO 'cv' ",
+        });
+      }
+
       //falta incorporar el === 0 object
-      if (!files) {
+      if (!files || Object.keys(files).length === 0) {
         return res.status(400).json({
           msg: "DEBE INGRESAR ARCHIVOS PDF, NO HA INGRESADO NADA.",
         });
       }
+
+      const extensionValida = "application/pdf";
+      for (const archivoKey in files) {
+        if (files.hasOwnProperty(archivoKey)) {
+          const archivo = files[archivoKey];
+          if(archivo.mimetype !== extensionValida)
+          return res.status(400).json({message: "ERROR, DEBE INGRESAR SOLO ARCHIVOS EN FORMATO PDF!"})
+        }
+      }
+
       const name_folder = _docente.cuil;
-      console.log(name_folder);
       //creo la nueva carpeta
       const id_folder_new = await createFolder(name_folder, drive);
+
       if (id_folder_new) {
         evaluador.id_carpeta_cv = id_folder_new;
         // Compartir la carpeta creada en paralelo

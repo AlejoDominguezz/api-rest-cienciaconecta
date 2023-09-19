@@ -70,7 +70,11 @@ UsuarioSchema.methods.comparePassword = async function(candidatePassword){
 
 export const Usuario = model('Usuario', UsuarioSchema);
 
-
+export const estadoUsuario = {
+  inactivo: "0",
+  activo: "1",
+  pendiente: "2"
+}
 
 // DOCUMENTACION SWAGGER
 /**

@@ -21,75 +21,47 @@ import { getFeriaActivaFuncion } from "../controllers/ferias.controller.js"
 export const postularEvaluador = async (req, res) => {
     try {
 
-        const uid = req.uid;
-        const _docente = await Docente.findOne({usuario: uid})
-        if(!_docente)  
-            return res.status(401).json({ error: "No existe el docente" });
+      const uid = req.uid;
+      const _docente = await Docente.findOne({usuario: uid})
+      if(!_docente)  
+          return res.status(401).json({ error: "No existe el docente" });
 
-        const {
-            docente,
-            niveles,
-            categorias,
-            sede,
-            antecedentes,
-        } = req.body;
+      const {
+          docente,
+          niveles,
+          categorias,
+          sede,
+          antecedentes,
+      } = req.body;
 
-        const feriaActiva = await getFeriaActivaFuncion();
-        if(!feriaActiva)
-            return res.status(401).json({ error: "No existe una feria activa en este momento" });
+      const feriaActiva = await getFeriaActivaFuncion();
+      if(!feriaActiva)
+          return res.status(401).json({ error: "No existe una feria activa en este momento" });
 
-        const postulacion = await Evaluador.findOne({idDocente: _docente._id, feria: feriaActiva._id})
-        if(postulacion)
-            return res.status(403).json({ error: "Este usuario ya se ha postulado como evaluador en esta feria" });
+      const postulacion = await Evaluador.findOne({idDocente: _docente._id, feria: feriaActiva._id})
+      if(postulacion)
+          return res.status(403).json({ error: "Este usuario ya se ha postulado como evaluador en esta feria" });
 
-        const evaluador = new Evaluador({
-            docente,
-            niveles,
-            categorias,
-            sede,
-            antecedentes,
-            feria: feriaActiva._id,
-            pendiente: true,
-            idDocente: _docente._id,
-          });
-    
-          await evaluador.save();
-          return res.json({ evaluador });
+      const evaluador = new Evaluador({
+        docente,
+        niveles,
+        categorias,
+        sede,
+        antecedentes,
+        feria: feriaActiva._id,
+        pendiente: true,
+        idDocente: _docente._id,
+      });
+  
+      await evaluador.save();
+      return res.json({ evaluador });
 
-    const postulacion = await Evaluador.findOne({ idDocente: _docente._id });
-    if (postulacion)
-      return res
-        .status(403)
-        .json({ error: "Este usuario ya se ha postulado como evaluador" });
-
-    const { docente, niveles, categorias, sede, antecedentes } = req.body;
-
-    const feriaActiva = await Feria.findOne({
-      estado: { $ne: estadoFeria.finalizada },
-    });
-    if (!feriaActiva)
-      return res
-        .status(401)
-        .json({ error: "No existe una feria activa en este momento" });
-
-    const evaluador = new Evaluador({
-      docente,
-      niveles,
-      categorias,
-      sede,
-      antecedentes,
-      feria: feriaActiva._id,
-      pendiente: true,
-      idDocente: _docente._id,
-    });
-
-    await evaluador.save();
-    return res.json({ evaluador });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Error de servidor" });
   }
 };
+
 
 export const getPostulaciones = async (req, res) => {
   try {

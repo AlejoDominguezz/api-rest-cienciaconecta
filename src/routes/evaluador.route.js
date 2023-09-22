@@ -141,6 +141,8 @@ export default routerEvaluadores;
  *                       type: string
  *                       description: Rol del evaluador en la feria (1=Referente, 2=Evaluador, 3=Responsable).
  *                 description: Detalles de los antecedentes del evaluador en ferias.
+ *     security:
+ *       - bearerAuth: [] 
  *     responses:
  *       200:
  *         description: Se ha registrado la postulación exitosamente.
@@ -166,6 +168,8 @@ export default routerEvaluadores;
  *     summary: Obtener postulaciones pendientes con datos de docente y postulación
  *     tags:
  *       - Evaluadores
+ *     security:
+ *       - bearerAuth: [] 
  *     responses:
  *       200:
  *         description: Lista de postulaciones pendientes con datos de docente y postulación.
@@ -268,6 +272,8 @@ export default routerEvaluadores;
  *                 items:
  *                   type: string
  *                 description: Lista de IDs de las postulaciones de evaluadores a seleccionar.
+ *     security:
+ *       - bearerAuth: [] 
  *     responses:
  *       200:
  *         description: Los evaluadores han sido seleccionados exitosamente. El primer y segundo elemento en

@@ -43,6 +43,8 @@ export default routerEvaluacion;
  *             type: string
  *           required: true
  *           description: ID del proyecto a evaluar.
+ *       security:
+ *         - bearerAuth: [] 
  *       requestBody:
  *         required: true
  *         content:
@@ -114,6 +116,8 @@ export default routerEvaluacion;
  *             type: string
  *           required: true
  *           description: ID del proyecto a evaluar.
+ *       security:
+ *         - bearerAuth: [] 
  *       responses:
  *         '200':
  *           description: Inicio de evaluación exitoso. Devuelve la estructura de evaluación teórica.
@@ -223,6 +227,8 @@ export default routerEvaluacion;
  *             type: string
  *           required: true
  *           description: ID del proyecto a evaluar.
+ *       security:
+ *         - bearerAuth: [] 
  *       responses:
  *         '200':
  *           description: Confirmación de evaluación exitosa.
@@ -284,6 +290,8 @@ export default routerEvaluacion;
  *             type: string
  *           required: true
  *           description: ID del proyecto para el cual se desea consultar la evaluación.
+ *       security:
+ *         - bearerAuth: [] 
  *       responses:
  *         '200':
  *           description: Consulta de evaluación exitosa.
@@ -395,6 +403,8 @@ export default routerEvaluacion;
  *             type: string
  *           required: true
  *           description: ID del proyecto para el cual se desea cancelar la evaluación.
+ *       security:
+ *         - bearerAuth: [] 
  *       responses:
  *         '200':
  *           description: Evaluación cancelada con éxito.
@@ -444,6 +454,12 @@ export default routerEvaluacion;
  *     summary: Obtener evaluaciones pendientes.
  *     tags: [Evaluacion] 
  *     description: Obtiene una lista de evaluaciones pendientes para el usuario actual.
+ *     parameters:
+ *       - in: query
+ *         name: titulo
+ *         schema:
+ *           type: string
+ *         description: Título para filtrar proyectos (búsqueda por patrón similar).
  *     security:
  *       - bearerAuth: [] 
  *     responses:

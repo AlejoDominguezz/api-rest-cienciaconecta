@@ -9,6 +9,8 @@ import { transporter } from "../helpers/mailer.js";
 import {nanoid} from 'nanoid';
 import { confirmationMailHtml } from "../helpers/confirmationMail.js";
 import { recoveryMailHtml } from "../helpers/recoveryMail.js";
+import { estadoUsuario } from "../models/Usuario.js";
+import { altaMailHtml } from "../helpers/altaMail.js";
 
 // Función de Login
 export const login = async (req, res) => {
@@ -21,9 +23,9 @@ export const login = async (req, res) => {
       return res.status(403).json({ error: "No existe el usuario registrado" });
     if (!user.cuentaConfirmada)
       return res.status(403).json({ error: "Debe confirmar la cuenta antes de poder iniciar sesión" });
-    if (user.estado === '2')
+    if (user.estado === estadoUsuario.pendiente)
       return res.status(403).json({ error: "Usuario pendiente de activación. Se le notificará por email cuando el usuario haya sido activado"});
-    if (user.estado === '0')
+    if (user.estado === estadoUsuario.inactivo)
       return res.status(403).json({ error: "Usuario inactivo" });
 
     // Comparo contraseña ingresada con el hash
@@ -39,9 +41,9 @@ export const login = async (req, res) => {
     const { token, expiresIn } = generateToken(id);
 
     // Genero Refresh Token
-    generateRefreshToken(id, res);
+    const refreshExpiresIn = generateRefreshToken(id, res);
 
-    return res.json({ token, expiresIn, id, userCuil, roles });
+    return res.json({ token, expiresIn, id, userCuil, roles, refreshExpiresIn });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Error de servidor" });
@@ -52,7 +54,7 @@ export const login = async (req, res) => {
 export const register = async (req, res) => {
   const { nombre, apellido, cuil, email, password, telefono, cargo } =
     req.body;
-  const estado = '2';
+  const estado = estadoUsuario.pendiente;
 
   try {
 
@@ -181,4 +183,116 @@ export async function resetearContrasena(req, res) {
     console.error(error);
     res.status(500).json({ message: 'Error al procesar la solicitud' });
   }
+}
+
+
+export const consultarPendientes = async (req, res) => {
+
+  try {
+    
+    const usuarios_pendientes = await Usuario.find({estado: estadoUsuario.pendiente}) 
+    .select('-password -estado -roles -tokenConfirm -cuentaConfirmada -tokenRecuperacion -__v')
+    .lean()
+    .exec();
+
+    if(usuarios_pendientes.length === 0) {
+      return res.status(204).json({ error: "No se han encontrado usuarios pendientes" });
+    }
+
+    const usuariosConDatosDocente = await Promise.all(usuarios_pendientes.map(async (usuario) => {
+      const datos_docente = await Docente.findOne({usuario: usuario._id})
+      .select('-__v -usuario')
+      .lean()
+      .exec();
+
+      return {
+          ...usuario,
+          datos_docente: datos_docente
+      };
+    }));
+
+    return res.json({ usuarios: usuariosConDatosDocente });
+
+  } catch (error) {
+
+    console.log(error);
+    return res.status(500).json({ error: "Error de servidor" });
+
+  }
+
+}
+
+
+export const altaUsuarios = async (req, res) => {
+
+  try {
+    const {
+        usuarios
+    } = req.body
+
+    var falloMail = false;
+    var errores = [];
+
+    for(const idUsuario of usuarios){
+
+        const usuario = await Usuario.findById(idUsuario)
+        if(!usuario)  
+            return res.status(401).json({ error: "No existe el usuario ingresado" });
+
+        const docente = await Docente.findOne({usuario: idUsuario})
+        if(!docente)  
+            return res.status(401).json({ error: "No existe el docente asociado al usuario" });
+
+        if(usuario.estado == estadoUsuario.pendiente){
+            
+
+            usuario.estado = estadoUsuario.activo;
+            usuario.save()
+
+            try {
+                await enviarMailSeleccion(usuario, docente)
+            } catch (error) {
+                falloMail = true;
+                errores.push(`Fallo en el envío de mail a ${usuario.email}`)
+            }
+
+        } else {
+            return res.status(403).json({ error: "Este usuario ya ha sido dado de alta" });
+        }
+        
+    }
+
+    if (!falloMail){
+        return res.json({ ok: true,  responseMessage: "Se han enviado todos los emails correctamente"});
+    } else {
+        return res.json({ ok: true,  responseMessage: errores});
+    }
+    
+
+  } catch (error) {
+      console.log(error);
+      return res.status(500).json({ error: "Error de servidor" });
+  }
+}
+
+
+const enviarMailSeleccion = async (usuario, docente) => {
+  try {
+      const info = await transporter.sendMail({
+          from: 'Ciencia Conecta',
+          to: usuario.email,
+          subject: "Su cuenta de CienciaConecta ha sido activada",
+          html: altaMailHtml(docente)
+        });
+
+      // Verificar si el correo se envió exitosamente
+      if (info.accepted.length === 0) {
+          // No se pudo enviar el correo
+          throw new Error(`No se pudo enviar el correo a ${usuario.email}`);
+      }
+
+  } catch (error) {
+      throw error;
+  }
+  
 }

@@ -6,6 +6,6 @@ import { roles } from "../helpers/roles.js";
 
 const routerSedes = Router();
 
-routerSedes.post("/", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), crearSede);
+//routerSedes.post("/", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), crearSede);
 
 export default routerSedes;

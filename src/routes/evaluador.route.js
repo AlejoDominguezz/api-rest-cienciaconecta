@@ -263,7 +263,7 @@ export default routerEvaluadores;
  *           schema:
  *             type: object
  *             properties:
- *               idSeleccionados:
+ *               postulaciones:
  *                 type: array
  *                 items:
  *                   type: string

@@ -43,32 +43,6 @@ export const shareFolderWithPersonalAccount = async (
   }
 };
 
-// export const sendFileToDrive = async (files_pdf, myFolder, drive) => {
-//   try {
-//     const { originalFilename: pdfName, filepath: pdfPath } = files_pdf;
-
-//     const fileMetadata = {
-//       name: pdfName,
-//       parents: [myFolder],
-//       mimeType: "application/pdf",
-//     };
-
-//     const response = await drive.files.create({
-//       resource: fileMetadata,
-//       media: {
-//         mimeType: "application/pdf",
-//         body: fs.createReadStream(pdfPath),
-//       },
-//       fields: "id",
-//     });
-//     //Eliminar el archivo temporal después de subirlo a Drive
-//     fs.unlinkSync(pdfPath);
-//     console.log("Archivo PDF subido. ID:", response.data.id);
-//     return response.data.id;
-//   } catch (error) {
-//     console.error("Error al subir el archivo:", error.message);
-//   }
-// };
 
 export const sendFileToDrive = (files_pdf, myFolder, drive) => {
   return new Promise(async (resolve, reject) => {
@@ -200,3 +174,59 @@ export const download_Cv = async (drive, fileId, res) => {
     });
   }
 };
+
+export const getIdByUrl = (url) => {
+  const match = url.match(/\/file\/d\/([^/]+)\//);
+  if (match && match[1]) {
+    return match[1];
+  }
+  return null;
+}
+
+export const deleteFile = (fileId, drive) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await drive.files.delete({
+        fileId: fileId,
+      });
+      console.log(`Archivo con ID ${fileId} eliminado correctamente.`);
+      resolve(true); // El archivo se eliminó con éxito
+    } catch (error) {
+      console.error(`Error al eliminar el archivo con ID ${fileId}:`, error.message);
+      reject(false); // Error al eliminar el archivo
+    }
+  });
+};
+
+// export const updateFiles = (files_updat, myFolder, drive) => {
+//   return new Promise(async (resolve, reject) => {
+//     try {
+//       console.log(files_updat)
+//       const { buffer, originalname } = files_updat;
+
+//       const fileMetadata = {
+//         name: originalname,
+//         parents: [myFolder],
+//         mimeType: "application/pdf",
+//       };
+
+//       const media = {
+//         mimeType: "application/pdf",
+//         body: buffer,
+//       };
+
+//       const response = await drive.files.create({
+//         resource: fileMetadata,
+//         media: media,
+//         fields: "id",
+//       });
+
+//       console.log("Archivo PDF subido. ID:", response.data.id);
+//       resolve(response.data.id);
+//     } catch (error) {
+//       console.error("Error al subir el archivo:", error.message);
+//       reject(error);
+//     }
+//   });
+// };
+

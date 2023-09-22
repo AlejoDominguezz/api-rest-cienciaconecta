@@ -1,5 +1,4 @@
 import fs from "fs";
-
 //promesa para crear una nueva carpeta en drive
 export const createFolder = async (folderName, drive) => {
   try {
@@ -77,6 +76,105 @@ export const sendFileToDrive = (files_pdf, myFolder, drive) => {
   });
 };
 
+export const downloadCv = async (drive, fileId, res) => {
+  try {
+    const response = await drive.files.get(
+      {
+        fileId: fileId,
+        alt: "media",
+      },
+      { responseType: "stream" }
+    );
+
+    // // Obtener el nombre del archivo desde la respuesta de Google Drive
+    // const fileName =
+    //   response.headers["content-disposition"].split("filename=")[1];
+
+    // // Configurar las cabeceras de respuesta con el nombre del archivo
+    // res.setHeader("Content-disposition", `attachment; filename="${fileName}"`);
+    // res.setHeader("Content-type", response.headers["content-type"]);
+
+    // response.data.pipe(res);
+    // Obtener el nombre del archivo desde el encabezado "content-disposition"
+    let fileName =
+      response.headers["content-disposition"].match(/filename="(.+)"/);
+    if (fileName && fileName[1]) {
+      fileName = fileName[1];
+    } else {
+      // Si no se encuentra un nombre de archivo válido, proporciona un nombre predeterminado
+      fileName = "cv.pdf";
+    }
+    console.log(response);
+    // Configurar las cabeceras de respuesta con el nombre del archivo
+    res.setHeader("Content-disposition", `attachment; filename="${fileName}"`);
+    res.setHeader("Content-type", response.headers["content-type"]);
+
+    response.data.pipe(res);
+  } catch (err) {
+    console.error("Error al descargar el archivo desde Drive:", err);
+    res.status(500).json({
+      message: "Error al descargar el archivo desde Drive",
+    });
+  }
+};
+
+export const downloadCvTwo = async (drive, fileId, res) => {
+  try {
+    const respt = await drive.files.get(
+      {
+        fileId: fileId,
+        alt: "media",
+      },
+      { responseType: "arraybuffer" }
+    );
+    const fileBuffer = Buffer.from(respt.data, "binary");
+
+    // Configura los encabezados de respuesta para indicar que es un archivo binario
+    res.setHeader("Content-Type", "application/octet-stream");
+    res.setHeader("Content-Disposition", "attachment; filename=cv.pdf");
+
+    // Envía el archivo binario como respuesta
+    res.send(fileBuffer);
+  } catch (err) {
+    console.error("Error al descargar el archivo desde Drive:", err);
+    res.status(500).json({
+      message: "Error al descargar el archivo desde Drive",
+    });
+  }
+};
+
+export const download_Cv = async (drive, fileId, res) => {
+  try {
+    const response = await drive.files.get(
+      {
+        fileId: fileId,
+        alt: "media",
+      },
+      { responseType: "stream" }
+    );
+
+    let fileName =
+      response.headers["content-disposition"].match(/filename="(.+)"/);
+    if (fileName && fileName[1]) {
+      fileName = fileName[1];
+    } else {
+      // Si no se encuentra un nombre de archivo válido, proporciona un nombre predeterminado
+      fileName = "cv.pdf";
+    }
+    
+    // Configurar las cabeceras de respuesta para mostrar el PDF en lugar de descargarlo
+    res.setHeader("Content-disposition", `inline; filename="${fileName}"`);
+    res.setHeader("Content-type", "application/pdf");
+
+    response.data.pipe(res);
+  } catch (err) {
+    console.error("Error al descargar el archivo desde Drive:", err);
+    res.status(500).json({
+      message: "Error al descargar el archivo desde Drive",
+    });
+  }
+};
+
 export const getIdByUrl = (url) => {
   const match = url.match(/\/file\/d\/([^/]+)\//);
   if (match && match[1]) {
@@ -131,3 +229,4 @@ export const deleteFile = (fileId, drive) => {
 //     }
 //   });
 // };
+

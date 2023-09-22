@@ -413,6 +413,7 @@ export const cancelarEvaluacion = async (req, res) =>  {
 export const obtenerEvaluacionesPendientes = async (req, res) => {
   try {
     const uid = req.uid;
+    const {titulo} = req.query;
     
     const docente = await Docente.findOne({usuario: uid})
     if(!docente){
@@ -424,7 +425,15 @@ export const obtenerEvaluacionesPendientes = async (req, res) => {
         return res.status(404).json({ error: "No existe el evaluador asociado al docente" });
     }
 
-    const proyectos_evaluacion_pendiente = await Proyecto.find({evaluadoresRegionales: { $in: [evaluador.id.toString()] }})
+    // Construir la consulta principal
+    const consulta = { evaluadoresRegionales: { $in: [evaluador.id.toString()] } };
+
+    // Agregar el filtro de título si existe
+    if (titulo) {
+      consulta.titulo = { $regex: titulo, $options: 'i' };;
+    }
+
+    const proyectos_evaluacion_pendiente = await Proyecto.find(consulta)
     .select('-__v')
     .lean()
     .exec();

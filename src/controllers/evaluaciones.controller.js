@@ -1,5 +1,9 @@
 import { Evaluacion, estadoEvaluacion } from "../models/Evaluacion.js";
 import { arraysEvaluacionIguales, arraysComentariosIguales } from "../helpers/arrayComparation.js"
+import { Proyecto } from "../models/Proyecto.js";
+import { Docente } from "../models/Docente.js";
+import { Evaluador } from "../models/Evaluador.js";
+import { Types } from "mongoose";
 
 export const evaluarProyecto = async (req, res) => {
     const evaluacion = req.body.evaluacion;
@@ -403,4 +407,56 @@ export const cancelarEvaluacion = async (req, res) =>  {
   } catch (error) {
     return res.status(500).json({ error: "Error de servidor" });
   }
+}
+
+
+export const obtenerEvaluacionesPendientes = async (req, res) => {
+  try {
+    const uid = req.uid;
+    
+    const docente = await Docente.findOne({usuario: uid})
+    if(!docente){
+        return res.status(404).json({ error: "No existe el docente asociado al usuario" });
+    }
+
+    const evaluador = await Evaluador.findOne({idDocente: docente.id})
+    if(!evaluador){
+        return res.status(404).json({ error: "No existe el evaluador asociado al docente" });
+    }
+
+    const proyectos_evaluacion_pendiente = await Proyecto.find({evaluadoresRegionales: { $in: [evaluador.id.toString()] }})
+    .select('-__v')
+    .lean()
+    .exec();
+
+    if(proyectos_evaluacion_pendiente.length === 0){
+      return res.status(204).json({ error: "No existen evaluaciones pendientes" });
+    }
+
+
+    const proyecto_detalle = await Promise.all(
+      proyectos_evaluacion_pendiente.map(async (proyecto) => {
+        const evaluacion = await Evaluacion.findOne({proyectoId: proyecto._id})
+        .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+        .lean()
+        .exec();
+
+        if(!evaluacion){
+          return {
+            ...proyecto,
+          }
+        }
+        return {
+          ...proyecto,
+          evaluacion: evaluacion,
+        };
+      })
+    );
+
+    return res.json({proyectos: proyecto_detalle})
+
+  } catch (error) {
+    return res.status(500).json({ error: "Error de servidor" });
+  }
+
 }

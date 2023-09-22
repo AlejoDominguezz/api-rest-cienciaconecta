@@ -118,8 +118,9 @@ export const iniciarEvaluacion = async (req, res) => {
   // Obtengo la estructura de rubricas de la feria
   const evaluacion_estructura = feria.criteriosEvaluacion;
 
-  // Si no existe evaluación, construye la estructura sin "seleccionada"
-  if (!evaluacion) {
+  // SI NO EXISTE UNA EVALUACIÓN PREVIA, SE CREA, DEVOLVIENDO LA ESTRUCTURA SIN OPCIONES SELECCIONADAS NI COMENTARIOS
+  // TAMBIÉN PASA POR ESTA RAMA SI EXISTE EVALUACIÓN PREVIA, Y LA EVALUACIÓN ESTÁ VACÍA
+  if (!evaluacion || (evaluacion.evaluando?.toString() == evaluador._id.toString() && evaluacion.evaluacion == null)) {
 
     // Obtengo la estructura de rubricas sólo para la evaluación teórica
     const evaluacion_estructura_teorica = [];
@@ -148,19 +149,23 @@ export const iniciarEvaluacion = async (req, res) => {
       }
     }
 
-    // Creo una nueva evaluación de proyecto
-    const evaluacion_proyecto = new Evaluacion({
-      evaluacion: null,
-      evaluadorId: [],
-      proyectoId: proyecto.id,
-      puntajeTeorico: -1,
-      listo: [],
-      estado: estadoEvaluacion.enEvaluacion,
-      ultimaEvaluacion: null,
-      evaluando: evaluador.id
-    })
+    if(!evaluacion){
+      // Creo una nueva evaluación de proyecto
+      const evaluacion_proyecto = new Evaluacion({
+        evaluacion: null,
+        evaluadorId: [],
+        proyectoId: proyecto.id,
+        puntajeTeorico: -1,
+        listo: [],
+        estado: estadoEvaluacion.enEvaluacion,
+        ultimaEvaluacion: null,
+        evaluando: evaluador.id
+      })
+      evaluacion_proyecto.save();
 
-    evaluacion_proyecto.save();
+    }
+
+
 
     // Devolver la estructura de evaluación teórica con o sin evaluacion existente
     return res.json(evaluacion_estructura_teorica);
@@ -168,68 +173,76 @@ export const iniciarEvaluacion = async (req, res) => {
 
   } else {
 
-    // Dos evaluadores no pueden evaluar un proyecto al mismo tiempo
-    if(evaluacion.estado == estadoEvaluacion.enEvaluacion) {
+    // EN CASO DE QUE EL EVALUADOR NO SEA EL USUARIO QUE ESTA EVALUANDO ACTUALMENTE, NO SE PERMITE EVALUAR
+    if(evaluacion.estado == estadoEvaluacion.enEvaluacion && evaluacion.evaluando.toString() != evaluador._id.toString()) {
       return res.status(401).json({ error: "Un usuario ya está evaluando el proyecto en este momento. Por favor, espera hasta que finalice su evaluacion" });
-    }
+  
+    } else {
 
-    // No se puede evaluar un proyecto con evaluación finalizada
-    if(evaluacion.estado == estadoEvaluacion.cerrada) {
-      return res.status(401).json({ error: "La evaluación de este proyecto ya ha finalizado" });
-    }
 
-    // Si existe evaluación, construir la estructura con "seleccionada"
-    const evaluacion_estructura_teorica = evaluacion_estructura.map(
-      (rubrica) => {
-        
-        // Buscamos en la evaluación encontrada, cual es el comentario realizado para la rubrica actual
-        const comentario = evaluacion.comentarios.find(
-          (comentarioRubrica) => 
-            comentarioRubrica.rubricaId.toString() ===
-              rubrica._id.toString())
+      // No se puede evaluar un proyecto con evaluación finalizada
+      if(evaluacion.estado == estadoEvaluacion.cerrada) {
+        return res.status(401).json({ error: "La evaluación de este proyecto ya ha finalizado" });
+      }
 
-        // Copiar la rubrica eliminando los atributos no deseados
-        const rubricaConSeleccionada = {
-          _id: rubrica._id,
-          nombreRubrica: rubrica.nombreRubrica,
-          comentario: comentario,
-          criterios: rubrica.criterios.map((criterio) => {
+      // Si existe evaluación, construir la estructura con "seleccionada"
+      const evaluacion_estructura_teorica = evaluacion_estructura
+      .filter((rubrica) => !rubrica.exposicion)
+      .map((rubrica) => {
+          
+          // Buscamos en la evaluación encontrada, cual es el comentario realizado para la rubrica actual
+          const comentario = evaluacion.comentarios.find(
+            (comentarioRubrica) => 
+              comentarioRubrica.rubricaId.toString() ===
+                rubrica._id.toString())
 
-            // Buscamos en la evaluacion encontrada, cual es la opcion seleccionada del criterio actual
-            const opcionSeleccionada = evaluacion.evaluacion.find(
-              (evaluacionItem) =>
-                evaluacionItem.rubricaId.toString() ===
-                  rubrica._id.toString() &&
-                evaluacionItem.criterioId.toString() ===
-                  criterio._id.toString())
+          // Copiar la rubrica eliminando los atributos no deseados
+          const rubricaConSeleccionada = {
+            _id: rubrica._id,
+            nombreRubrica: rubrica.nombreRubrica,
+            comentario: comentario.comentario,
+            criterios: rubrica.criterios.map((criterio) => {
 
-            // Copiar el criterio eliminando los atributos no deseados
-            const criterioConSeleccionada = {
-              _id: criterio._id,
-              nombre: criterio.nombre,
-              seleccionada: opcionSeleccionada, // Inicializamos la propiedad seleccionada
-              opciones: criterio.opciones.map((opcion) => {
-                  const opcionConSeleccionada = {
-                    nombre: opcion.nombre,
-                    _id: opcion._id
+              // Buscamos en la evaluacion encontrada, cual es la opcion seleccionada del criterio actual
+              const opcionSeleccionada = evaluacion.evaluacion.find(
+                (evaluacionItem) =>
+                  evaluacionItem.rubricaId.toString() ===
+                    rubrica._id.toString() &&
+                  evaluacionItem.criterioId.toString() ===
+                    criterio._id.toString())
+
+              // Copiar el criterio eliminando los atributos no deseados
+              const criterioConSeleccionada = {
+                _id: criterio._id,
+                nombre: criterio.nombre,
+                seleccionada: opcionSeleccionada.opcionSeleccionada, // Inicializamos la propiedad seleccionada
+                opciones: criterio.opciones.map((opcion) => {
+                    const opcionConSeleccionada = {
+                      nombre: opcion.nombre,
+                      _id: opcion._id
+                    }
+                    return opcionConSeleccionada;
                   }
-                  return opcionConSeleccionada;
-                }
-              )
-            }
-            return criterioConSeleccionada;
-            },
-            ),
-          };
-          return rubricaConSeleccionada;
-        });
+                )
+              }
+              return criterioConSeleccionada;
+              },
+              ),
+            };
+            return rubricaConSeleccionada;
+          });
 
-        evaluacion.estado = estadoEvaluacion.enEvaluacion;
-        evaluacion.evaluando = evaluador.id;
-        evaluacion.save()
+          if(evaluacion.estado != estadoEvaluacion.enEvaluacion) {
+            evaluacion.estado = estadoEvaluacion.enEvaluacion;
+            evaluacion.evaluando = evaluador.id;
+            evaluacion.save()
+          }
 
-        // Devolver la estructura de evaluación teórica con o sin evaluacion existente
-        return res.json(evaluacion_estructura_teorica);
+          // Devolver la estructura de evaluación teórica con o sin evaluacion existente
+          return res.json(evaluacion_estructura_teorica);
+
+
+    }
 
   };
     
@@ -308,8 +321,9 @@ export const visualizarEvaluacion = async (req, res) => {
 
 
 } else {// Si existe evaluación, construir la estructura con "seleccionada"
-  const evaluacion_estructura_teorica = evaluacion_estructura.map(
-    (rubrica) => {
+  const evaluacion_estructura_teorica = evaluacion_estructura
+  .filter((rubrica) => !rubrica.exposicion)
+  .map((rubrica) => {
       
       // Buscamos en la evaluación encontrada, cual es el comentario realizado para la rubrica actual
       const comentario = evaluacion.comentarios.find(
@@ -321,7 +335,7 @@ export const visualizarEvaluacion = async (req, res) => {
       const rubricaConSeleccionada = {
         _id: rubrica._id,
         nombreRubrica: rubrica.nombreRubrica,
-        comentario: comentario,
+        comentario: comentario.comentario,
         criterios: rubrica.criterios.map((criterio) => {
 
           // Buscamos en la evaluacion encontrada, cual es la opcion seleccionada del criterio actual
@@ -336,7 +350,7 @@ export const visualizarEvaluacion = async (req, res) => {
           const criterioConSeleccionada = {
             _id: criterio._id,
             nombre: criterio.nombre,
-            seleccionada: opcionSeleccionada, // Inicializamos la propiedad seleccionada
+            seleccionada: opcionSeleccionada.opcionSeleccionada, // Inicializamos la propiedad seleccionada
             opciones: criterio.opciones.map((opcion) => {
                 const opcionConSeleccionada = {
                   nombre: opcion.nombre,

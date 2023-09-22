@@ -75,15 +75,19 @@ export const register = async (req, res) => {
     await user.save();
     await docente.save();
 
-    // Lógica de envío de mail de confirmación
-    const confirmationMail = confirmationMailHtml(user.tokenConfirm)
+    await emailCola.add("email:confirmacionUsuario", { 
+      tokenConfirm: user.tokenConfirm, 
+      mail: user.email})
 
-    await transporter.sendMail({
-      from: 'Ciencia Conecta',
-      to: user.email,
-      subject: "Verifica tu cuenta de correo",
-      html: confirmationMail
-    })
+    // Lógica de envío de mail de confirmación
+    // const confirmationMail = confirmationMailHtml(user.tokenConfirm)
+
+    // await transporter.sendMail({
+    //   from: 'Ciencia Conecta',
+    //   to: user.email,
+    //   subject: "Verifica tu cuenta de correo",
+    //   html: confirmationMail
+    // })
 
     return res.status(201).json({ ok: true });
   } catch (error) {
@@ -140,15 +144,19 @@ export async function solicitarRecuperacionContrasena(req, res) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    // Lógica de envío de correo de recuperación
-    const recoveryMail = recoveryMailHtml(token); // Puedes crear una función similar a confirmationMailHtml
+    await emailCola.add("email:recuperacionContrasena", { 
+      token, 
+      usuario})
 
-    await transporter.sendMail({
-      from: 'Ciencia Conecta',
-      to: usuario.email,
-      subject: "Recuperación de contraseña",
-      html: recoveryMail
-    });
+    // // Lógica de envío de correo de recuperación
+    // const recoveryMail = recoveryMailHtml(token); 
+
+    // await transporter.sendMail({
+    //   from: 'Ciencia Conecta',
+    //   to: usuario.email,
+    //   subject: "Recuperación de contraseña",
+    //   html: recoveryMail
+    // });
 
     const maskedEmail = usuario.email.replace(/^(.{4})(.*)(@.+)/, (_, p1, p2, p3) => `${p1}${'*'.repeat(p2.length)}${p3}`);
     const responseMessage = `Correo de recuperación enviado al mail ${maskedEmail}`;
@@ -248,7 +256,10 @@ export const altaUsuarios = async (req, res) => {
             usuario.save()
 
             try {
-                await emailCola.add({usuario, docente})
+                await emailCola.add("email:altaUsuario", {
+                  usuario, 
+                  docente})
+
             } catch (error) {
                 console.log({error: "Error al añadir una tarea de envío de email a la cola"})
             }

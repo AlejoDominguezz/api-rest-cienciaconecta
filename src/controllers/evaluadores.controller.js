@@ -6,6 +6,7 @@ import { roles } from "../helpers/roles.js";
 import { seleccionMailHtml } from "../helpers/seleccionMail.js";
 import { transporter } from "../helpers/mailer.js";
 import { getFeriaActivaFuncion } from "../controllers/ferias.controller.js"
+import { emailCola } from "../helpers/queueManager.js";
 
 export const postularEvaluador = async (req, res) => {
     try {
@@ -83,8 +84,8 @@ export const seleccionarEvaluadores = async (req, res) => {
             postulaciones
         } = req.body
 
-        var falloMail = false;
-        var errores = [];
+        // var falloMail = false;
+        // var errores = [];
 
         for(const idSeleccionado of postulaciones){
 
@@ -108,10 +109,13 @@ export const seleccionarEvaluadores = async (req, res) => {
                 postulacion.save()
 
                 try {
-                    await enviarMailSeleccion(usuario, docente)
+                    
+                    await emailCola.add("email:seleccionEvaluador", {
+                        usuario, 
+                        docente})
+
                 } catch (error) {
-                    falloMail = true;
-                    errores.push(`Fallo en el envío de mail a ${usuario.email}`)
+                    return res.status(500).json({ error: "Error de servidor" });
                 }
 
             } else {
@@ -119,13 +123,8 @@ export const seleccionarEvaluadores = async (req, res) => {
             }
             
         }
-
-        if (!falloMail){
-            return res.json({ ok: true,  responseMessage: "Se han enviado todos los emails correctamente"});
-        } else {
-            return res.json({ ok: true,  responseMessage: errores});
-        }
         
+        return res.json({ ok: true,  responseMessage: "Se han añadido todas las tareas a la cola de envío de mail"});
 
     } catch (error) {
         console.log(error);
@@ -134,23 +133,23 @@ export const seleccionarEvaluadores = async (req, res) => {
 }
 
 
-const enviarMailSeleccion = async (usuario, docente) => {
-    try {
-        const info = await transporter.sendMail({
-            from: 'Ciencia Conecta',
-            to: usuario.email,
-            subject: "Resultado de Postulación como Evaluador",
-            html: seleccionMailHtml(docente)
-          });
+// const enviarMailSeleccion = async (usuario, docente) => {
+//     try {
+//         const info = await transporter.sendMail({
+//             from: 'Ciencia Conecta',
+//             to: usuario.email,
+//             subject: "Resultado de Postulación como Evaluador",
+//             html: seleccionMailHtml(docente)
+//           });
 
-        // Verificar si el correo se envió exitosamente
-        if (info.accepted.length === 0) {
-            // No se pudo enviar el correo
-            throw new Error(`No se pudo enviar el correo a ${usuario.email}`);
-        }
+//         // Verificar si el correo se envió exitosamente
+//         if (info.accepted.length === 0) {
+//             // No se pudo enviar el correo
+//             throw new Error(`No se pudo enviar el correo a ${usuario.email}`);
+//         }
 
-    } catch (error) {
-        throw error;
-    }
+//     } catch (error) {
+//         throw error;
+//     }
     
-}
+// }

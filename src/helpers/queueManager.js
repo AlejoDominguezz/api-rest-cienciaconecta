@@ -7,3 +7,4 @@ export const emailCola = new Queue("email", {
     db: process.env.REDIS_DB,
   },
 });
+

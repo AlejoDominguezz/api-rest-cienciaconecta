@@ -319,6 +319,8 @@ export const consultarProyectos = async (req, res) => {
         };
       })
     );
+
+    return res.json({proyectos: proyectosModificado})
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Error de servidor" });

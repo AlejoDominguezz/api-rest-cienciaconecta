@@ -833,3 +833,13 @@ export const actualizarArchivosRegional = async (req, res) => {
     });
   }
 };
+
+export const downloadDocuments = async(req , res) => {
+  try {
+    const id = req.params.id;
+    console.log(id);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: "ERROR AL OBTENER LOS DOCUMENTOS DEL PROYECTO."})
+  }
+}

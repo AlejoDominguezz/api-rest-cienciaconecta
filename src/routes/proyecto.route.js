@@ -17,7 +17,8 @@ import {
   modificarProyectoEscolar,
   modificarProyectoRegional,
   cargarArchivosRegional,
-  actualizarArchivosRegional
+  actualizarArchivosRegional,
+  downloadDocuments
 } from "../controllers/proyectos.controller.js";
 import {
   bodyInscribirProyectoValidator,
@@ -113,6 +114,15 @@ routerProyectos.patch(
     //fecha(fechasFeria.fechaFinEscolar, fechasFeria.fechaInicioEvaluacionRegional),
     esPropietario,
     actualizarArchivosRegional
+);
+
+routerProyectos.get(
+  "/download/:id",
+    requireToken,
+    checkRolAuth([roles.admin, roles.responsableProyecto]),
+    //fecha(fechasFeria.fechaFinEscolar, fechasFeria.fechaInicioEvaluacionRegional),
+    esPropietario,
+    downloadDocuments
 );
 
 // requireToken , checkRolAuth([roles.admin, roles.responsableProyecto]), esPropietario,

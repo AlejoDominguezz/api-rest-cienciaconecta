@@ -16,6 +16,7 @@ import {
   download_Cv
 } from "../services/drive/helpers-drive.js";
 import { getFeriaActivaFuncion } from "../controllers/ferias.controller.js"
+import { fileCv } from "../helpers/queueFile.js";
 
 
 export const postularEvaluador = async (req, res) => {
@@ -171,7 +172,6 @@ export const cargarCv = async (req, res) => {
     const uid = req.uid;
     const _docente = await Docente.findOne({ usuario: uid });
     const evaluador = await Evaluador.findOne({ idDocente: _docente.id });
-
     if (!_docente) {
       return res.status(401).json({ message: "NO EXISTE EL DOCENTE" });
     }
@@ -213,38 +213,13 @@ export const cargarCv = async (req, res) => {
         }
       }
 
-      const name_folder = _docente.cuil;
-      //creo la nueva carpeta
-      const id_folder_new = await createFolder(name_folder, drive);
-
-      if (id_folder_new) {
-        evaluador.id_carpeta_cv = id_folder_new;
-        // Compartir la carpeta creada en paralelo
-        const email_ciencia_conecta = "cienciaconecta.utn@gmail.com";
-        await shareFolderWithPersonalAccount(
-          id_folder_new,
-          email_ciencia_conecta,
-          drive,
-          "writer"
-        );
-        const id_cv = await sendFileToDrive(files.cv, id_folder_new, drive);
-        if (id_cv) {
-          //https://drive.google.com/file/d/${id_cv}/preview
-          evaluador.CV = `${id_cv}`;
-          evaluador.save();
-          return res.status(200).json({
-            message: "CV CARGADO CORRECTAMENTE EN DRIVE",
-          });
-        } else {
-          return res.status(400).json({
-            message: "ERROR AL CARGAR EL CV EN DRIVE",
-          });
-        }
-      } else {
-        res.status(500).json({
-          message: "ERROR AL CREAR LA CARPETA EN DRIVE",
-        });
+      const cola = await fileCv.add({uid , files});
+      if(cola){
+        res.status(200).json({message: "CV CARGANDOSE..."});
+      }else{
+        res.status(400).json({message: "ERROR AL INTENTAR CARGAR EL CV"});
       }
+
 
     });
   } catch (error) {

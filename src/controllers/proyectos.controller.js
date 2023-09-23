@@ -16,6 +16,7 @@ import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js"
 import { Feria, estadoFeria } from "../models/Feria.js";
 import { roles } from "../helpers/roles.js";
 import multer from "multer";
+import { fileCola, fileUpdateCola } from "../helpers/queueFile.js";
 
 // Configurar multer para manejar la subida de archivos
 const storage = multer.memoryStorage(); // Almacenar los archivos en la memoria
@@ -549,10 +550,6 @@ export const modificarProyectoRegional = async (req, res) => {
 export const cargarArchivosRegional = async (req, res) => {
   //obtengo el id del proyecto
   const id_proyecto = req.params.id;
-  //busco el proyecto que pertenece ese id
-  const proyecto = await Proyecto.findById(id_proyecto);
-  //asigno nombre a la nueva carpeta
-  const name_folder = proyecto.titulo;
 
   try {
     const form = formidable({ multiples: false });
@@ -600,68 +597,13 @@ export const cargarArchivosRegional = async (req, res) => {
         });
       }
 
-      //creo la nueva carpeta
-      const id_folder_new = await createFolder(name_folder, drive);
-
-      //seteo el campo del proyecto "id_carpeta_drive" con el "id" de la carpeta creada
-      proyecto.id_carpeta_drive = id_folder_new;
-
-      // Compartir la carpeta creada en paralelo
-      const email_ciencia_conecta = "cienciaconecta.utn@gmail.com";
-      await Promise.all([
-        shareFolderWithPersonalAccount(
-          id_folder_new,
-          email_ciencia_conecta,
-          drive,
-          "writer"
-        ),
-      ]);
-
-      const uploadPromises = [];
-
-      // Subir los archivos en paralelo
-      uploadPromises.push(
-        sendFileToDrive(files.registroPedagogicopdf, id_folder_new, drive)
-      );
-      uploadPromises.push(
-        sendFileToDrive(files.carpetaCampo, id_folder_new, drive)
-      );
-      uploadPromises.push(
-        sendFileToDrive(files.informeTrabajo, id_folder_new, drive)
-      );
-      uploadPromises.push(
-        sendFileToDrive(files.autorizacionImagen, id_folder_new, drive)
-      );
-
-      const [
-        id_archivo_pdf,
-        id_archivo_pdf_campo,
-        id_archivo_informeTrabajo,
-        id_archivo_autorizacionImagen,
-      ] = await Promise.all(uploadPromises);
-
-      proyecto.registroPedagogico = `https://drive.google.com/file/d/${id_archivo_pdf}/preview`;
-      proyecto.carpetaCampo = `https://drive.google.com/file/d/${id_archivo_pdf_campo}/preview`;
-      proyecto.informeTrabajo = `https://drive.google.com/file/d/${id_archivo_informeTrabajo}/preview`;
-      proyecto.autorizacionImagen = `https://drive.google.com/file/d/${id_archivo_autorizacionImagen}/preview`;
-
-      if (
-        id_archivo_pdf &&
-        id_archivo_pdf_campo &&
-        id_archivo_informeTrabajo &&
-        id_archivo_autorizacionImagen
-      ) {
-        proyecto.save();
-        return res.status(200).json({
-          id_inform_tranajp: proyecto.informeTrabajo,
-          msg: "Archivos enviados correctamente a drive",
-          proyecto,
-        });
-      } else {
-        return res.status(400).json({
-          msg: "Error al subir los archivos a drive",
-        });
+      const cola = await fileCola.add({id_proyecto , files});
+      if(cola){
+        res.status(200).json({message:"ARCHIVOS CARGANDOSE, VERIFIQUE LA CARGA."});
+      }else{
+        res.status(400).json({message:"ERROR AL INTENTAR SUBIR LOS ARCHIVOS."});
       }
+
     });
   } catch (error) {
     console.error(error);
@@ -703,127 +645,11 @@ export const actualizarArchivosRegional = async (req, res) => {
           return res.status(400).json({message: "ERROR, DEBE INGRESAR ARCHIVOS EN FORMATO PDF!"})
         }
       }
-
-
-      
-      const id_folder = proyecto.id_carpeta_drive;
-      let id_archivo_pdf = null;
-      let id_carpeta_campo = null;
-      let id_informe_trabajo = null;
-      let id_autorizacion_imagen = null;
-
-      if (files.registroPedagogicopdf) {
-        if (proyecto.registroPedagogico) {
-          const id_registro = await getIdByUrl(proyecto.registroPedagogico);
-          if (id_registro) {
-            const delete_file = await deleteFile(id_registro, drive);
-            if (delete_file) {
-              id_archivo_pdf = await sendFileToDrive(
-                files.registroPedagogicopdf,
-                id_folder,
-                drive
-              );
-            }
-          }
-        } else {
-          console.log("camino else");
-          id_archivo_pdf = await sendFileToDrive(
-            files.registroPedagogicopdf,
-            id_folder,
-            drive
-          );
-        }
-        if (id_archivo_pdf) {
-          console.log(id_archivo_pdf);
-          proyecto.registroPedagogico = `https://drive.google.com/file/d/${id_archivo_pdf}/preview`;
-        }
-      }
-      //si existe carpetaCampo...
-      if (files.carpetaCampo) {
-        if (proyecto.carpetaCampo) {
-          const id_campo = await getIdByUrl(proyecto.carpetaCampo);
-          if (id_campo) {
-            const delete_campo = await deleteFile(id_campo, drive);
-            if (delete_campo) {
-              id_carpeta_campo = await sendFileToDrive(
-                files.carpetaCampo,
-                id_folder,
-                drive
-              );
-            }
-          }
-        } else {
-          console.log("camino else");
-          id_carpeta_campo = await sendFileToDrive(
-            files.carpetaCampo,
-            id_folder,
-            drive
-          );
-        }
-        if (id_carpeta_campo) {
-          console.log(id_carpeta_campo);
-          proyecto.carpetaCampo = `https://drive.google.com/file/d/${id_carpeta_campo}/preview`;
-        }
-      }
-
-      //si existe informeTrabajo...
-      if (files.informeTrabajo) {
-        if (proyecto.informeTrabajo) {
-          const id_informe = await getIdByUrl(proyecto.informeTrabajo);
-          if (id_informe) {
-            const delete_informe = await deleteFile(id_informe, drive);
-            if (delete_informe) {
-              id_informe_trabajo = await sendFileToDrive(
-                files.informeTrabajo,
-                id_folder,
-                drive
-              );
-            }
-          }
-        } else {
-          id_informe_trabajo = await sendFileToDrive(
-            files.informeTrabajo,
-            id_folder,
-            drive
-          );
-        }
-        if (id_informe_trabajo) {
-          proyecto.informeTrabajo = `https://drive.google.com/file/d/${id_informe_trabajo}/preview`;
-        }
-      }
-
-      //si existe autorizacionImagen
-      if (files.autorizacionImagen) {
-        if (proyecto.autorizacionImagen) {
-          const id_informe_ = await getIdByUrl(proyecto.autorizacionImagen);
-          if (id_informe_) {
-            const delete_informe_ = await deleteFile(id_informe_, drive);
-            if (delete_informe_) {
-              id_autorizacion_imagen = await sendFileToDrive(
-                files.autorizacionImagen,
-                id_folder,
-                drive
-              );
-            }
-          }
-        } else {
-          id_autorizacion_imagen = await sendFileToDrive(
-            files.autorizacionImagen,
-            id_folder,
-            drive
-          );
-        }
-        if (id_autorizacion_imagen) {
-          proyecto.autorizacionImagen = `https://drive.google.com/file/d/${id_autorizacion_imagen}/preview`;
-        }
-      }
-
-      if (id_archivo_pdf || id_carpeta_campo || id_autorizacion_imagen || id_informe_trabajo) {
-        await proyecto.save();
-        return res.status(200).json({
-          msg: "Archivos actualizados correctamente",
-          proyecto,
-        });
+      const cola = await fileUpdateCola.add({id , files});
+      if(cola){
+        res.status(200).json({message:"ARCHIVOS ACTUALIZANDOSE, VERIFIQUE LA CARGA."});
+      }else{
+        res.status(400).json({message:"ERROR AL INTENTAR ACTUALIZAR LOS ARCHIVOS."});
       }
     });
   } catch (error) {

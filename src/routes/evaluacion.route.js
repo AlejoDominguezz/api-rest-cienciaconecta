@@ -9,13 +9,14 @@ import { Router } from "express";
 import { requireToken } from '../middlewares/requireToken.js';
 import { checkRolAuth, esEvaluadorDelProyecto } from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
-import { cancelarEvaluacion, confirmarEvaluacion, evaluarProyecto, iniciarEvaluacion, visualizarEvaluacion, obtenerEvaluacionesPendientes } from "../controllers/evaluaciones.controller.js";
+import { cancelarEvaluacion, confirmarEvaluacion, evaluarProyecto, iniciarEvaluacion, visualizarEvaluacion, obtenerEvaluacionesPendientes, obtenerEvaluacionPendienteById } from "../controllers/evaluaciones.controller.js";
 import { evaluacionValidator } from "../middlewares/validationManagerEvaluacion.js";
 
 const routerEvaluacion = Router();
 
 routerEvaluacion.post("/:id", requireToken, checkRolAuth([roles.admin, roles.evaluador]), esEvaluadorDelProyecto, evaluacionValidator, evaluarProyecto);
 routerEvaluacion.get('/pendientes', requireToken, checkRolAuth([roles.admin, roles.evaluador, roles.refEvaluador]), obtenerEvaluacionesPendientes)
+routerEvaluacion.get('/pendientes/:id', requireToken, checkRolAuth([roles.admin, roles.evaluador, roles.refEvaluador]), obtenerEvaluacionPendienteById)
 routerEvaluacion.get("/:id", requireToken, checkRolAuth([roles.admin, roles.evaluador]), esEvaluadorDelProyecto, iniciarEvaluacion);
 routerEvaluacion.get("/confirmar/:id", requireToken, checkRolAuth([roles.admin, roles.evaluador]), esEvaluadorDelProyecto, confirmarEvaluacion);
 routerEvaluacion.get('/consultar/:id', requireToken, checkRolAuth([roles.admin, roles.evaluador, roles.comAsesora, roles.refEvaluador]), esEvaluadorDelProyecto, visualizarEvaluacion)
@@ -613,4 +614,52 @@ export default routerEvaluacion;
  *         description: No Content. No se encontraron evaluaciones pendientes.
  *       500:
  *         description: Error del servidor.
+ */
+
+
+/**
+ * @swagger
+ * /api/v1/evaluacion/pendientes/:id:
+ *   get:
+ *     summary: Obtener evaluación pendiente por ID
+ *     description: Obtiene una evaluación pendiente por su ID.
+ *     tags:
+ *       - Evaluacion
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: ID del proyecto
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Evaluación pendiente encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 proyecto:
+ *                   $ref: '#/components/schemas/Proyecto'
+ *                 evaluacion:
+ *                   $ref: '#/components/schemas/Evaluacion'
+ *       404:
+ *         description: No se encontró la evaluación pendiente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       500:
+ *         description: Error de servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
  */

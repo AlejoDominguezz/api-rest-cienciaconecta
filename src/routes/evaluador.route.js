@@ -16,7 +16,8 @@ import {
   cargarCv,
   getCv,
   getCvV2,
-  getCv_
+  getCv_,
+  getPostulacionById
 } from "../controllers/evaluadores.controller.js";
 import {
   bodyPostularEvaluadorValidator,
@@ -50,6 +51,14 @@ routerEvaluadores.get(
   //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
   getPostulaciones
 );
+
+routerEvaluadores.get(
+  '/postulaciones/:id',
+  requireToken,
+  checkRolAuth([roles.admin, roles.comAsesora]),
+  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
+  getPostulacionById
+)
 
 routerEvaluadores.post(
   "/upload/cv",

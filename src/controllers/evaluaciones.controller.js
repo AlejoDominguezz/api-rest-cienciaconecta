@@ -469,3 +469,45 @@ export const obtenerEvaluacionesPendientes = async (req, res) => {
   }
 
 }
+
+
+export const obtenerEvaluacionPendienteById = async (req, res) => {
+  try {
+    const uid = req.uid;
+    const {id} = req.params;
+    
+    const docente = await Docente.findOne({usuario: uid})
+    if(!docente){
+        return res.status(404).json({ error: "No existe el docente asociado al usuario" });
+    }
+
+    const evaluador = await Evaluador.findOne({idDocente: docente.id})
+    if(!evaluador){
+        return res.status(404).json({ error: "No existe el evaluador asociado al docente" });
+    }
+
+    const proyecto = await Proyecto.findOne({evaluadoresRegionales: { $in: [evaluador.id.toString()]}, _id: id.toString()})
+    .select('-__v')
+    .lean()
+    .exec();
+
+    if(!proyecto){
+      return res.status(404).json({ error: "No existe una evaluación asignada al evaluador con el ID ingresado" });
+    }
+
+    const evaluacion = await Evaluacion.findOne({proyectoId: proyecto._id})
+    .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+    .lean()
+    .exec();
+
+    if(!evaluacion){
+      return res.json({proyecto})
+    } else {
+      return res.json({proyecto, evaluacion})
+    }
+
+  } catch (error) {
+    return res.status(500).json({ error: "Error de servidor" });
+  }
+
+}

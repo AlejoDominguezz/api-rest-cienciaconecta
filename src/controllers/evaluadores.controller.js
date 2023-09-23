@@ -89,6 +89,27 @@ export const getPostulaciones = async (req, res) => {
   }
 };
 
+export const getPostulacionById = async (req, res) => {
+  try {
+    const {id} = req.params;
+
+    const postulacion = await Evaluador.findOne({ pendiente: true, _id: id});
+    if (!postulacion) {
+      return res
+        .status(204)
+        .json({ error: "No se han encontrado la postulación pendiente con el ID ingresado" });
+    }
+
+    const datos_docente = await Docente.findById(postulacion.idDocente);
+
+    return res.json({ postulacion, datos_docente });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Error de servidor" });
+  }
+};
+
+
 export const seleccionarEvaluadores = async (req, res) => {
   try {
     const { postulaciones } = req.body;

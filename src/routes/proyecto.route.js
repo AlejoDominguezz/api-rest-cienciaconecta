@@ -18,7 +18,8 @@ import {
   modificarProyectoRegional,
   cargarArchivosRegional,
   actualizarArchivosRegional,
-  downloadDocuments
+  downloadDocuments,
+  downloadDocumentEspecific
 } from "../controllers/proyectos.controller.js";
 import {
   bodyInscribirProyectoValidator,
@@ -124,6 +125,16 @@ routerProyectos.get(
     //fecha(fechasFeria.fechaFinEscolar, fechasFeria.fechaInicioEvaluacionRegional),
     esPropietario,
     downloadDocuments
+);
+
+routerProyectos.get(
+  "/download/:id/:name",
+    requireToken,
+    BodyValidationDrive,
+    checkRolAuth([roles.admin, roles.responsableProyecto]),
+    //fecha(fechasFeria.fechaFinEscolar, fechasFeria.fechaInicioEvaluacionRegional),
+    esPropietario,
+    downloadDocumentEspecific
 );
 
 // requireToken , checkRolAuth([roles.admin, roles.responsableProyecto]), esPropietario,

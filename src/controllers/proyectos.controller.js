@@ -865,3 +865,8 @@ export const downloadDocuments = async(req , res) => {
     res.status(500).json({message: "ERROR AL OBTENER LOS DOCUMENTOS DEL PROYECTO."})
   }
 }
+
+export const downloadDocumentEspecific = async(req , res) => {
+  const {id , name} = req.params;
+  res.json({id , name});
+}

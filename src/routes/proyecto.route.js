@@ -119,6 +119,7 @@ routerProyectos.patch(
 routerProyectos.get(
   "/download/:id",
     requireToken,
+    BodyValidationDrive,
     checkRolAuth([roles.admin, roles.responsableProyecto]),
     //fecha(fechasFeria.fechaFinEscolar, fechasFeria.fechaInicioEvaluacionRegional),
     esPropietario,

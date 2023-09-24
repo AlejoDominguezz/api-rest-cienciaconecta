@@ -9,6 +9,8 @@ import {
   sendFileToDrive,
   deleteFile,
   getIdByUrl,
+  obtenerIDsDeArchivosEnCarpeta,
+  downloadFiles
 } from "../services/drive/helpers-drive.js";
 import formidable from "formidable";
 import { existeProyecto } from "../helpers/db-validar.js";
@@ -837,7 +839,27 @@ export const actualizarArchivosRegional = async (req, res) => {
 export const downloadDocuments = async(req , res) => {
   try {
     const id = req.params.id;
-    console.log(id);
+    const proyecto = await Proyecto.findById(id);
+    const folder_id = proyecto.id_carpeta_drive;
+    if(folder_id){
+      //buscar archivos pdfs!
+      const ids = await obtenerIDsDeArchivosEnCarpeta(folder_id , drive);
+      if(ids && ids.length > 0){
+
+        // Recorrer los IDs de archivos y descargar cada uno
+        const descargasPromesas = ids.map(fileId => downloadFiles(fileId, drive));
+        // Ejecutar las descargas en paralelo
+        const archivos = await Promise.all(descargasPromesas);
+        
+        // Devolver los archivos al cliente
+        res.status(200).json({ archivos });
+      }else{
+        res.status(400).json({message: "NO EXISTEN ARCHIVOS DENTRO DE LA CARPETA."})
+      }
+    }else{
+      res.status(400).json({message: "NO EXISTE CARPETA DE DRIVE ASOCIADA A ESTE PROYECTO."})
+    }
+
   } catch (error) {
     console.error(error);
     res.status(500).json({message: "ERROR AL OBTENER LOS DOCUMENTOS DEL PROYECTO."})

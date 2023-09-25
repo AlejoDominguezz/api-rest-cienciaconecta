@@ -1,5 +1,6 @@
 import { roles } from "../helpers/roles.js";
 import { Docente } from "../models/Docente.js";
+import { Evaluador } from "../models/Evaluador.js";
 import { Proyecto } from "../models/Proyecto.js";
 import { Referente } from "../models/Referente.js";
 import { Usuario, estadoUsuario } from "../models/Usuario.js";
@@ -252,3 +253,147 @@ export const obtenerProyectosAsignadosAReferente = async (req, res) => {
     }
 
 }
+
+
+
+export const asignarEvaluadoresAProyecto = async (req, res) => {
+    try {
+        const {id} = req.params;
+        const {evaluadores} = req.body;
+
+        const proyecto = await Proyecto.findById(id);
+        if(!proyecto) {
+            return res.status(401).json({ error: "No existe el proyecto con el ID ingresado" });
+        }
+
+        // SEGUIR
+
+
+    } catch (error) {
+        return res.status(500).json({error: "Error de servidor"})
+    }
+
+}
+
+
+export const obtenerEvaluadores = async (req, res) => {
+
+    try {
+        const {id} = req.params;
+        const uid = req.uid;
+        const feriaActiva = await getFeriaActivaFuncion();
+
+        const proyecto = await Proyecto.findById(id);
+        if(!proyecto){
+            return res.status(401).json({ error: "No existe el proyecto con el ID ingresado" });
+        }
+
+        const usuario = await Usuario.findById(uid);
+        if(!usuario){
+            return res.status(401).json({ error: "No existe el usuario asociado a la sesión" });
+        }
+
+        const docente = await Docente.findOne({usuario: usuario._id});
+        if(!docente){
+            return res.status(401).json({ error: "No existe el docente asociado al usuario" });
+        }
+
+        const referente = await Referente.findOne({idDocente: docente._id});
+        if(!referente){
+            return res.status(401).json({ error: "No existe un referente seleccionado asociado al docente" });
+        }
+
+        const evaluadores = await Evaluador.find({feria: feriaActiva._id, sede: referente.sede})
+        .select('-__v -id_carpeta_cv')
+        .lean()
+        .exec()
+
+        const evaluadoresDetalle = await Promise.all(
+            evaluadores.map(async (evaluador) => {
+
+                const docente = await Docente.findById(evaluador.idDocente)
+                .select('-__v -_id -usuario')
+                .lean()
+                .exec()
+                if(!docente){
+                    return res.status(401).json({ error: "No existe el docente asociado al evaluador" });
+                }
+
+                return {
+                    ...evaluador,
+                    datos_docente: docente,
+                    coincidencia: calcularCoincidencia(evaluador, proyecto)
+                }
+
+            })
+        )
+
+        return res.json({ evaluadores: evaluadoresDetalle })
+
+    } catch (error) {
+        return res.status(500).json({error: "Error de servidor"})
+    }
+    
+}
+
+
+
+const calcularCoincidencia = (evaluador, proyecto) => {
+    
+    console.log("NIVEL DE COINCIDENCIA --------------------")
+
+    const MAX_PUNTUACION = 100; // Puntuación máxima
+
+    // Puntuación inicial
+    let puntuacionTotal = 0;
+
+    // Comprobar coincidencia de nivel
+    if (evaluador.niveles.toString().includes(proyecto.nivel.toString())) {
+        puntuacionTotal += MAX_PUNTUACION / 4; // Asignar 25 puntos (25%)
+    }
+
+    console.log("NIVEL: ", puntuacionTotal)
+
+    // Comprobar coincidencia de categoría
+    if (evaluador.categorias.toString().includes(proyecto.categoria.toString())) {
+        puntuacionTotal += MAX_PUNTUACION / 4; // Asignar 25 puntos (25%)
+    }
+
+    console.log("+CATEGORIA: ", puntuacionTotal)
+
+    // Comprobar antecedentes
+    const antecedentes = evaluador.antecedentes || [];
+    const antecedentesPuntaje = antecedentes.reduce((total, antecedente) => {
+        // Asignar puntaje según el tipo de antecedente (referente, evaluador, responsable de proyecto)
+        let puntajeAntecedente = 0;
+        if (antecedente.rol === '1') {
+        puntajeAntecedente = 10; // 10 puntos por ser "referente"
+        } else if (antecedente.rol === '2') {
+        puntajeAntecedente = 8; // 8 puntos por ser "evaluador"
+        } else if (antecedente.rol === '3') {
+        puntajeAntecedente = 2; // 2 puntos por ser "responsable de proyecto"
+        }
+
+        // Calcular el factor de influencia de los años más recientes
+        const añosDesdeAntecedente = new Date().getFullYear() - parseInt(antecedente.year);
+        const factorAños = Math.max(1, 10 - añosDesdeAntecedente); // Factor máximo de 10 años
+
+        // Aplicar el puntaje del antecedente con el factor de influencia de los años
+        return total + (puntajeAntecedente * factorAños);
+    }, 0);
+
+    // Escala logarítmica para antecedentes
+    puntuacionTotal += (antecedentesPuntaje / 40) * (MAX_PUNTUACION / 4); // Mapear a 25 puntos (25%)
+
+    console.log("+ANTECEDENTES: ", puntuacionTotal)
+
+    // Comprobar coincidencia de sede
+    if (evaluador.sede.toString() == proyecto.sede.toString()) {
+        puntuacionTotal += MAX_PUNTUACION / 4; // Asignar 25 puntos (25%)
+    }
+
+    console.log("+SEDE: ", puntuacionTotal)
+    
+    return puntuacionTotal;
+}
+

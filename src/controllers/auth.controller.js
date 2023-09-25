@@ -42,7 +42,7 @@ export const login = async (req, res) => {
 
     // Genero Refresh Token
     const refreshExpiresIn = generateRefreshToken(id, res);
-    const prueba = "test CI";
+    const prueba = "TEST CI - IACC";
     return res.json({ token, expiresIn, id, userCuil, roles, refreshExpiresIn , prueba});
   } catch (error) {
     console.log(error);

@@ -54,6 +54,107 @@ export const seleccionarReferentes = async (req, res) => {
 }
 
 
+export const modificarReferente = async (req, res) => {
+    try {
+        const {id} = req.params;
+        const {sede} = req.body;
+
+        const feriaActiva = await getFeriaActivaFuncion()
+
+        const referente = await Referente.findById(id);
+        if(!referente){
+            return res.status(401).json({ error: `${id} no es un ID de un referente seleccionado` });
+        }
+        if(referente.feria != feriaActiva.id){
+            return res.status(401).json({ error: "No se permite modificar un referente de una feria anterior" });
+        }
+
+        referente.sede = sede.toString()
+        referente.save()
+
+        return res.json({referente}); 
+
+    } catch (error) {
+        return res.status(500).json({error: "Error de servidor"})
+    }
+
+}
+
+
+export const eliminarReferente = async (req, res) => {
+    try {
+        const {id} = req.params;
+
+        const feriaActiva = await getFeriaActivaFuncion()
+
+        const referente = await Referente.findById(id);
+        if(!referente){
+            return res.status(401).json({ error: `${id} no es un ID de un referente seleccionado` });
+        }
+        if(referente.feria != feriaActiva.id){
+            return res.status(401).json({ error: "No se permite eliminar un referente de una feria anterior" });
+        }
+
+        const docente = await Docente.findById(referente.idDocente);
+        if(!docente){
+            return res.status(401).json({ error: `${id} no tiene un docente asociado registrado` });
+        }
+
+        const usuario = await Usuario.findById(docente.usuario);
+        if(!usuario){
+            return res.status(401).json({ error: `${id} no tiene un usuario asociado registrado` });
+        }
+
+        usuario.roles = usuario.roles.filter(rol => rol !== roles.refEvaluador);
+        usuario.save()
+        referente.deleteOne()
+
+        return res.json({ msg: `El referente con ID ${id} se ha eliminado correctamente`}); 
+
+    } catch (error) {
+        return res.status(500).json({error: "Error de servidor"})
+    }
+
+}
+
+
+export const obtenerReferentesSeleccionados = async (req, res) => {
+    try {
+        const feriaActiva = await getFeriaActivaFuncion()
+
+        const referentesAsignados = await Referente.find({feria: feriaActiva._id})
+        .select('-__v -feria')
+        .lean()
+        .exec();
+
+        const referentesConDatosDocente = await Promise.all(
+            referentesAsignados.map(async (referente) => {
+                const docente = await Docente.findById(referente.idDocente)
+                .select('-__v -_id')
+                .lean()
+                .exec();
+
+                if (!docente) {
+                    return res.status(401).json({ error: `${referente._id} no tiene asociado a un docente registrado` });
+                }
+                return {
+                    ...referente,
+                    datos_docente: docente,
+                }
+            })
+        )
+
+
+    return res.json({referentes: referentesConDatosDocente}); 
+
+    } catch (error) {
+        return res.status(500).json({error: "Error de servidor"})
+    }
+}
+
+
+
+
 
 export const obtenerListadoDocentes = async (req, res) => {
     

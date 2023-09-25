@@ -9,7 +9,7 @@ import { Router } from "express";
 import { requireToken } from '../middlewares/requireToken.js';
 import { checkRolAuth } from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
-import { eliminarReferente, modificarReferente, obtenerListadoDocentes, obtenerReferentesSeleccionados, seleccionarReferentes } from "../controllers/referentes.controller.js";
+import { eliminarReferente, modificarReferente, obtenerListadoDocentes, obtenerProyectosAsignadosAReferente, obtenerReferentesSeleccionados, seleccionarReferentes } from "../controllers/referentes.controller.js";
 import { modificarReferenteValidator, seleccionarReferentesValidator } from "../middlewares/validationManagerReferente.js";
 
 
@@ -20,6 +20,7 @@ routerReferente.patch("/:id", requireToken, checkRolAuth([roles.admin, roles.com
 routerReferente.delete("/:id", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), eliminarReferente);
 routerReferente.get("/", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), obtenerListadoDocentes);
 routerReferente.get("/asignados", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), obtenerReferentesSeleccionados);
+routerReferente.get("/proyectos", requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), obtenerProyectosAsignadosAReferente);
 
 
 
@@ -220,6 +221,48 @@ export default routerReferente;
  *                     usuario: "650f3c9d3beeb5958786bad7"
  *       401:
  *         description: Error en la obtención de los referentes seleccionados.
+ *       500:
+ *         description: Error de servidor.
+ */
+
+/**
+ * @swagger
+ * /api/v1/referente/proyectos:
+ *   get:
+ *     summary: Obtener proyectos asignados a un referente de evaluador.
+ *     description: Obtiene una lista de proyectos asignados a un referente de evaluador.
+ *     tags:
+ *       - Referente
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de proyectos asignados al referente de evaluador.
+ *         content:
+ *           application/json:
+ *             example:
+ *               proyectos:
+ *                 - _id: "64ffda814f2c1ca77db8cc34"
+ *                   titulo: "Torneria"
+ *                   descripcion: "Test"
+ *                   nivel: "64fd1a8cad4c6e68aac561c1"
+ *                   categoria: "64fd1a8cad4c6e68aac561d1"
+ *                   establecimientoEducativo: "64fd1a95ad4c6e68aac561e4"
+ *                   emailEscuela: "escuela@test.com"
+ *                   idResponsable: "64fd22ba0a0f7d5ce9518ff9"
+ *                   feria: "64fd22332ff0def81fb192f8"
+ *                   estado: "0"
+ *                   fechaInscripcion: "2023-09-12T03:26:57.804Z"
+ *                   grupoProyecto: []
+ *                   autorizacionImagen: "https://drive.google.com/file/d/1cXBIdfxWzWA9DyYyR4IHjLdziLmIbhL2/preview"
+ *                   informeTrabajo: "https://drive.google.com/file/d/1YXgio7fCaoEBThhUzAEiGtxxDa_5HH-g/preview"
+ *                   registroPedagogico: "https://drive.google.com/file/d/1gynhOXJI8hvETuYs7WNBtuwE8O2ODDZ_/preview"
+ *                   carpetaCampo: "https://drive.google.com/file/d/1wQhUdI5rkTHELjsn-pxZz6-bAAZ7bb-O/preview"
+ *                   sede: "64fd1a95ad4c6e68aac561e7"
+ *       204:
+ *         description: No existen proyectos asignados al referente de evaluador.
+ *       401:
+ *         description: No autorizado o datos de sesión incorrectos.
  *       500:
  *         description: Error de servidor.
  */

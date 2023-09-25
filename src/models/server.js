@@ -18,6 +18,7 @@ import routerLocalidades from '../routes/localidad.route.js';
 import routerEstablecimiento from '../routes/establecimiento.route.js';
 import routerEvaluadores from '../routes/evaluador.route.js';
 import routerEvaluacion from '../routes/evaluacion.route.js';
+import routerReferente from '../routes/referente.route.js';
 
 
 
@@ -43,7 +44,8 @@ class Server {
             localidad:      '/api/v1/localidad',
             establecimiento:'/api/v1/establecimiento',
             evaluador:      '/api/v1/evaluador',
-            evaluacion:     '/api/v1/evaluacion'
+            evaluacion:     '/api/v1/evaluacion',
+            referente:      '/api/v1/referente'
         }
 
         
@@ -136,6 +138,9 @@ class Server {
 
         //path de evaluaciones
         this.app.use(this.paths.evaluacion, routerEvaluacion);
+
+        //path de referentes
+        this.app.use(this.paths.referente, routerReferente);
     }
 
 

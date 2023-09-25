@@ -73,6 +73,30 @@ export const getSedesRegionalesActuales = async (req = request, res = response) 
 };
 
 
+export const getSedesRegionalesActualesFunction = async () => {
+    try {
+        const feriaActiva = await Feria.findOne({ estado: { $ne: estadoFeria.finalizada }})
+        if (!feriaActiva) {
+            return res.status(404).json({ error: 'No existe una feria activa en este momento' });
+        }
+
+        // Obtener las sedes regionales de la feria activa
+        const sedesRegionales = feriaActiva.instancias.instanciaRegional.sedes;
+
+        // Obtener los detalles de las sedes desde el modelo EstablecimientoEducativo
+        const sedesRegionalesDetalles = await EstablecimientoEducativo.find({
+            _id: { $in: [...sedesRegionales] }
+        });
+
+        return {sedes: sedesRegionalesDetalles}
+
+    } catch (error) {
+        console.error('Error al obtener las sedes:', error);
+        return error;
+    }
+};
+
+
 export const getSedeProvincialActual = async (req = request, res = response) => {
     try {
         const feriaActiva = await Feria.findOne({ estado: { $ne: estadoFeria.finalizada }})

@@ -42,8 +42,8 @@ export const login = async (req, res) => {
 
     // Genero Refresh Token
     const refreshExpiresIn = generateRefreshToken(id, res);
-
-    return res.json({ token, expiresIn, id, userCuil, roles, refreshExpiresIn });
+    const prueba = "test CI";
+    return res.json({ token, expiresIn, id, userCuil, roles, refreshExpiresIn , prueba});
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Error de servidor" });

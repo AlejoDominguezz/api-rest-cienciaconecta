@@ -27,6 +27,6 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm ci
-    - run: npm start
-      env: 
-        DOTENV_KEY : ${{secrets.PROD_SECRET}}
+    - run: |
+        touch .env
+        echo "${{secrets.PROD_SECRET}}" > .env

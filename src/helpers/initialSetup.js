@@ -5,7 +5,7 @@ import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js"
 
 export const crearNiveles = async () => {
     try {
-        const count = await Nivel.estimatedDocumentCount();
+        const count = await Nivel.estimatedDocumentCount().maxTimeMS(20000);
 
         if(count > 0) return;
 
@@ -26,7 +26,7 @@ export const crearNiveles = async () => {
 
 export const crearCategorias = async () => {
     try {
-        const count = await Categoria.estimatedDocumentCount();
+        const count = await Categoria.estimatedDocumentCount().maxTimeMS(20000);
 
         if(count > 0) return;
 
@@ -54,7 +54,7 @@ export const crearCategorias = async () => {
 
 export const crearEstablecimientosEducativos = async () => {
       try {
-        const count = await EstablecimientoEducativo.estimatedDocumentCount();
+        const count = await EstablecimientoEducativo.estimatedDocumentCount().maxTimeMS(20000);
         if(count > 0) return;
 
         const workbook = xlsx.readFile('./excel/2023.07.03_establecimientosEducativos.xlsx');

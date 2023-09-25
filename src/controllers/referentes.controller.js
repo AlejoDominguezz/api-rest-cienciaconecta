@@ -1,5 +1,6 @@
 import { roles } from "../helpers/roles.js";
 import { Docente } from "../models/Docente.js";
+import { Proyecto } from "../models/Proyecto.js";
 import { Referente } from "../models/Referente.js";
 import { Usuario, estadoUsuario } from "../models/Usuario.js";
 import { getFeriaActivaFuncion } from "./ferias.controller.js";
@@ -210,5 +211,44 @@ export const obtenerListadoDocentes = async (req, res) => {
 
     }
     
+
+}
+
+
+export const obtenerProyectosAsignadosAReferente = async (req, res) => {
+    try {
+        const uid = req.uid;
+
+        const usuario = await Usuario.findById(uid);
+        if(!usuario){
+            return res.status(401).json({ error: "No existe el usuario asociado a la sesión" });
+        }
+
+        const docente = await Docente.findOne({usuario: usuario._id});
+        if(!docente){
+            return res.status(401).json({ error: "No existe el docente asociado al usuario" });
+        }
+
+        const referente = await Referente.findOne({idDocente: docente._id});
+        if(!referente){
+            return res.status(401).json({ error: "No existe un referente seleccionado asociado al docente" });
+        }
+
+        const proyectos = await Proyecto.find({sede: referente.sede})  
+        .select('-__v -id_carpeta_drive')
+        .lean()
+        .exec()
+        
+        if(proyectos.length == 0){
+            return res.status(204).json({ error: "No existen proyectos asignados al referente de evaluador" });
+        }
+
+        return res.json({ proyectos });
+
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({error: "Error de servidor"})
+    }
 
 }

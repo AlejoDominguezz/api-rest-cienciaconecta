@@ -10,7 +10,7 @@ import { requireToken } from '../middlewares/requireToken.js';
 import { checkRolAuth } from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
 import { asignarEvaluadoresAProyecto, eliminarReferente, modificarReferente, obtenerEvaluadores, obtenerListadoDocentes, obtenerProyectosAsignadosAReferente, obtenerReferentesSeleccionados, seleccionarReferentes } from "../controllers/referentes.controller.js";
-import { modificarReferenteValidator, seleccionarReferentesValidator } from "../middlewares/validationManagerReferente.js";
+import { asignarEvaluadorValidator, modificarReferenteValidator, seleccionarReferentesValidator } from "../middlewares/validationManagerReferente.js";
 
 
 const routerReferente = Router();
@@ -21,7 +21,7 @@ routerReferente.delete("/:id", requireToken, checkRolAuth([roles.admin, roles.co
 routerReferente.get("/", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), obtenerListadoDocentes);
 routerReferente.get("/asignados", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), obtenerReferentesSeleccionados);
 routerReferente.get("/proyectos", requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), obtenerProyectosAsignadosAReferente);
-routerReferente.post('/asignar/:id', requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), asignarEvaluadoresAProyecto)
+routerReferente.post('/asignar/:id', requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), asignarEvaluadorValidator, asignarEvaluadoresAProyecto)
 routerReferente.get('/evaluadores/:id', requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), obtenerEvaluadores)
 
 

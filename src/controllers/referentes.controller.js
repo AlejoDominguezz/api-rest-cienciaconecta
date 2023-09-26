@@ -258,21 +258,56 @@ export const obtenerProyectosAsignadosAReferente = async (req, res) => {
 
 export const asignarEvaluadoresAProyecto = async (req, res) => {
     try {
-        const {id} = req.params;
-        const {evaluadores} = req.body;
+        const { id } = req.params;
+        const { evaluadores } = req.body;
+        const errores = [];
 
         const proyecto = await Proyecto.findById(id);
-        if(!proyecto) {
+        if (!proyecto) {
             return res.status(401).json({ error: "No existe el proyecto con el ID ingresado" });
         }
 
-        // SEGUIR
+        if (proyecto.evaluadoresRegionales.length >= 3) {
+            return res.status(401).json({ error: `El proyecto ya tiene 3 evaluadores asignados` });
+        }
 
+        if (proyecto.evaluadoresRegionales.length + evaluadores.length > 3) {
+            return res.status(401).json(
+                { error: `No puedes asignar ${evaluadores.length} evaluadores, hay ${proyecto.evaluadoresRegionales.length} evaluadores asignados en el proyecto. Puedes asignar ${3 - proyecto.evaluadoresRegionales.length} como máximo` });
+        }
+
+        for (const evaluadorID of evaluadores) {
+            try {
+                if (proyecto.evaluadoresRegionales.includes(evaluadorID.toString())) {
+                    errores.push(`El evaluador con ID ${evaluadorID} ya ha sido asignado al proyecto`);
+                } else {
+                    const evaluador = await Evaluador.findById(evaluadorID);
+                    if (!evaluador) {
+                        errores.push(`No existe un evaluador registrado con ID ${evaluadorID}`);
+                    } else {
+                        const proyectosAsignados = await Proyecto.find({ evaluadoresRegionales: evaluadorID }).countDocuments();
+                        if (proyectosAsignados >= 5) {
+                            errores.push(`Evaluador con ID ${evaluadorID} ya está asignado a 5 proyectos`);
+                        } else {
+                            proyecto.evaluadoresRegionales.push(evaluadorID);
+                        }
+                    }
+                }
+            } catch (error) {
+                errores.push(`Error al procesar evaluador con ID ${evaluadorID}: ${error.message}`);
+            }
+        }
+
+        if (errores.length > 0) {
+            return res.status(401).json({ errores });
+        } else {
+            await proyecto.save();
+            return res.json({ msg: `Todos los evaluadores han sido asignados correctamente al proyecto '${proyecto.titulo}'` });
+        }
 
     } catch (error) {
-        return res.status(500).json({error: "Error de servidor"})
+        return res.status(500).json({ error: "Error de servidor" });
     }
-
 }
 
 
@@ -304,7 +339,7 @@ export const obtenerEvaluadores = async (req, res) => {
         }
 
         const evaluadores = await Evaluador.find({feria: feriaActiva._id, sede: referente.sede})
-        .select('-__v -id_carpeta_cv')
+        .select('-__v -id_carpeta_cv -feria -pendiente')
         .lean()
         .exec()
 
@@ -318,11 +353,16 @@ export const obtenerEvaluadores = async (req, res) => {
                 if(!docente){
                     return res.status(401).json({ error: "No existe el docente asociado al evaluador" });
                 }
+                
+                const proyectosAsignados = await Proyecto.find({ evaluadoresRegionales: evaluador._id }).countDocuments();
+                const cantidadMaximaAsignaciones = 5;
 
                 return {
                     ...evaluador,
                     datos_docente: docente,
-                    coincidencia: calcularCoincidencia(evaluador, proyecto)
+                    coincidencia: calcularCoincidencia(evaluador, proyecto),
+                    proyectosAsignados,
+                    cantidadMaximaAsignaciones
                 }
 
             })
@@ -333,14 +373,13 @@ export const obtenerEvaluadores = async (req, res) => {
     } catch (error) {
         return res.status(500).json({error: "Error de servidor"})
     }
-    
 }
 
 
 
 const calcularCoincidencia = (evaluador, proyecto) => {
     
-    console.log("NIVEL DE COINCIDENCIA --------------------")
+    console.log("NIVEL DE COINCIDENCIA -------------------- Evaluador: ", evaluador._id.toString())
 
     const MAX_PUNTUACION = 100; // Puntuación máxima
 
@@ -350,16 +389,15 @@ const calcularCoincidencia = (evaluador, proyecto) => {
     // Comprobar coincidencia de nivel
     if (evaluador.niveles.toString().includes(proyecto.nivel.toString())) {
         puntuacionTotal += MAX_PUNTUACION / 4; // Asignar 25 puntos (25%)
+        console.log("NIVEL: ", MAX_PUNTUACION / 4)
     }
 
-    console.log("NIVEL: ", puntuacionTotal)
 
     // Comprobar coincidencia de categoría
     if (evaluador.categorias.toString().includes(proyecto.categoria.toString())) {
         puntuacionTotal += MAX_PUNTUACION / 4; // Asignar 25 puntos (25%)
+        console.log("CATEGORIA: ", MAX_PUNTUACION / 4)
     }
-
-    console.log("+CATEGORIA: ", puntuacionTotal)
 
     // Comprobar antecedentes
     const antecedentes = evaluador.antecedentes || [];
@@ -376,24 +414,33 @@ const calcularCoincidencia = (evaluador, proyecto) => {
 
         // Calcular el factor de influencia de los años más recientes
         const añosDesdeAntecedente = new Date().getFullYear() - parseInt(antecedente.year);
-        const factorAños = Math.max(1, 10 - añosDesdeAntecedente); // Factor máximo de 10 años
+        const factorAños = Math.max(1, 15 - añosDesdeAntecedente); // Factor máximo de 10 años
 
         // Aplicar el puntaje del antecedente con el factor de influencia de los años
         return total + (puntajeAntecedente * factorAños);
     }, 0);
 
-    // Escala logarítmica para antecedentes
-    puntuacionTotal += (antecedentesPuntaje / 40) * (MAX_PUNTUACION / 4); // Mapear a 25 puntos (25%)
+    // Función de decaimiento logarítmico
+    const decaimientoLogaritmico = (x) => {
+        return Math.pow(Math.log(1 + x), 1.7)
+    };
 
-    console.log("+ANTECEDENTES: ", puntuacionTotal)
+    // Escala logarítmica y ajuste al rango 0-25 con decaimiento logarítmico
+    const MAX_PUNTUACION_ANTECEDENTES = 25;
+    const escalaLogaritmica = decaimientoLogaritmico(antecedentesPuntaje);
+    puntuacionTotal += Math.min(escalaLogaritmica, MAX_PUNTUACION_ANTECEDENTES);
+
+    console.log("ANTECEDENTES: ", Math.min(escalaLogaritmica, MAX_PUNTUACION_ANTECEDENTES))
 
     // Comprobar coincidencia de sede
     if (evaluador.sede.toString() == proyecto.sede.toString()) {
         puntuacionTotal += MAX_PUNTUACION / 4; // Asignar 25 puntos (25%)
+        console.log("SEDE: ", MAX_PUNTUACION / 4)
     }
 
-    console.log("+SEDE: ", puntuacionTotal)
     
-    return puntuacionTotal;
+    console.log("TOTAL: ", parseFloat(puntuacionTotal.toFixed(2)))
+    
+    return parseFloat(puntuacionTotal.toFixed(2));
 }
 

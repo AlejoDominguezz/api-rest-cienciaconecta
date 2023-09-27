@@ -133,7 +133,6 @@ routerProyectos.get(
     BodyValidationDrive,
     checkRolAuth([roles.admin, roles.responsableProyecto]),
     //fecha(fechasFeria.fechaFinEscolar, fechasFeria.fechaInicioEvaluacionRegional),
-    esPropietario,
     downloadDocumentEspecific
 );
 

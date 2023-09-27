@@ -10,7 +10,9 @@ import {
   deleteFile,
   getIdByUrl,
   obtenerIDsDeArchivosEnCarpeta,
-  downloadFiles
+  downloadFiles,
+  DownloadFileByUrl,
+  getFileNameById
 } from "../services/drive/helpers-drive.js";
 import formidable from "formidable";
 import { existeProyecto } from "../helpers/db-validar.js";
@@ -866,7 +868,47 @@ export const downloadDocuments = async(req , res) => {
   }
 }
 
-export const downloadDocumentEspecific = async(req , res) => {
-  const {id , name} = req.params;
-  res.json({id , name});
-}
+export const downloadDocumentEspecific = async (req, res) => {
+  try {
+    const { id, name } = req.params;
+
+    // Valida que 'name' sea uno de los valores permitidos
+    const allowedNames = ["carpetaCampo", "informeTrabajo", "registroPedagogico" , "autorizacionImagen"];
+    if (!allowedNames.includes(name)) {
+      return res.status(400).json({ message: "Nombre no válido: " + name + "; Debe ingresar alguno de estos: " , allowedNames });
+    }
+
+    const proyecto = await Proyecto.findById(id);
+
+    if (!proyecto) {
+      return res.status(400).json({ message: "ERROR, EL PROYECTO NO EXISTE." });
+    }
+    let id_file;
+    const downloadFile = async (name, project, drive, res) => {
+      const fileUrl = project[name];
+      if (fileUrl) {
+        id_file = await getIdByUrl(fileUrl);
+        if (id_file) {
+          await DownloadFileByUrl(drive, id_file, res, name);
+        } else {
+          return res.status(400).json({ message: `ERROR AL OBTENER EL ID DEL ${name.toUpperCase()} DEL PROYECTO` });
+        }
+      } else {
+        return res.status(400).json({ message: `ERROR DESCONOCIDO AL DESCARGAR EL ${name.toUpperCase()} DEL DOCUMENTO` });
+      }
+    };
+    
+    if (name === "carpetaCampo" || name === "informeTrabajo" || name === "autorizacionImagen" || name === "registroPedagogico") {
+      await downloadFile(name, proyecto, drive, res);
+    } else {
+      return res.status(400).json({ message: "ERROR DESCONOCIDO AL DESCARGAR EL DOCUMENTO" });
+    }
+
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "ERROR AL DESCARGAR EL CV - ERROR DEL SERVIDOR",
+    });
+  }
+};

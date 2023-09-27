@@ -9,8 +9,8 @@ import { Router } from "express";
 import { requireToken } from '../middlewares/requireToken.js';
 import { checkRolAuth } from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
-import { eliminarReferente, modificarReferente, obtenerListadoDocentes, obtenerProyectosAsignadosAReferente, obtenerReferentesSeleccionados, seleccionarReferentes } from "../controllers/referentes.controller.js";
-import { modificarReferenteValidator, seleccionarReferentesValidator } from "../middlewares/validationManagerReferente.js";
+import { asignarEvaluadoresAProyecto, eliminarAsignaciónEvaluadorAProyecto, eliminarReferente, modificarReferente, obtenerEvaluadores, obtenerListadoDocentes, obtenerProyectosAsignadosAReferente, obtenerReferentesSeleccionados, seleccionarReferentes } from "../controllers/referentes.controller.js";
+import { asignarEvaluadorValidator, desasignarEvaluadorValidator, modificarReferenteValidator, seleccionarReferentesValidator } from "../middlewares/validationManagerReferente.js";
 
 
 const routerReferente = Router();
@@ -21,6 +21,10 @@ routerReferente.delete("/:id", requireToken, checkRolAuth([roles.admin, roles.co
 routerReferente.get("/", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), obtenerListadoDocentes);
 routerReferente.get("/asignados", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), obtenerReferentesSeleccionados);
 routerReferente.get("/proyectos", requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), obtenerProyectosAsignadosAReferente);
+routerReferente.post('/asignar/:id', requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), asignarEvaluadorValidator, asignarEvaluadoresAProyecto)
+routerReferente.post('/desasignar/:id', requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), desasignarEvaluadorValidator, eliminarAsignaciónEvaluadorAProyecto)
+routerReferente.get('/evaluadores/:id', requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), obtenerEvaluadores)
+
 
 
 
@@ -265,4 +269,207 @@ export default routerReferente;
  *         description: No autorizado o datos de sesión incorrectos.
  *       500:
  *         description: Error de servidor.
+ */
+
+/**
+ * @swagger
+ * /api/v1/referente/asignar/:id:
+ *   post:
+ *     summary: Asignar evaluadores a un proyecto.
+ *     description: Asigna evaluadores a un proyecto específico.
+ *     tags:
+ *       - Referente
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID del proyecto al que se asignarán los evaluadores.
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               evaluadores:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   description: ID del evaluador que se asignará al proyecto
+ *                   required: true
+ *           example:
+ *             evaluadores:
+ *               - "650f4549483ba1af04c685c4"
+ *               - "6500f3926b839eed0a99b55f"
+ *     responses:
+ *       200:
+ *         description: Evaluadores asignados correctamente.
+ *         content:
+ *           application/json:
+ *             example:
+ *               msg: "Todos los evaluadores han sido asignados correctamente al proyecto 'Casa Inteligente'"
+ *       401:
+ *         description: No autorizado o datos de sesión incorrectos.
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: "No existe el proyecto con el ID ingresado"
+ *       500:
+ *         description: Error de servidor.
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: "Error de servidor"
+ */
+
+
+/**
+ * @swagger
+ * /api/v1/referente/desasignar/:id:
+ *   post:
+ *     summary: Desasignar evaluador de un proyecto.
+ *     description: Desasigna un evaluador de un proyecto específico.
+ *     tags:
+ *       - Referente
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID del proyecto del que se desasignará el evaluador.
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       description: Datos de la solicitud de desasignación del evaluador.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               evaluador:
+ *                 type: string
+ *                 description: ID del evaluador que se desasignará del proyecto.
+ *                 required: true
+ *     responses:
+ *       200:
+ *         description: Evaluador desasignado correctamente.
+ *         content:
+ *           application/json:
+ *             example:
+ *               msg: "Se ha eliminado la asignación del evaluador ID 650f4549483ba1af04c685c4 al proyecto 'Casa Inteligente'"
+ *       401:
+ *         description: No autorizado o datos de sesión incorrectos.
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: "No existe el proyecto con el ID ingresado"
+ *       500:
+ *         description: Error de servidor.
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: "Error de servidor"
+ */
+
+/**
+ * @swagger
+ * /api/v1/referente/evaluadores/:id:
+ *   get:
+ *     summary: Obtener evaluadores para un proyecto.
+ *     description: Obtiene una lista de evaluadores disponibles para un proyecto específico.
+ *     tags:
+ *       - Referente
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID del proyecto para el cual se buscan evaluadores.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Lista de evaluadores disponibles para el proyecto.
+ *         content:
+ *           application/json:
+ *             example:
+ *               evaluadores:
+ *                 - id: "6500f3926b839eed0a99b55f"
+ *                   docente: true
+ *                   niveles:
+ *                     - "64fd1a8cad4c6e68aac561bc"
+ *                     - "64fd1a8cad4c6e68aac561bf"
+ *                   categorias:
+ *                     - "64fd1a8cad4c6e68aac561ca"
+ *                     - "64fd1a8cad4c6e68aac561cb"
+ *                   sede: "64fd1a95ad4c6e68aac561e4"
+ *                   antecedentes:
+ *                     - year: "2022"
+ *                       rol: "1"
+ *                       id: "6500f3926b839eed0a99b560"
+ *                     - year: "2021"
+ *                       rol: "1"
+ *                       id: "6500f3926b839eed0a99b561"
+ *                     - year: "2020"
+ *                       rol: "1"
+ *                       id: "6500f3926b839eed0a99b562"
+ *                     - year: "2019"
+ *                       rol: "1"
+ *                       id: "6500f3926b839eed0a99b563"
+ *                   idDocente: "64fd22ba0a0f7d5ce9518ff9"
+ *                   fechaPostulacion: "2023-09-12T22:42:50.088Z"
+ *                   CV: "1LY4Uc5-nQbdr28Z68vjthWhqd-Cj6P4a"
+ *                   datos_docente:
+ *                     nombre: "Usuario"
+ *                     apellido: "Evaluador"
+ *                     cuil: "20431877000"
+ *                     telefono: "351511233"
+ *                     cargo: "Evaluador"
+ *                   coincidencia: 47.34
+ *                   proyectosAsignados: 0
+ *                   cantidadMaximaAsignaciones: 5
+ *                 - id: "650f4549483ba1af04c685c4"
+ *                   docente: true
+ *                   niveles:
+ *                     - "64fd1a8cad4c6e68aac561bc"
+ *                     - "64fd1a8cad4c6e68aac561bd"
+ *                   categorias:
+ *                     - "64fd1a8cad4c6e68aac561ca"
+ *                     - "64fd1a8cad4c6e68aac561d1"
+ *                   sede: "64fd1a95ad4c6e68aac561e4"
+ *                   antecedentes:
+ *                     - year: "2014"
+ *                       rol: "3"
+ *                       id: "6500f3926b839eed0a99b565"
+ *                   idDocente: "64fd28b1ce385972c9d23b16"
+ *                   fechaPostulacion: "2023-09-23T20:01:13.474Z"
+ *                   CV: "1ts79UWTwNoXPsd960E1tAEkHnh9zGpla"
+ *                   datos_docente:
+ *                     nombre: "Usuario"
+ *                     apellido: "Responsable"
+ *                     cuil: "20431877001"
+ *                     telefono: "351511233"
+ *                     cargo: "Responsable"
+ *                   coincidencia: 79.96
+ *                   proyectosAsignados: 0
+ *                   cantidadMaximaAsignaciones: 5
+ *       401:
+ *         description: No autorizado o datos de sesión incorrectos.
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: "No existe el proyecto con el ID ingresado"
+ *       500:
+ *         description: Error de servidor.
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: "Error de servidor"
  */

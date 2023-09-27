@@ -3,6 +3,7 @@ import { validarCampos } from './validar-campos.js';
 import { getSedesRegionalesActualesFunction } from "../controllers/establecimientos.controller.js";
 import { Referente } from '../models/Referente.js';
 import { getFeriaActivaFuncion } from '../controllers/ferias.controller.js';
+import { Types } from 'mongoose';
 
 export const seleccionarReferentesValidator = [
   body('seleccion')
@@ -101,6 +102,46 @@ export const modificarReferenteValidator = [
 
         return true;
       }),
+    
+  validarCampos
+];
+
+
+
+
+export const asignarEvaluadorValidator = [
+  body('evaluadores')
+    .isArray()
+    .withMessage('El atributo evaluadores debe ser un Array')
+    .custom((value) => {
+      // Verificar que el array tenga al menos un elemento
+      if (!Array.isArray(value) || value.length === 0) {
+        throw new Error('El array evaluadores debe contener al menos un elemento');
+      }
+      return true;
+    })
+    .custom((value) => {
+      // Validar cada elemento del array como un Mongo ID
+      if (value.some((element) => !Types.ObjectId.isValid(element))) {
+        throw new Error('Al menos uno de los elementos en evaluadores no es un Mongo ID válido');
+      }
+      return true;
+    })
+    .custom((value) => {
+      // Validar que no haya IDs repetidos en el array
+      const uniqueIDs = new Set(value);
+      if (uniqueIDs.size !== value.length) {
+        throw new Error('El array evaluadores no debe contener IDs repetidos');
+      }
+      return true;
+    }),
+  validarCampos
+];
+
+export const desasignarEvaluadorValidator = [
+  body('evaluador')
+    .isMongoId()
+    .withMessage('El atributo evaluador debe ser un Mongo ID válido'),
     
   validarCampos
 ];

@@ -7,7 +7,7 @@
 
 import { Router } from "express";
 import { requireToken } from '../middlewares/requireToken.js';
-import { checkRolAuth, esEvaluadorDelProyecto } from "../middlewares/validar-roles.js";
+import { checkRolAuth, esEvaluadorDelProyecto, esReferenteDelProyecto } from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
 import { cancelarEvaluacion, confirmarEvaluacion, evaluarProyecto, iniciarEvaluacion, visualizarEvaluacion, obtenerEvaluacionesPendientes, obtenerEvaluacionPendienteById } from "../controllers/evaluaciones.controller.js";
 import { evaluacionValidator } from "../middlewares/validationManagerEvaluacion.js";
@@ -19,7 +19,7 @@ routerEvaluacion.get('/pendientes', requireToken, checkRolAuth([roles.admin, rol
 routerEvaluacion.get('/pendientes/:id', requireToken, checkRolAuth([roles.admin, roles.evaluador, roles.refEvaluador]), obtenerEvaluacionPendienteById)
 routerEvaluacion.get("/:id", requireToken, checkRolAuth([roles.admin, roles.evaluador]), esEvaluadorDelProyecto, iniciarEvaluacion);
 routerEvaluacion.get("/confirmar/:id", requireToken, checkRolAuth([roles.admin, roles.evaluador]), esEvaluadorDelProyecto, confirmarEvaluacion);
-routerEvaluacion.get('/consultar/:id', requireToken, checkRolAuth([roles.admin, roles.evaluador, roles.comAsesora, roles.refEvaluador]), esEvaluadorDelProyecto, visualizarEvaluacion)
+routerEvaluacion.get('/consultar/:id', requireToken, checkRolAuth([roles.admin, roles.evaluador, roles.comAsesora, roles.refEvaluador]), esEvaluadorDelProyecto, esReferenteDelProyecto, visualizarEvaluacion)
 routerEvaluacion.delete('/:id', requireToken, checkRolAuth([roles.admin, roles.evaluador]), esEvaluadorDelProyecto, cancelarEvaluacion)
 
 export default routerEvaluacion;

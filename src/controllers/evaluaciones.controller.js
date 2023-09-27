@@ -4,6 +4,8 @@ import { Proyecto } from "../models/Proyecto.js";
 import { Docente } from "../models/Docente.js";
 import { Evaluador } from "../models/Evaluador.js";
 import { Types } from "mongoose";
+import { roles } from "../helpers/roles.js";
+import { Referente } from "../models/Referente.js";
 
 export const evaluarProyecto = async (req, res) => {
     const evaluacion = req.body.evaluacion;
@@ -411,103 +413,212 @@ export const cancelarEvaluacion = async (req, res) =>  {
 
 
 export const obtenerEvaluacionesPendientes = async (req, res) => {
-  try {
-    const uid = req.uid;
-    const {titulo} = req.query;
-    
-    const docente = await Docente.findOne({usuario: uid})
-    if(!docente){
-        return res.status(404).json({ error: "No existe el docente asociado al usuario" });
-    }
-
-    const evaluador = await Evaluador.findOne({idDocente: docente.id})
-    if(!evaluador){
-        return res.status(404).json({ error: "No existe el evaluador asociado al docente" });
-    }
-
-    // Construir la consulta principal
-    const consulta = { evaluadoresRegionales: { $in: [evaluador.id.toString()] } };
-
-    // Agregar el filtro de título si existe
-    if (titulo) {
-      consulta.titulo = { $regex: titulo, $options: 'i' };;
-    }
-
-    const proyectos_evaluacion_pendiente = await Proyecto.find(consulta)
-    .select('-__v')
-    .lean()
-    .exec();
-
-    if(proyectos_evaluacion_pendiente.length === 0){
-      return res.status(204).json({ error: "No existen evaluaciones pendientes" });
-    }
-
-
-    const proyecto_detalle = await Promise.all(
-      proyectos_evaluacion_pendiente.map(async (proyecto) => {
-        const evaluacion = await Evaluacion.findOne({proyectoId: proyecto._id})
-        .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
-        .lean()
-        .exec();
-
-        if(!evaluacion){
+  
+  if(req.roles.includes(roles.evaluador)){
+    try {
+      const uid = req.uid;
+      const {titulo} = req.query;
+      
+      const docente = await Docente.findOne({usuario: uid})
+      if(!docente){
+          return res.status(404).json({ error: "No existe el docente asociado al usuario" });
+      }
+  
+      const evaluador = await Evaluador.findOne({idDocente: docente.id})
+      if(!evaluador){
+          return res.status(404).json({ error: "No existe el evaluador asociado al docente" });
+      }
+  
+      // Construir la consulta principal
+      const consulta = { evaluadoresRegionales: { $in: [evaluador.id.toString()] } };
+  
+      // Agregar el filtro de título si existe
+      if (titulo) {
+        consulta.titulo = { $regex: titulo, $options: 'i' };;
+      }
+  
+      const proyectos_evaluacion_pendiente = await Proyecto.find(consulta)
+      .select('-__v')
+      .lean()
+      .exec();
+  
+      if(proyectos_evaluacion_pendiente.length === 0){
+        return res.status(204).json({ error: "No existen evaluaciones pendientes" });
+      }
+  
+  
+      const proyecto_detalle = await Promise.all(
+        proyectos_evaluacion_pendiente.map(async (proyecto) => {
+          const evaluacion = await Evaluacion.findOne({proyectoId: proyecto._id})
+          .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+          .lean()
+          .exec();
+  
+          if(!evaluacion){
+            return {
+              ...proyecto,
+            }
+          }
           return {
             ...proyecto,
+            evaluacion: evaluacion,
+          };
+        })
+      );
+  
+      return res.json({proyectos: proyecto_detalle})
+
+    } catch (error) {
+      return res.status(500).json({ error: "Error de servidor" });
+    }
+
+  } else if(req.roles.includes(roles.refEvaluador)) {
+
+    try {
+      const uid = req.uid;
+      const {titulo} = req.query;
+      
+      const docente = await Docente.findOne({usuario: uid})
+      if(!docente){
+          return res.status(404).json({ error: "No existe el docente asociado al usuario" });
+      }
+  
+      const referente = await Referente.findOne({idDocente: docente.id})
+      if(!referente){
+          return res.status(404).json({ error: "No existe el referente asociado al docente" });
+      }
+  
+      // Construir la consulta principal
+      const consulta = { sede: referente.sede };
+  
+      // Agregar el filtro de título si existe
+      if (titulo) {
+        consulta.titulo = { $regex: titulo, $options: 'i' };;
+      }
+  
+      const proyectos_evaluacion_pendiente = await Proyecto.find(consulta)
+      .select('-__v')
+      .lean()
+      .exec();
+  
+      if(proyectos_evaluacion_pendiente.length === 0){
+        return res.status(204).json({ error: "No existen evaluaciones pendientes" });
+      }
+  
+  
+      const proyecto_detalle = await Promise.all(
+        proyectos_evaluacion_pendiente.map(async (proyecto) => {
+          const evaluacion = await Evaluacion.findOne({proyectoId: proyecto._id})
+          .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+          .lean()
+          .exec();
+  
+          if(!evaluacion){
+            return {
+              ...proyecto,
+            }
           }
-        }
-        return {
-          ...proyecto,
-          evaluacion: evaluacion,
-        };
-      })
-    );
+          return {
+            ...proyecto,
+            evaluacion: evaluacion,
+          };
+        })
+      );
+  
+      return res.json({proyectos: proyecto_detalle})
+      
+    } catch (error) {
+      return res.status(500).json({ error: "Error de servidor" });
+    }
 
-    return res.json({proyectos: proyecto_detalle})
-
-  } catch (error) {
-    return res.status(500).json({ error: "Error de servidor" });
   }
 
 }
 
 
 export const obtenerEvaluacionPendienteById = async (req, res) => {
-  try {
-    const uid = req.uid;
-    const {id} = req.params;
-    
-    const docente = await Docente.findOne({usuario: uid})
-    if(!docente){
-        return res.status(404).json({ error: "No existe el docente asociado al usuario" });
+  
+  if(req.roles.includes(roles.evaluador)){
+
+    try {
+      const uid = req.uid;
+      const {id} = req.params;
+      
+      const docente = await Docente.findOne({usuario: uid})
+      if(!docente){
+          return res.status(404).json({ error: "No existe el docente asociado al usuario" });
+      }
+  
+      const evaluador = await Evaluador.findOne({idDocente: docente.id})
+      if(!evaluador){
+          return res.status(404).json({ error: "No existe el evaluador asociado al docente" });
+      }
+  
+      const proyecto = await Proyecto.findOne({evaluadoresRegionales: { $in: [evaluador.id.toString()]}, _id: id.toString()})
+      .select('-__v')
+      .lean()
+      .exec();
+  
+      if(!proyecto){
+        return res.status(404).json({ error: "No existe una evaluación asignada al evaluador con el ID ingresado" });
+      }
+  
+      const evaluacion = await Evaluacion.findOne({proyectoId: proyecto._id})
+      .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+      .lean()
+      .exec();
+  
+      if(!evaluacion){
+        return res.json({proyecto})
+      } else {
+        return res.json({proyecto, evaluacion})
+      }
+  
+    } catch (error) {
+      return res.status(500).json({ error: "Error de servidor" });
     }
 
-    const evaluador = await Evaluador.findOne({idDocente: docente.id})
-    if(!evaluador){
-        return res.status(404).json({ error: "No existe el evaluador asociado al docente" });
+  } else if(req.roles.includes(roles.refEvaluador)){
+
+    try {
+      const uid = req.uid;
+      const {id} = req.params;
+      
+      const docente = await Docente.findOne({usuario: uid})
+      if(!docente){
+          return res.status(404).json({ error: "No existe el docente asociado al usuario" });
+      }
+  
+      const referente = await Referente.findOne({idDocente: docente.id})
+      if(!referente){
+          return res.status(404).json({ error: "No existe el referente asociado al docente" });
+      }
+  
+      const proyecto = await Proyecto.findOne({sede: referente.sede , _id: id.toString()})
+      .select('-__v')
+      .lean()
+      .exec();
+  
+      if(!proyecto){
+        return res.status(404).json({ error: "No existe una evaluación asignada al referente con el ID ingresado" });
+      }
+  
+      const evaluacion = await Evaluacion.findOne({proyectoId: proyecto._id})
+      .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+      .lean()
+      .exec();
+  
+      if(!evaluacion){
+        return res.json({proyecto})
+      } else {
+        return res.json({proyecto, evaluacion})
+      }
+  
+    } catch (error) {
+      return res.status(500).json({ error: "Error de servidor" });
     }
 
-    const proyecto = await Proyecto.findOne({evaluadoresRegionales: { $in: [evaluador.id.toString()]}, _id: id.toString()})
-    .select('-__v')
-    .lean()
-    .exec();
-
-    if(!proyecto){
-      return res.status(404).json({ error: "No existe una evaluación asignada al evaluador con el ID ingresado" });
-    }
-
-    const evaluacion = await Evaluacion.findOne({proyectoId: proyecto._id})
-    .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
-    .lean()
-    .exec();
-
-    if(!evaluacion){
-      return res.json({proyecto})
-    } else {
-      return res.json({proyecto, evaluacion})
-    }
-
-  } catch (error) {
-    return res.status(500).json({ error: "Error de servidor" });
   }
+  
 
 }

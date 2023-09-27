@@ -6,6 +6,7 @@ import { roles } from "../helpers/roles.js";
 import { Evaluador } from "../models/Evaluador.js";
 import { Feria } from "../models/Feria.js";
 import { esActiva } from "../controllers/ferias.controller.js"
+import { Referente } from "../models/Referente.js";
 
 export const checkRolAuth = (roles) => async (req, res, next) => {
   try {
@@ -78,14 +79,23 @@ export const esEvaluadorDelProyecto = async (req, res, next) => {
         return res.status(404).json({ error: "No existe el proyecto" });
     }
 
+    req.proyecto = proyecto;
+
     const feria = await Feria.findById(proyecto.feria)
     if(!esActiva(feria)){
         return res.status(401).json({ error: "El proyecto tiene asignado una Feria que ya ha finalizado" });
     }
 
+    req.feria = feria;
+
     const docente = await Docente.findOne({usuario: uid})
     if(!docente){
         return res.status(404).json({ error: "No existe el docente asociado al usuario" });
+    }
+
+    // Si es referente, dejamos pasar al siguiente middleware que valida si es referente del proyecto
+    if(req.roles.includes(roles.refEvaluador)){
+      return next();
     }
 
     const evaluador = await Evaluador.findOne({idDocente: docente.id})
@@ -97,9 +107,51 @@ export const esEvaluadorDelProyecto = async (req, res, next) => {
         return res.status(401).json({ error: "No estás asignado como evaluador de este proyecto" });
     }
 
-    req.proyecto = proyecto;
     req.evaluador = evaluador;
-    req.feria = feria;
+
+    next();
+
+  } catch (error) {
+    console.log(error);
+    res.status(409).json({ error: "Error al comprobar si el usuario es evaluador del proyecto" });
+  }
+
+}
+
+
+export const esReferenteDelProyecto = async (req, res, next) => {
+  
+  try {
+    // Si es evaluador, dejamos pasar ya que pasó el middleware de evaluador
+    if(req.roles.includes(roles.evaluador)){
+      return next();
+    }
+
+    const { id } =  req.params; // ID Proyecto
+    const uid = req.uid;
+
+    const proyecto = await Proyecto.findById(id)
+    if(!proyecto){
+        return res.status(404).json({ error: "No existe el proyecto" });
+    }
+
+    req.proyecto = proyecto;
+
+    const docente = await Docente.findOne({usuario: uid})
+    if(!docente){
+        return res.status(404).json({ error: "No existe el docente asociado al usuario" });
+    }
+
+    const referente = await Referente.findOne({idDocente: docente.id})
+    if(!referente){
+      return res.status(404).json({ error: "No existe el referente asociado al docente" });
+    }
+
+    if(proyecto.sede.toString() != referente.sede.toString()){
+        return res.status(401).json({ error: "No estás asignado como referente de este proyecto" });
+    }
+
+    req.referente = referente;
 
     next();
 

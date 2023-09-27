@@ -7,7 +7,7 @@
 
 import { Router } from "express";
 import { requireToken } from '../middlewares/requireToken.js';
-import { checkRolAuth } from "../middlewares/validar-roles.js";
+import { checkRolAuth, esReferenteDelProyecto } from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
 import { asignarEvaluadoresAProyecto, eliminarAsignaciónEvaluadorAProyecto, eliminarReferente, modificarReferente, obtenerEvaluadores, obtenerListadoDocentes, obtenerProyectosAsignadosAReferente, obtenerReferentesSeleccionados, seleccionarReferentes } from "../controllers/referentes.controller.js";
 import { asignarEvaluadorValidator, desasignarEvaluadorValidator, modificarReferenteValidator, seleccionarReferentesValidator } from "../middlewares/validationManagerReferente.js";
@@ -21,9 +21,9 @@ routerReferente.delete("/:id", requireToken, checkRolAuth([roles.admin, roles.co
 routerReferente.get("/", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), obtenerListadoDocentes);
 routerReferente.get("/asignados", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), obtenerReferentesSeleccionados);
 routerReferente.get("/proyectos", requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), obtenerProyectosAsignadosAReferente);
-routerReferente.post('/asignar/:id', requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), asignarEvaluadorValidator, asignarEvaluadoresAProyecto)
-routerReferente.post('/desasignar/:id', requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), desasignarEvaluadorValidator, eliminarAsignaciónEvaluadorAProyecto)
-routerReferente.get('/evaluadores/:id', requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), obtenerEvaluadores)
+routerReferente.post('/asignar/:id', requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), asignarEvaluadorValidator, esReferenteDelProyecto, asignarEvaluadoresAProyecto)
+routerReferente.post('/desasignar/:id', requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), desasignarEvaluadorValidator, esReferenteDelProyecto, eliminarAsignaciónEvaluadorAProyecto)
+routerReferente.get('/evaluadores/:id', requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), esReferenteDelProyecto, obtenerEvaluadores)
 
 
 

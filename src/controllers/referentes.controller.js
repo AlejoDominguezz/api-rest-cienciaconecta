@@ -257,12 +257,12 @@ export const obtenerProyectosAsignadosAReferente = async (req, res) => {
 export const eliminarAsignaciónEvaluadorAProyecto = async (req, res) => {
     try {
 
-        const { id } = req.params;
+        //const { id } = req.params;
         const { evaluador } = req.body;
 
         const errores = [];
 
-        const proyecto = await Proyecto.findById(id);
+        const proyecto = req.proyecto;
         if (!proyecto) {
             return res.status(401).json({ error: "No existe el proyecto con el ID ingresado" });
         }
@@ -289,11 +289,11 @@ export const eliminarAsignaciónEvaluadorAProyecto = async (req, res) => {
 
 export const asignarEvaluadoresAProyecto = async (req, res) => {
     try {
-        const { id } = req.params;
+        //const { id } = req.params;
         const { evaluadores } = req.body;
         const errores = [];
 
-        const proyecto = await Proyecto.findById(id);
+        const proyecto = req.proyecto;
         if (!proyecto) {
             return res.status(401).json({ error: "No existe el proyecto con el ID ingresado" });
         }
@@ -319,6 +319,8 @@ export const asignarEvaluadoresAProyecto = async (req, res) => {
                         const proyectosAsignados = await Proyecto.find({ evaluadoresRegionales: evaluadorID }).countDocuments();
                         if (proyectosAsignados >= 5) {
                             errores.push(`Evaluador con ID ${evaluadorID} ya está asignado a 5 proyectos`);
+                        } else if(evaluador.sede.toString() != proyecto.sede.toString()) {
+                            errores.push(`Evaluador con ID ${evaluadorID} no pertenece a la sede del proyecto`);
                         } else {
                             proyecto.evaluadoresRegionales.push(evaluadorID);
                         }

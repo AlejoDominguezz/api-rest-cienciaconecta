@@ -254,7 +254,38 @@ export const obtenerProyectosAsignadosAReferente = async (req, res) => {
 
 }
 
+export const eliminarAsignaciónEvaluadorAProyecto = async (req, res) => {
+    try {
 
+        const { id } = req.params;
+        const { evaluador } = req.body;
+
+        const errores = [];
+
+        const proyecto = await Proyecto.findById(id);
+        if (!proyecto) {
+            return res.status(401).json({ error: "No existe el proyecto con el ID ingresado" });
+        }
+
+        if (proyecto.evaluadoresRegionales.length == 0) {
+            return res.status(401).json({ error: `El proyecto no tiene evaluadores asignados` });
+        }
+
+        const ev = await Evaluador.findById(evaluador);
+        if (!ev) {
+            return res.status(401).json({ error: "No existe el evaluador con el ID ingresado" });
+        }
+
+        proyecto.evaluadoresRegionales = proyecto.evaluadoresRegionales.filter(id => id.toString() !== evaluador.toString());
+        
+        proyecto.save()
+
+        return res.json({ msg: `Se ha eliminado la asignación del evaluador ID ${ev._id} al proyecto '${proyecto.titulo}'` });
+
+    } catch (error) {
+        return res.status(500).json({ error: "Error de servidor" });
+    }
+}
 
 export const asignarEvaluadoresAProyecto = async (req, res) => {
     try {

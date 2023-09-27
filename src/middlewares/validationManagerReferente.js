@@ -137,3 +137,11 @@ export const asignarEvaluadorValidator = [
     }),
   validarCampos
 ];
+
+export const desasignarEvaluadorValidator = [
+  body('evaluador')
+    .isMongoId()
+    .withMessage('El atributo evaluador debe ser un Mongo ID válido'),
+    
+  validarCampos
+];

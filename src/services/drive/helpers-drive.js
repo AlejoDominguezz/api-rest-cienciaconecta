@@ -198,35 +198,93 @@ export const deleteFile = (fileId, drive) => {
   });
 };
 
-// export const updateFiles = (files_updat, myFolder, drive) => {
-//   return new Promise(async (resolve, reject) => {
-//     try {
-//       console.log(files_updat)
-//       const { buffer, originalname } = files_updat;
+// Función para obtener los IDs de archivos en una carpeta
+export const obtenerIDsDeArchivosEnCarpeta = async (folderId , drive) => {
+  try {
+    const response = await drive.files.list({
+      q: `'${folderId}' in parents`,
+      fields: 'files(id)',
+    });
+    const files = response.data.files;
+    const fileIds = files.map(file => file.id);
+    return fileIds;
+  } catch (error) {
+    console.error('Error al obtener los IDs de archivos:', error);
+    throw error;
+  }
+};
 
-//       const fileMetadata = {
-//         name: originalname,
-//         parents: [myFolder],
-//         mimeType: "application/pdf",
-//       };
 
-//       const media = {
-//         mimeType: "application/pdf",
-//         body: buffer,
-//       };
+export const downloadFiles = async(fileId, drive) => {
+  try {
+    const response = await drive.files.get(
+      {
+        fileId: fileId,
+        alt: "media",
+      },
+      { responseType: "stream" }
+    );
+    const archivo = await streamToBuffer(response.data);
+    return archivo;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+// Función para convertir un flujo de lectura a un búfer
+const streamToBuffer = async (stream) => {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    stream.on('data', (chunk) => chunks.push(chunk));
+    stream.on('end', () => resolve(Buffer.concat(chunks)));
+    stream.on('error', reject);
+  });
+};
 
-//       const response = await drive.files.create({
-//         resource: fileMetadata,
-//         media: media,
-//         fields: "id",
-//       });
+export const DownloadFileByUrl = async (drive, fileId, res , name) => {
+  try {
+    const response = await drive.files.get(
+      {
+        fileId: fileId,
+        alt: "media",
+      },
+      { responseType: "stream" }
+    );
 
-//       console.log("Archivo PDF subido. ID:", response.data.id);
-//       resolve(response.data.id);
-//     } catch (error) {
-//       console.error("Error al subir el archivo:", error.message);
-//       reject(error);
-//     }
-//   });
-// };
+    let fileName =
+      response.headers["content-disposition"].match(/filename="(.+)"/);
+    if (fileName && fileName[1]) {
+      fileName = fileName[1];
+    } else {
+      // Si no se encuentra un nombre de archivo válido, proporciona un nombre predeterminado
+      fileName = `${name}`;
+    }
+    
+    // Configurar las cabeceras de respuesta para mostrar el PDF en lugar de descargarlo
+    res.setHeader("Content-disposition", `inline; filename="${fileName}"`);
+    res.setHeader("Content-type", "application/pdf");
 
+    response.data.pipe(res);
+  } catch (err) {
+    console.error("Error al descargar el archivo desde Drive:", err);
+    res.status(500).json({
+      message: "Error al descargar el archivo desde Drive",
+    });
+  }
+};
+
+export const getFileNameById = async(drive, fileId) => {
+  try {
+    const response = await drive.files.get({
+      fileId: fileId,
+      fields: "name",
+    });
+
+    const fileName = response.data.name;
+    console.log('NOMBRE ARCHIVO',fileName);
+    return fileName;
+  } catch (error) {
+    console.error("Error al obtener el nombre del archivo:", error.message);
+    throw error;
+  }
+}

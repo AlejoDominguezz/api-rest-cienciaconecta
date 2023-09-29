@@ -13,7 +13,7 @@ import { getDepartamentos } from "../controllers/departamentos.controller.js";
 
 const routerDepartamentos = Router();
 
-routerDepartamentos.get("/", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), getDepartamentos);
+routerDepartamentos.get("/", requireToken, checkRolAuth([roles.admin, roles.comAsesora, roles.docente, roles.responsableProyecto, roles.evaluador, roles.refEvaluador]), getDepartamentos);
 
 export default routerDepartamentos;
 

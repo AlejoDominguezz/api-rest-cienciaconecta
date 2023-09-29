@@ -14,7 +14,7 @@ import { getLocalidades } from "../controllers/localidades.controller.js";
 
 const routerLocalidades = Router();
 
-routerLocalidades.get("/:departamento", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), getLocalidades);
+routerLocalidades.get("/:departamento", requireToken, checkRolAuth([roles.admin, roles.comAsesora, roles.docente, roles.responsableProyecto, roles.evaluador, roles.refEvaluador]), getLocalidades);
 
 export default routerLocalidades;
 

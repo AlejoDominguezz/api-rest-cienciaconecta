@@ -1,6 +1,6 @@
 import { Evaluacion, estadoEvaluacion } from "../models/Evaluacion.js";
 import { arraysEvaluacionIguales, arraysComentariosIguales } from "../helpers/arrayComparation.js"
-import { Proyecto } from "../models/Proyecto.js";
+import { Proyecto, nombreEstado } from "../models/Proyecto.js";
 import { Docente } from "../models/Docente.js";
 import { Evaluador } from "../models/Evaluador.js";
 import { Types } from "mongoose";
@@ -181,14 +181,14 @@ export const iniciarEvaluacion = async (req, res) => {
 
     // EN CASO DE QUE EL EVALUADOR NO SEA EL USUARIO QUE ESTA EVALUANDO ACTUALMENTE, NO SE PERMITE EVALUAR
     if(evaluacion.estado == estadoEvaluacion.enEvaluacion && evaluacion.evaluando.toString() != evaluador._id.toString()) {
-      return res.status(401).json({ error: "Un usuario ya está evaluando el proyecto en este momento. Por favor, espera hasta que finalice su evaluacion" });
+      return res.status(403).json({ error: "Un usuario ya está evaluando el proyecto en este momento. Por favor, espera hasta que finalice su evaluacion" });
   
     } else {
 
 
       // No se puede evaluar un proyecto con evaluación finalizada
       if(evaluacion.estado == estadoEvaluacion.cerrada) {
-        return res.status(401).json({ error: "La evaluación de este proyecto ya ha finalizado" });
+        return res.status(422).json({ error: "La evaluación de este proyecto ya ha finalizado" });
       }
 
       // Si existe evaluación, construir la estructura con "seleccionada"
@@ -457,10 +457,12 @@ export const obtenerEvaluacionesPendientes = async (req, res) => {
           if(!evaluacion){
             return {
               ...proyecto,
+              nombreEstado: nombreEstado[proyecto.estado],
             }
           }
           return {
             ...proyecto,
+            nombreEstado: nombreEstado[proyecto.estado],
             evaluacion: evaluacion,
           };
         })
@@ -516,10 +518,12 @@ export const obtenerEvaluacionesPendientes = async (req, res) => {
           if(!evaluacion){
             return {
               ...proyecto,
+              nombreEstado: nombreEstado[proyecto.estado],
             }
           }
           return {
             ...proyecto,
+            nombreEstado: nombreEstado[proyecto.estado],
             evaluacion: evaluacion,
           };
         })
@@ -569,9 +573,9 @@ export const obtenerEvaluacionPendienteById = async (req, res) => {
       .exec();
   
       if(!evaluacion){
-        return res.json({proyecto})
+        return res.json({proyecto, nombreEstado: nombreEstado[proyecto.estado]})
       } else {
-        return res.json({proyecto, evaluacion})
+        return res.json({proyecto, nombreEstado: nombreEstado[proyecto.estado], evaluacion})
       }
   
     } catch (error) {
@@ -609,9 +613,9 @@ export const obtenerEvaluacionPendienteById = async (req, res) => {
       .exec();
   
       if(!evaluacion){
-        return res.json({proyecto})
+        return res.json({proyecto, nombreEstado: nombreEstado[proyecto.estado]})
       } else {
-        return res.json({proyecto, evaluacion})
+        return res.json({proyecto, nombreEstado: nombreEstado[proyecto.estado], evaluacion})
       }
   
     } catch (error) {

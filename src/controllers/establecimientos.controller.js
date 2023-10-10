@@ -1,6 +1,7 @@
 import {EstablecimientoEducativo} from '../models/EstablecimientoEducativo.js';
 import { response, request } from 'express';
 import { Feria, estadoFeria } from '../models/Feria.js';
+import { Referente } from '../models/Referente.js';
 
 export const getEstablecimientosEducativos = async (req = request, res = response) => {
     try {
@@ -58,10 +59,34 @@ export const getSedesRegionalesActuales = async (req = request, res = response) 
         // Obtener los detalles de las sedes desde el modelo EstablecimientoEducativo
         const sedesRegionalesDetalles = await EstablecimientoEducativo.find({
             _id: { $in: [...sedesRegionales] }
-        });
+        })
+        .select('-__v')
+        .lean()
+        .exec();
+
+        // Añadir referente asignado a sede
+        const sedesRegionalesReferente = await Promise.all(
+        sedesRegionalesDetalles.map( async (sede) => {
+
+            const referente = await Referente.findOne({sede: sede._id})
+            .select('-__v -sede')
+            .lean()
+            .exec();
+            if(referente) {
+                return {
+                    ...sede,
+                    referente: referente,
+                  };
+            } else {
+                return {
+                    ...sede,
+                    referente: null,
+                  };
+            }
+        }));
 
         res.json({
-            sedes: sedesRegionalesDetalles
+            sedes: sedesRegionalesReferente
         });
 
     } catch (error) {

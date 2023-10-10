@@ -19,6 +19,7 @@ import routerEstablecimiento from '../routes/establecimiento.route.js';
 import routerEvaluadores from '../routes/evaluador.route.js';
 import routerEvaluacion from '../routes/evaluacion.route.js';
 import routerReferente from '../routes/referente.route.js';
+import routerExposicion from '../routes/exposicion.route.js';
 
 
 
@@ -45,6 +46,7 @@ class Server {
             establecimiento:'/api/v1/establecimiento',
             evaluador:      '/api/v1/evaluador',
             evaluacion:     '/api/v1/evaluacion',
+            exposicion:     '/api/v1/exposicion',
             referente:      '/api/v1/referente'
         }
 
@@ -95,9 +97,9 @@ class Server {
         this.app.use(cookieParser())
 
         //Inicialización de categorias y niveles
-        crearCategorias();
-        crearNiveles();
-        crearEstablecimientosEducativos();
+        //crearCategorias();
+        //crearNiveles();
+        //crearEstablecimientosEducativos();
     }
 
 
@@ -138,6 +140,9 @@ class Server {
 
         //path de evaluaciones
         this.app.use(this.paths.evaluacion, routerEvaluacion);
+
+        //path de exposiciones
+        this.app.use(this.paths.exposicion, routerExposicion);
 
         //path de referentes
         this.app.use(this.paths.referente, routerReferente);

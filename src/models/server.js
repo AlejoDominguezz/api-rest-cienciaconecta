@@ -74,19 +74,19 @@ class Server {
             next();
           });
 
-        const whitelist = [process.env.ORIGIN1, process.env.ORIGIN2, ]
+        // const whitelist = [process.env.ORIGIN1, process.env.ORIGIN2, ]
 
-        this.app.use(cors(
-            {
-            origin: function(origin, callback){
-                if(whitelist.includes(origin)){
-                    return callback(null, origin) 
-                }
-                return callback("Error de CORS - Origin: " + origin + " No autorizado")
-            },
-            credentials: true  
-            }
-        ))
+        // this.app.use(cors(
+        //     {
+        //     origin: function(origin, callback){
+        //         if(whitelist.includes(origin)){
+        //             return callback(null, origin) 
+        //         }
+        //         return callback("Error de CORS - Origin: " + origin + " No autorizado")
+        //     },
+        //     credentials: true  
+        //     }
+        // ))
 
         //parseo y lectura del body
         this.app.use(express.json());

@@ -109,7 +109,7 @@ export const iniciarEvaluacionExposicion = async (req, res) => {
                 const rubricaConSeleccionada = {
                 _id: rubrica._id,
                 nombreRubrica: rubrica.nombreRubrica,
-                comentario: comentario.comentario,
+                comentario: comentario?.comentario,
                 criterios: rubrica.criterios.map((criterio) => {
     
                     // Buscamos en la evaluacion encontrada, cual es la opcion seleccionada del criterio actual
@@ -247,7 +247,7 @@ export const visualizarEvaluacionExposicion = async (req, res) => {
       const rubricaConSeleccionada = {
         _id: rubrica._id,
         nombreRubrica: rubrica.nombreRubrica,
-        comentario: comentario.comentario,
+        comentario: comentario?.comentario,
         criterios: rubrica.criterios.map((criterio) => {
 
           // Buscamos en la evaluacion encontrada, cual es la opcion seleccionada del criterio actual

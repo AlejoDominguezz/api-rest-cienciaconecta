@@ -132,7 +132,7 @@ export const obtenerReferentesSeleccionados = async (req, res) => {
         const referentesConDatosDocente = await Promise.all(
             referentesAsignados.map(async (referente) => {
                 const docente = await Docente.findById(referente.idDocente)
-                .select('-__v -_id')
+                .select('-__v')
                 .lean()
                 .exec();
 
@@ -188,7 +188,7 @@ export const obtenerListadoDocentes = async (req, res) => {
         const docentes = await Promise.all(
             usuarios.map(async (usuario) => {
               const docente = await Docente.findOne({usuario: usuario._id})
-              .select('-__v -cuil -usuario')
+              .select('-__v -usuario')
               .lean()
               .exec();
       

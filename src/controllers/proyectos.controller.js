@@ -21,6 +21,14 @@ import { Feria, estadoFeria } from "../models/Feria.js";
 import { roles } from "../helpers/roles.js";
 import multer from "multer";
 import { fileCola, fileUpdateCola } from "../helpers/queueFile.js";
+import QRCode from 'qrcode'
+import { PDFDocument, rgb } from 'pdf-lib';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import jpeg  from 'jpeg-js';
+import sharp from 'sharp';
+
 
 // Configurar multer para manejar la subida de archivos
 const storage = multer.memoryStorage(); // Almacenar los archivos en la memoria
@@ -736,5 +744,232 @@ export const downloadDocumentEspecific = async (req, res) => {
     res.status(500).json({
       message: "ERROR AL DESCARGAR EL CV - ERROR DEL SERVIDOR",
     });
+  }
+};
+
+
+// Función para generar un Código QR del proyecto -----------------------------------------------------------------------------------------
+// export const generarQR = async (req, res) => {
+//   const proyecto = req.proyecto;
+
+//   const urlEvaluacion = `${process.env.RUTA_QR}/${proyecto._id}`;
+
+//   try {
+//     // Genera el código QR con la URL y almacénalo en un buffer en formato JPEG
+//     QRCode.toBuffer(urlEvaluacion, { type: 'image/jpeg' }, (err, buffer) => {
+//       if (err) {
+//         return res.status(500).json({ error: 'Error al generar el QR' });
+//       }
+
+//       // Convierte el buffer a una cadena base64 para almacenarlo en el atributo QR
+//       const qrBase64 = buffer.toString('base64');
+
+//       // Almacena la cadena base64 en el atributo QR del proyecto
+//       proyecto.QR = qrBase64;
+
+//       // Guarda el proyecto con el atributo QR actualizado
+//       proyecto.save()
+
+//       // Envía la imagen del código QR al cliente utilizando la URL base64
+//       //return res.send(`<img src="data:image/jpeg;base64,${qrBase64}" alt="QR del proyecto">`);
+//       return res.json({
+//         tag: `<img src="data:image/jpeg;base64,${qrBase64}" alt="QR del proyecto">`,
+//         qrBase64: qrBase64
+//       });
+
+//     });
+  
+//   } catch (error) {
+//     res.status(500).json({ error: 'Error de servidor' });
+//   }
+// };
+
+
+export const generarQR = async (req, res) => {
+  const proyecto = req.proyecto;
+  const urlEvaluacion = `${process.env.RUTA_QR}/${proyecto._id}`;
+
+  try {
+    // Genera el código QR con la URL
+    QRCode.toDataURL(urlEvaluacion, { type: 'image/png' }, async (err, url) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error al generar el QR' });
+      }
+
+      // Usa sharp para cargar la imagen y convertirla a formato PNG
+      const qrBuffer = await sharp(Buffer.from(url.replace(/^data:image\/\w+;base64,/, ''), 'base64'))
+        .toFormat('png')
+        .toBuffer();
+
+      // Convierte el buffer a una cadena base64 para almacenarlo en el atributo QR
+      const qrBase64 = qrBuffer.toString('base64');
+
+      // Almacena el código QR como cadena base64 en el atributo QR del proyecto
+      proyecto.QR = qrBase64;
+
+      // Guarda el proyecto con el atributo QR actualizado
+      await proyecto.save();
+
+      // Envía una respuesta exitosa
+      return res.json({ message: 'Código QR generado y almacenado exitosamente' });
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error de servidor' });
+  }
+};
+
+
+
+
+// export const generarPDFconQR = async (req, res) => {
+//   try {
+//     const proyecto = req.proyecto;
+
+//     // Crea un nuevo documento PDF con el formato A4 (595 puntos de ancho x 842 puntos de alto)
+//     const pdfDoc = await PDFDocument.create();
+//     const page = pdfDoc.addPage([595.276, 841.890]);
+
+//     // Decodificar el código QR en formato JPG
+//     // const qrBase64 = proyecto.QR;
+//     // const qrData = qrBase64.replace(/^data:image\/jpeg;base64,/, '');
+//     // const qrBuffer = Buffer.from(qrData, 'base64');
+//     // const qrImageData = jpeg.decode(qrBuffer);
+
+//     // Decodificar el código QR en formato base64
+//     const qrBase64 = proyecto.QR;
+
+//     // Convierte la cadena base64 a un buffer
+//     const qrBuffer = Buffer.from(qrBase64, 'base64');
+
+//     // Agrega el código QR al PDF
+//     const qrImage = await pdfDoc.embedJpg(qrBuffer);
+//     const qrDims = qrImage.scale(1);
+
+
+//     // Dibuja el código QR en la página
+//     page.drawImage(qrImage, {
+//       x: 50,
+//       y: 300, // Ajusta la posición según tus necesidades
+//       width: qrDims.width,
+//       height: qrDims.height,
+//     });
+
+//     // Agregar contenido adicional (Título y Descripción)
+//     const content = `
+//       Título del Proyecto: ${proyecto.titulo}
+//       Descripción: ${proyecto.descripcion}
+//     `;
+
+//     // Dibuja el contenido en la página del PDF
+//     page.drawText(content, {
+//       x: 50,
+//       y: 100, // Ajusta la posición según tus necesidades
+//       size: 20,
+//       color: rgb(0, 0, 0), // Color negro
+//     });
+
+//     // Serializa el PDF en un ArrayBuffer
+//     const pdfBytes = await pdfDoc.save();
+
+//     // Obtener ruta del directorio actual
+//     const currentDir = path.dirname(fileURLToPath(import.meta.url));
+
+//     // Crea un archivo temporal para almacenar el PDF
+//     const tempFilePath = path.join(currentDir, '../temp', `temp-qr-${proyecto._id}.pdf`).replace(/\\/g, '/');
+
+//     // Utiliza promesas para escribir el archivo
+//     await new Promise((resolve, reject) => {
+//       fs.writeFile(tempFilePath, pdfBytes, (err) => {
+//         if (err) {
+//           reject(err);
+//         } else {
+//           resolve();
+//         }
+//       });
+//     });
+
+//     // Envía el PDF como una respuesta
+//     res.setHeader('Content-Type', 'application/pdf');
+//     res.setHeader('Content-Disposition', `attachment; filename="Proyecto - ${proyecto.titulo}.pdf`);
+//     res.status(200).sendFile(tempFilePath);
+//   } catch (error) {
+//     console.error('Error al generar el PDF', error);
+//     res.status(500).json({ error: 'Error al generar el PDF' });
+//   }
+// };
+
+
+export const generarPDFconQR = async (req, res) => {
+  try {
+    const proyecto = req.proyecto;
+
+    // Crea un nuevo documento PDF con el formato A4 (595 puntos de ancho x 842 puntos de alto)
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([595.276, 841.890]);
+
+    // Decodificar el código QR en formato base64
+    const qrBase64 = proyecto.QR;
+
+    // Convierte la cadena base64 a un buffer
+    const qrBuffer = Buffer.from(qrBase64, 'base64');
+
+    // Agrega el código QR al PDF
+    const qrImage = await pdfDoc.embedPng(qrBuffer); // Usar embedPng para una imagen PNG
+    const qrDims = qrImage.scale(1);
+
+    const pageDims = page.getSize();
+
+    // Calcula la posición para centrar el QR en la página
+    const qrX = (pageDims.width - qrDims.width) / 2;
+    const qrY = (pageDims.height - qrDims.height) / 2;
+
+    // Dibuja el código QR en el centro de la página
+    page.drawImage(qrImage, {
+      x: qrX,
+      y: qrY,
+      width: qrDims.width,
+      height: qrDims.height,
+    });
+
+    // Agregar contenido adicional (Título y Descripción)
+    const content = `
+      ${proyecto.titulo}
+    `;
+
+    // Dibuja el contenido en la página del PDF
+    page.drawText(content, {
+      x: qrX-10,
+      y: qrY+300, 
+      size: 20,
+      color: rgb(0, 0, 0), // Color negro
+    });
+
+    // Serializa el PDF en un ArrayBuffer
+    const pdfBytes = await pdfDoc.save();
+
+    // Obtener ruta del directorio actual
+    const currentDir = path.dirname(fileURLToPath(import.meta.url));
+
+    // Crea un archivo temporal para almacenar el PDF
+    const tempFilePath = path.join(currentDir, '../temp', `temp-qr-${proyecto._id}.pdf`).replace(/\\/g, '/');
+
+    // Utiliza promesas para escribir el archivo
+    await new Promise((resolve, reject) => {
+      fs.writeFile(tempFilePath, pdfBytes, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    // Envía el PDF como una respuesta
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="Proyecto - ${proyecto.titulo}.pdf`);
+    res.status(200).sendFile(tempFilePath);
+  } catch (error) {
+    console.error('Error al generar el PDF', error);
+    res.status(500).json({ error: 'Error al generar el PDF' });
   }
 };

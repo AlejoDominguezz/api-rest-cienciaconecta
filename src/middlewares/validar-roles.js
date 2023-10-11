@@ -59,6 +59,8 @@ export const esPropietario = async (req, res, next) => {
         .json({ error: "No eres propietario de este proyecto" });
     }
 
+    req.proyecto = proyecto;
+
     next();
 
   } catch (error) {

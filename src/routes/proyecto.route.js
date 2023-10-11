@@ -19,7 +19,9 @@ import {
   cargarArchivosRegional,
   actualizarArchivosRegional,
   downloadDocuments,
-  downloadDocumentEspecific
+  downloadDocumentEspecific,
+  generarQR,
+  generarPDFconQR
 } from "../controllers/proyectos.controller.js";
 import {
   bodyInscribirProyectoValidator,
@@ -135,6 +137,24 @@ routerProyectos.get(
     //fecha(fechasFeria.fechaFinEscolar, fechasFeria.fechaInicioEvaluacionRegional),
     downloadDocumentEspecific
 );
+
+
+routerProyectos.get(
+  "/generarQR/:id",
+  requireToken,
+  checkRolAuth([roles.admin, roles.responsableProyecto]),
+  esPropietario,
+  generarQR
+)
+
+routerProyectos.get(
+  "/generarPDF/:id",
+  requireToken,
+  checkRolAuth([roles.admin, roles.responsableProyecto]),
+  esPropietario,
+  generarPDFconQR
+)
+
 
 // requireToken , checkRolAuth([roles.admin, roles.responsableProyecto]), esPropietario,
 export default routerProyectos;
@@ -924,6 +944,61 @@ export default routerProyectos;
  *               type: object
  *               properties:
  *                 msg:
+ *                   type: string
+ *                   description: Mensaje de error.
+ *     security:
+ *       - bearerAuth: []
+ *       - roles: [admin, responsableProyecto]
+ */
+
+
+
+/**
+ * @swagger
+ * /api/v1/proyecto/generarQR/:id:
+ *   get:
+ *     summary: Generar un Código QR del Proyecto
+ *     tags:
+ *       - Proyectos
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Identificador único del proyecto.
+ *     responses:
+ *       '200':
+ *         description: Código QR generado exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 tag:
+ *                   type: string
+ *                   description: Etiqueta HTML para mostrar el código QR en el cliente.
+ *                 qrBase64:
+ *                   type: string
+ *                   description: Representación en base64 del código QR.
+ *       '400':
+ *         description: Error de cliente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error al encontrar el proyecto o no es propietario del mismo.
+ *       '500':
+ *         description: Error de servidor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
  *                   type: string
  *                   description: Mensaje de error.
  *     security:

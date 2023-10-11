@@ -915,7 +915,7 @@ export const generarPDFconQR = async (req, res) => {
 
     // Agrega el código QR al PDF
     const qrImage = await pdfDoc.embedPng(qrBuffer); // Usar embedPng para una imagen PNG
-    const qrDims = qrImage.scale(1);
+    const qrDims = qrImage.scale(2);
 
     const pageDims = page.getSize();
 
@@ -938,8 +938,8 @@ export const generarPDFconQR = async (req, res) => {
 
     // Dibuja el contenido en la página del PDF
     page.drawText(content, {
-      x: qrX-10,
-      y: qrY+300, 
+      x: qrX,
+      y: qrY+450, 
       size: 20,
       color: rgb(0, 0, 0), // Color negro
     });

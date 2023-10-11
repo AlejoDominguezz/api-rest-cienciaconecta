@@ -13,6 +13,11 @@ import {
   postularEvaluador,
   getPostulaciones,
   seleccionarEvaluadores,
+  cargarCv,
+  getCv,
+  getCvV2,
+  getCv_,
+  getPostulacionById
 } from "../controllers/evaluadores.controller.js";
 import {
   bodyPostularEvaluadorValidator,
@@ -47,6 +52,44 @@ routerEvaluadores.get(
   getPostulaciones
 );
 
+routerEvaluadores.get(
+  '/postulaciones/:id',
+  requireToken,
+  checkRolAuth([roles.admin, roles.comAsesora]),
+  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
+  getPostulacionById
+)
+
+routerEvaluadores.post(
+  "/upload/cv",
+  requireToken,
+  checkRolAuth([roles.admin, roles.docente]),
+  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
+  cargarCv
+);
+
+routerEvaluadores.get(
+  "/download/v1/cv/:id",
+  requireToken,
+  checkRolAuth([roles.admin, roles.docente]),
+  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
+  getCv
+);
+
+routerEvaluadores.get(
+  "/download/v2/cv/:id",
+  requireToken,
+  checkRolAuth([roles.admin, roles.docente]),
+  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
+  getCvV2
+);
+routerEvaluadores.get(
+  "/download/v3/cv/:id",
+  requireToken,
+  checkRolAuth([roles.admin, roles.docente]),
+  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
+  getCv_
+);
 export default routerEvaluadores;
 
 // DOCUMENTACION SWAGGER --------------------------------------------------------------------------------------
@@ -107,6 +150,8 @@ export default routerEvaluadores;
  *                       type: string
  *                       description: Rol del evaluador en la feria (1=Referente, 2=Evaluador, 3=Responsable).
  *                 description: Detalles de los antecedentes del evaluador en ferias.
+ *     security:
+ *       - bearerAuth: [] 
  *     responses:
  *       200:
  *         description: Se ha registrado la postulación exitosamente.
@@ -132,6 +177,8 @@ export default routerEvaluadores;
  *     summary: Obtener postulaciones pendientes con datos de docente y postulación
  *     tags:
  *       - Evaluadores
+ *     security:
+ *       - bearerAuth: [] 
  *     responses:
  *       200:
  *         description: Lista de postulaciones pendientes con datos de docente y postulación.
@@ -234,6 +281,8 @@ export default routerEvaluadores;
  *                 items:
  *                   type: string
  *                 description: Lista de IDs de las postulaciones de evaluadores a seleccionar.
+ *     security:
+ *       - bearerAuth: [] 
  *     responses:
  *       200:
  *         description: Los evaluadores han sido seleccionados exitosamente. El primer y segundo elemento en

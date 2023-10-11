@@ -18,6 +18,7 @@ import routerLocalidades from '../routes/localidad.route.js';
 import routerEstablecimiento from '../routes/establecimiento.route.js';
 import routerEvaluadores from '../routes/evaluador.route.js';
 import routerEvaluacion from '../routes/evaluacion.route.js';
+import routerReferente from '../routes/referente.route.js';
 
 
 
@@ -43,7 +44,8 @@ class Server {
             localidad:      '/api/v1/localidad',
             establecimiento:'/api/v1/establecimiento',
             evaluador:      '/api/v1/evaluador',
-            evaluacion:     '/api/v1/evaluacion'
+            evaluacion:     '/api/v1/evaluacion',
+            referente:      '/api/v1/referente'
         }
 
         
@@ -71,19 +73,19 @@ class Server {
             req.headers.origin = req.headers.origin || 'http://' + req.headers.host;
             next();
           });
-
-        const whitelist = [process.env.ORIGIN1, process.env.ORIGIN2, ]
+        //test cors
+        const whitelist = [process.env.ORIGIN1, process.env.ORIGIN2, process.env.ORIGIN3 ]
 
         this.app.use(cors(
-            {
-            origin: function(origin, callback){
-                if(whitelist.includes(origin)){
-                    return callback(null, origin) 
-                }
-                return callback("Error de CORS - Origin: " + origin + " No autorizado")
-            },
-            credentials: true  
-            }
+             {
+             origin: function(origin, callback){
+                 if(whitelist.includes(origin)){
+                     return callback(null, origin) 
+                 }
+                 return callback("Error de CORS - Origin: " + origin + " No autorizado")
+             },
+             credentials: true  
+             }
         ))
 
         //parseo y lectura del body
@@ -136,6 +138,9 @@ class Server {
 
         //path de evaluaciones
         this.app.use(this.paths.evaluacion, routerEvaluacion);
+
+        //path de referentes
+        this.app.use(this.paths.referente, routerReferente);
     }
 
 

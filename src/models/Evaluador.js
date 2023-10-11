@@ -24,6 +24,10 @@ const EvaluadorSchema = new Schema({
     type: String,
     required: false
   },
+  id_carpeta_cv: {
+    type: String,
+    required: false
+  },
   antecedentes: [{
     year: {
       type: String,

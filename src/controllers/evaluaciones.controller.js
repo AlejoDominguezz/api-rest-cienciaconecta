@@ -1,5 +1,11 @@
 import { Evaluacion, estadoEvaluacion } from "../models/Evaluacion.js";
 import { arraysEvaluacionIguales, arraysComentariosIguales } from "../helpers/arrayComparation.js"
+import { Proyecto, nombreEstado } from "../models/Proyecto.js";
+import { Docente } from "../models/Docente.js";
+import { Evaluador } from "../models/Evaluador.js";
+import { Types } from "mongoose";
+import { roles } from "../helpers/roles.js";
+import { Referente } from "../models/Referente.js";
 
 export const evaluarProyecto = async (req, res) => {
     const evaluacion = req.body.evaluacion;
@@ -118,8 +124,9 @@ export const iniciarEvaluacion = async (req, res) => {
   // Obtengo la estructura de rubricas de la feria
   const evaluacion_estructura = feria.criteriosEvaluacion;
 
-  // Si no existe evaluación, construye la estructura sin "seleccionada"
-  if (!evaluacion) {
+  // SI NO EXISTE UNA EVALUACIÓN PREVIA, SE CREA, DEVOLVIENDO LA ESTRUCTURA SIN OPCIONES SELECCIONADAS NI COMENTARIOS
+  // TAMBIÉN PASA POR ESTA RAMA SI EXISTE EVALUACIÓN PREVIA, Y LA EVALUACIÓN ESTÁ VACÍA
+  if (!evaluacion || (evaluacion.evaluando?.toString() == evaluador._id.toString() && evaluacion.evaluacion == null)) {
 
     // Obtengo la estructura de rubricas sólo para la evaluación teórica
     const evaluacion_estructura_teorica = [];
@@ -148,19 +155,23 @@ export const iniciarEvaluacion = async (req, res) => {
       }
     }
 
-    // Creo una nueva evaluación de proyecto
-    const evaluacion_proyecto = new Evaluacion({
-      evaluacion: null,
-      evaluadorId: [],
-      proyectoId: proyecto.id,
-      puntajeTeorico: -1,
-      listo: [],
-      estado: estadoEvaluacion.enEvaluacion,
-      ultimaEvaluacion: null,
-      evaluando: evaluador.id
-    })
+    if(!evaluacion){
+      // Creo una nueva evaluación de proyecto
+      const evaluacion_proyecto = new Evaluacion({
+        evaluacion: null,
+        evaluadorId: [],
+        proyectoId: proyecto.id,
+        puntajeTeorico: -1,
+        listo: [],
+        estado: estadoEvaluacion.enEvaluacion,
+        ultimaEvaluacion: null,
+        evaluando: evaluador.id
+      })
+      evaluacion_proyecto.save();
 
-    evaluacion_proyecto.save();
+    }
+
+
 
     // Devolver la estructura de evaluación teórica con o sin evaluacion existente
     return res.json(evaluacion_estructura_teorica);
@@ -168,68 +179,76 @@ export const iniciarEvaluacion = async (req, res) => {
 
   } else {
 
-    // Dos evaluadores no pueden evaluar un proyecto al mismo tiempo
-    if(evaluacion.estado == estadoEvaluacion.enEvaluacion) {
-      return res.status(401).json({ error: "Un usuario ya está evaluando el proyecto en este momento. Por favor, espera hasta que finalice su evaluacion" });
-    }
+    // EN CASO DE QUE EL EVALUADOR NO SEA EL USUARIO QUE ESTA EVALUANDO ACTUALMENTE, NO SE PERMITE EVALUAR
+    if(evaluacion.estado == estadoEvaluacion.enEvaluacion && evaluacion.evaluando.toString() != evaluador._id.toString()) {
+      return res.status(403).json({ error: "Un usuario ya está evaluando el proyecto en este momento. Por favor, espera hasta que finalice su evaluacion" });
+  
+    } else {
 
-    // No se puede evaluar un proyecto con evaluación finalizada
-    if(evaluacion.estado == estadoEvaluacion.cerrada) {
-      return res.status(401).json({ error: "La evaluación de este proyecto ya ha finalizado" });
-    }
 
-    // Si existe evaluación, construir la estructura con "seleccionada"
-    const evaluacion_estructura_teorica = evaluacion_estructura.map(
-      (rubrica) => {
-        
-        // Buscamos en la evaluación encontrada, cual es el comentario realizado para la rubrica actual
-        const comentario = evaluacion.comentarios.find(
-          (comentarioRubrica) => 
-            comentarioRubrica.rubricaId.toString() ===
-              rubrica._id.toString())
+      // No se puede evaluar un proyecto con evaluación finalizada
+      if(evaluacion.estado == estadoEvaluacion.cerrada) {
+        return res.status(422).json({ error: "La evaluación de este proyecto ya ha finalizado" });
+      }
 
-        // Copiar la rubrica eliminando los atributos no deseados
-        const rubricaConSeleccionada = {
-          _id: rubrica._id,
-          nombreRubrica: rubrica.nombreRubrica,
-          comentario: comentario,
-          criterios: rubrica.criterios.map((criterio) => {
+      // Si existe evaluación, construir la estructura con "seleccionada"
+      const evaluacion_estructura_teorica = evaluacion_estructura
+      .filter((rubrica) => !rubrica.exposicion)
+      .map((rubrica) => {
+          
+          // Buscamos en la evaluación encontrada, cual es el comentario realizado para la rubrica actual
+          const comentario = evaluacion.comentarios.find(
+            (comentarioRubrica) => 
+              comentarioRubrica.rubricaId.toString() ===
+                rubrica._id.toString())
 
-            // Buscamos en la evaluacion encontrada, cual es la opcion seleccionada del criterio actual
-            const opcionSeleccionada = evaluacion.evaluacion.find(
-              (evaluacionItem) =>
-                evaluacionItem.rubricaId.toString() ===
-                  rubrica._id.toString() &&
-                evaluacionItem.criterioId.toString() ===
-                  criterio._id.toString())
+          // Copiar la rubrica eliminando los atributos no deseados
+          const rubricaConSeleccionada = {
+            _id: rubrica._id,
+            nombreRubrica: rubrica.nombreRubrica,
+            comentario: comentario.comentario,
+            criterios: rubrica.criterios.map((criterio) => {
 
-            // Copiar el criterio eliminando los atributos no deseados
-            const criterioConSeleccionada = {
-              _id: criterio._id,
-              nombre: criterio.nombre,
-              seleccionada: opcionSeleccionada, // Inicializamos la propiedad seleccionada
-              opciones: criterio.opciones.map((opcion) => {
-                  const opcionConSeleccionada = {
-                    nombre: opcion.nombre,
-                    _id: opcion._id
+              // Buscamos en la evaluacion encontrada, cual es la opcion seleccionada del criterio actual
+              const opcionSeleccionada = evaluacion.evaluacion.find(
+                (evaluacionItem) =>
+                  evaluacionItem.rubricaId.toString() ===
+                    rubrica._id.toString() &&
+                  evaluacionItem.criterioId.toString() ===
+                    criterio._id.toString())
+
+              // Copiar el criterio eliminando los atributos no deseados
+              const criterioConSeleccionada = {
+                _id: criterio._id,
+                nombre: criterio.nombre,
+                seleccionada: opcionSeleccionada.opcionSeleccionada, // Inicializamos la propiedad seleccionada
+                opciones: criterio.opciones.map((opcion) => {
+                    const opcionConSeleccionada = {
+                      nombre: opcion.nombre,
+                      _id: opcion._id
+                    }
+                    return opcionConSeleccionada;
                   }
-                  return opcionConSeleccionada;
-                }
-              )
-            }
-            return criterioConSeleccionada;
-            },
-            ),
-          };
-          return rubricaConSeleccionada;
-        });
+                )
+              }
+              return criterioConSeleccionada;
+              },
+              ),
+            };
+            return rubricaConSeleccionada;
+          });
 
-        evaluacion.estado = estadoEvaluacion.enEvaluacion;
-        evaluacion.evaluando = evaluador.id;
-        evaluacion.save()
+          if(evaluacion.estado != estadoEvaluacion.enEvaluacion) {
+            evaluacion.estado = estadoEvaluacion.enEvaluacion;
+            evaluacion.evaluando = evaluador.id;
+            evaluacion.save()
+          }
 
-        // Devolver la estructura de evaluación teórica con o sin evaluacion existente
-        return res.json(evaluacion_estructura_teorica);
+          // Devolver la estructura de evaluación teórica con o sin evaluacion existente
+          return res.json(evaluacion_estructura_teorica);
+
+
+    }
 
   };
     
@@ -308,8 +327,9 @@ export const visualizarEvaluacion = async (req, res) => {
 
 
 } else {// Si existe evaluación, construir la estructura con "seleccionada"
-  const evaluacion_estructura_teorica = evaluacion_estructura.map(
-    (rubrica) => {
+  const evaluacion_estructura_teorica = evaluacion_estructura
+  .filter((rubrica) => !rubrica.exposicion)
+  .map((rubrica) => {
       
       // Buscamos en la evaluación encontrada, cual es el comentario realizado para la rubrica actual
       const comentario = evaluacion.comentarios.find(
@@ -321,7 +341,7 @@ export const visualizarEvaluacion = async (req, res) => {
       const rubricaConSeleccionada = {
         _id: rubrica._id,
         nombreRubrica: rubrica.nombreRubrica,
-        comentario: comentario,
+        comentario: comentario.comentario,
         criterios: rubrica.criterios.map((criterio) => {
 
           // Buscamos en la evaluacion encontrada, cual es la opcion seleccionada del criterio actual
@@ -336,7 +356,7 @@ export const visualizarEvaluacion = async (req, res) => {
           const criterioConSeleccionada = {
             _id: criterio._id,
             nombre: criterio.nombre,
-            seleccionada: opcionSeleccionada, // Inicializamos la propiedad seleccionada
+            seleccionada: opcionSeleccionada.opcionSeleccionada, // Inicializamos la propiedad seleccionada
             opciones: criterio.opciones.map((opcion) => {
                 const opcionConSeleccionada = {
                   nombre: opcion.nombre,
@@ -389,4 +409,220 @@ export const cancelarEvaluacion = async (req, res) =>  {
   } catch (error) {
     return res.status(500).json({ error: "Error de servidor" });
   }
+}
+
+
+export const obtenerEvaluacionesPendientes = async (req, res) => {
+  
+  if(req.roles.includes(roles.evaluador)){
+    try {
+      const uid = req.uid;
+      const {titulo} = req.query;
+      
+      const docente = await Docente.findOne({usuario: uid})
+      if(!docente){
+          return res.status(404).json({ error: "No existe el docente asociado al usuario" });
+      }
+  
+      const evaluador = await Evaluador.findOne({idDocente: docente.id})
+      if(!evaluador){
+          return res.status(404).json({ error: "No existe el evaluador asociado al docente" });
+      }
+  
+      // Construir la consulta principal
+      const consulta = { evaluadoresRegionales: { $in: [evaluador.id.toString()] } };
+  
+      // Agregar el filtro de título si existe
+      if (titulo) {
+        consulta.titulo = { $regex: titulo, $options: 'i' };;
+      }
+  
+      const proyectos_evaluacion_pendiente = await Proyecto.find(consulta)
+      .select('-__v')
+      .lean()
+      .exec();
+  
+      if(proyectos_evaluacion_pendiente.length === 0){
+        return res.status(204).json({ error: "No existen evaluaciones pendientes" });
+      }
+  
+  
+      const proyecto_detalle = await Promise.all(
+        proyectos_evaluacion_pendiente.map(async (proyecto) => {
+          const evaluacion = await Evaluacion.findOne({proyectoId: proyecto._id})
+          .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+          .lean()
+          .exec();
+  
+          if(!evaluacion){
+            return {
+              ...proyecto,
+              nombreEstado: nombreEstado[proyecto.estado],
+            }
+          }
+          return {
+            ...proyecto,
+            nombreEstado: nombreEstado[proyecto.estado],
+            evaluacion: evaluacion,
+          };
+        })
+      );
+  
+      return res.json({proyectos: proyecto_detalle})
+
+    } catch (error) {
+      return res.status(500).json({ error: "Error de servidor" });
+    }
+
+  } else if(req.roles.includes(roles.refEvaluador)) {
+
+    try {
+      const uid = req.uid;
+      const {titulo} = req.query;
+      
+      const docente = await Docente.findOne({usuario: uid})
+      if(!docente){
+          return res.status(404).json({ error: "No existe el docente asociado al usuario" });
+      }
+  
+      const referente = await Referente.findOne({idDocente: docente.id})
+      if(!referente){
+          return res.status(404).json({ error: "No existe el referente asociado al docente" });
+      }
+  
+      // Construir la consulta principal
+      const consulta = { sede: referente.sede };
+  
+      // Agregar el filtro de título si existe
+      if (titulo) {
+        consulta.titulo = { $regex: titulo, $options: 'i' };;
+      }
+  
+      const proyectos_evaluacion_pendiente = await Proyecto.find(consulta)
+      .select('-__v')
+      .lean()
+      .exec();
+  
+      if(proyectos_evaluacion_pendiente.length === 0){
+        return res.status(204).json({ error: "No existen evaluaciones pendientes" });
+      }
+  
+  
+      const proyecto_detalle = await Promise.all(
+        proyectos_evaluacion_pendiente.map(async (proyecto) => {
+          const evaluacion = await Evaluacion.findOne({proyectoId: proyecto._id})
+          .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+          .lean()
+          .exec();
+  
+          if(!evaluacion){
+            return {
+              ...proyecto,
+              nombreEstado: nombreEstado[proyecto.estado],
+            }
+          }
+          return {
+            ...proyecto,
+            nombreEstado: nombreEstado[proyecto.estado],
+            evaluacion: evaluacion,
+          };
+        })
+      );
+  
+      return res.json({proyectos: proyecto_detalle})
+      
+    } catch (error) {
+      return res.status(500).json({ error: "Error de servidor" });
+    }
+
+  }
+
+}
+
+
+export const obtenerEvaluacionPendienteById = async (req, res) => {
+  
+  if(req.roles.includes(roles.evaluador)){
+
+    try {
+      const uid = req.uid;
+      const {id} = req.params;
+      
+      const docente = await Docente.findOne({usuario: uid})
+      if(!docente){
+          return res.status(404).json({ error: "No existe el docente asociado al usuario" });
+      }
+  
+      const evaluador = await Evaluador.findOne({idDocente: docente.id})
+      if(!evaluador){
+          return res.status(404).json({ error: "No existe el evaluador asociado al docente" });
+      }
+  
+      const proyecto = await Proyecto.findOne({evaluadoresRegionales: { $in: [evaluador.id.toString()]}, _id: id.toString()})
+      .select('-__v')
+      .lean()
+      .exec();
+  
+      if(!proyecto){
+        return res.status(404).json({ error: "No existe una evaluación asignada al evaluador con el ID ingresado" });
+      }
+  
+      const evaluacion = await Evaluacion.findOne({proyectoId: proyecto._id})
+      .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+      .lean()
+      .exec();
+  
+      if(!evaluacion){
+        return res.json({proyecto, nombreEstado: nombreEstado[proyecto.estado]})
+      } else {
+        return res.json({proyecto, nombreEstado: nombreEstado[proyecto.estado], evaluacion})
+      }
+  
+    } catch (error) {
+      return res.status(500).json({ error: "Error de servidor" });
+    }
+
+  } else if(req.roles.includes(roles.refEvaluador)){
+
+    try {
+      const uid = req.uid;
+      const {id} = req.params;
+      
+      const docente = await Docente.findOne({usuario: uid})
+      if(!docente){
+          return res.status(404).json({ error: "No existe el docente asociado al usuario" });
+      }
+  
+      const referente = await Referente.findOne({idDocente: docente.id})
+      if(!referente){
+          return res.status(404).json({ error: "No existe el referente asociado al docente" });
+      }
+  
+      const proyecto = await Proyecto.findOne({sede: referente.sede , _id: id.toString()})
+      .select('-__v')
+      .lean()
+      .exec();
+  
+      if(!proyecto){
+        return res.status(404).json({ error: "No existe una evaluación asignada al referente con el ID ingresado" });
+      }
+  
+      const evaluacion = await Evaluacion.findOne({proyectoId: proyecto._id})
+      .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+      .lean()
+      .exec();
+  
+      if(!evaluacion){
+        return res.json({proyecto, nombreEstado: nombreEstado[proyecto.estado]})
+      } else {
+        return res.json({proyecto, nombreEstado: nombreEstado[proyecto.estado], evaluacion})
+      }
+  
+    } catch (error) {
+      return res.status(500).json({ error: "Error de servidor" });
+    }
+
+  }
+  
+
 }

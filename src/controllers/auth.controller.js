@@ -43,8 +43,8 @@ export const login = async (req, res) => {
 
     // Genero Refresh Token
     const refreshExpiresIn = generateRefreshToken(id, res);
-
-    return res.json({ token, expiresIn, id, userCuil, roles, refreshExpiresIn });
+    
+    return res.json({ token, expiresIn, id, userCuil, roles, refreshExpiresIn});
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Error de servidor" });
@@ -300,5 +300,5 @@ export const altaUsuarios = async (req, res) => {
 //   } catch (error) {
 //       throw error;
 //   }
-  
 // }
+

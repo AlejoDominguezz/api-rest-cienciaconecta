@@ -73,7 +73,7 @@ class Server {
             req.headers.origin = req.headers.origin || 'http://' + req.headers.host;
             next();
           });
-
+        //test cors
         const whitelist = [process.env.ORIGIN1, process.env.ORIGIN2, process.env.ORIGIN3 ]
 
         this.app.use(cors(

@@ -20,7 +20,7 @@ import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js"
 import { Feria, estadoFeria } from "../models/Feria.js";
 import { roles } from "../helpers/roles.js";
 import multer from "multer";
-import { fileCola, fileUpdateCola } from "../helpers/queueFile.js";
+import { fileCola, fileUpdateCola } from "../helpers/queueManager.js";
 
 // Configurar multer para manejar la subida de archivos
 const storage = multer.memoryStorage(); // Almacenar los archivos en la memoria

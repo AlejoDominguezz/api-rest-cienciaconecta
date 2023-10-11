@@ -24,10 +24,9 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: npm ci
+    - run: npm ci 
     - run: |
         touch .env
         echo "${{secrets.PROD_SECRET}}" > .env
-    - run: pm2 save
-    - run: pm2 restart cienciaconecta
+
     

@@ -16,7 +16,7 @@ import {
   download_Cv
 } from "../services/drive/helpers-drive.js";
 import { getFeriaActivaFuncion } from "../controllers/ferias.controller.js"
-import { fileCv } from "../helpers/queueFile.js";
+import { emailCola, fileCv } from "../helpers/queueManager.js";
 
 
 export const postularEvaluador = async (req, res) => {
@@ -115,9 +115,6 @@ export const seleccionarEvaluadores = async (req, res) => {
   try {
     const { postulaciones } = req.body;
 
-    var falloMail = false;
-    var errores = [];
-
     for (const idSeleccionado of postulaciones) {
       const postulacion = await Evaluador.findById(idSeleccionado);
       if (!postulacion)
@@ -141,52 +138,31 @@ export const seleccionarEvaluadores = async (req, res) => {
 
         usuario.save();
         postulacion.save();
+        
+        try {   
+            await emailCola.add("email:seleccionEvaluador", {
+                usuario, 
+                docente})
 
-        try {
-          await enviarMailSeleccion(usuario, docente);
         } catch (error) {
-          falloMail = true;
-          errores.push(`Fallo en el envío de mail a ${usuario.email}`);
+            return res.status(500).json({ error: "Error de servidor" });
         }
-      } else {
-        return res
-          .status(403)
-          .json({ error: "Este usuario ya posee el rol de evaluador" });
-      }
-    }
 
-    if (!falloMail) {
-      return res.json({
-        ok: true,
-        responseMessage: "Se han enviado todos los emails correctamente",
-      });
-    } else {
-      return res.json({ ok: true, responseMessage: errores });
+      } else {
+          return res.status(403).json({ error: "Este usuario ya posee el rol de evaluador" });
+      }
+
     }
+      
+    return res.json({ ok: true,  responseMessage: "Se han añadido todas las tareas a la cola de envío de mail"});
+
+    
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Error de servidor" });
   }
 };
 
-const enviarMailSeleccion = async (usuario, docente) => {
-  try {
-    await transporter.sendMail({
-      from: "Ciencia Conecta",
-      to: usuario.email,
-      subject: "Resultado de Postulación como Evaluador",
-      html: seleccionMailHtml(docente),
-    });
-
-    // Verificar si el correo se envió exitosamente
-    if (info.accepted.length === 0) {
-      // No se pudo enviar el correo
-      throw new Error(`No se pudo enviar el correo a ${usuario.email}`);
-    }
-  } catch (error) {
-    throw error;
-  }
-};
 
 export const cargarCv = async (req, res) => {
   try {

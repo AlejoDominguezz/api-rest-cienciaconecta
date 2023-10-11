@@ -6,11 +6,12 @@ import {
 import { existeCuil, existeEmail } from "../helpers/db-validar.js";
 import { Docente } from "../models/Docente.js";
 import { transporter } from "../helpers/mailer.js";
-import {nanoid} from 'nanoid';
+import { nanoid } from 'nanoid';
 import { confirmationMailHtml } from "../helpers/confirmationMail.js";
 import { recoveryMailHtml } from "../helpers/recoveryMail.js";
 import { estadoUsuario } from "../models/Usuario.js";
 import { altaMailHtml } from "../helpers/altaMail.js";
+import { emailCola } from "../helpers/queueManager.js";
 
 // Función de Login
 export const login = async (req, res) => {
@@ -74,15 +75,19 @@ export const register = async (req, res) => {
     await user.save();
     await docente.save();
 
-    // Lógica de envío de mail de confirmación
-    const confirmationMail = confirmationMailHtml(user.tokenConfirm)
+    await emailCola.add("email:confirmacionUsuario", { 
+      tokenConfirm: user.tokenConfirm, 
+      mail: user.email})
 
-    await transporter.sendMail({
-      from: 'Ciencia Conecta',
-      to: user.email,
-      subject: "Verifica tu cuenta de correo",
-      html: confirmationMail
-    })
+    // Lógica de envío de mail de confirmación
+    // const confirmationMail = confirmationMailHtml(user.tokenConfirm)
+
+    // await transporter.sendMail({
+    //   from: 'Ciencia Conecta',
+    //   to: user.email,
+    //   subject: "Verifica tu cuenta de correo",
+    //   html: confirmationMail
+    // })
 
     return res.status(201).json({ ok: true });
   } catch (error) {
@@ -139,15 +144,19 @@ export async function solicitarRecuperacionContrasena(req, res) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    // Lógica de envío de correo de recuperación
-    const recoveryMail = recoveryMailHtml(token); // Puedes crear una función similar a confirmationMailHtml
+    await emailCola.add("email:recuperacionContrasena", { 
+      token, 
+      usuario})
 
-    await transporter.sendMail({
-      from: 'Ciencia Conecta',
-      to: usuario.email,
-      subject: "Recuperación de contraseña",
-      html: recoveryMail
-    });
+    // // Lógica de envío de correo de recuperación
+    // const recoveryMail = recoveryMailHtml(token); 
+
+    // await transporter.sendMail({
+    //   from: 'Ciencia Conecta',
+    //   to: usuario.email,
+    //   subject: "Recuperación de contraseña",
+    //   html: recoveryMail
+    // });
 
     const maskedEmail = usuario.email.replace(/^(.{4})(.*)(@.+)/, (_, p1, p2, p3) => `${p1}${'*'.repeat(p2.length)}${p3}`);
     const responseMessage = `Correo de recuperación enviado al mail ${maskedEmail}`;
@@ -230,9 +239,6 @@ export const altaUsuarios = async (req, res) => {
         usuarios
     } = req.body
 
-    var falloMail = false;
-    var errores = [];
-
     for(const idUsuario of usuarios){
 
         const usuario = await Usuario.findById(idUsuario)
@@ -250,10 +256,12 @@ export const altaUsuarios = async (req, res) => {
             usuario.save()
 
             try {
-                await enviarMailSeleccion(usuario, docente)
+                await emailCola.add("email:altaUsuario", {
+                  usuario, 
+                  docente})
+
             } catch (error) {
-                falloMail = true;
-                errores.push(`Fallo en el envío de mail a ${usuario.email}`)
+                console.log({error: "Error al añadir una tarea de envío de email a la cola"})
             }
 
         } else {
@@ -262,11 +270,9 @@ export const altaUsuarios = async (req, res) => {
         
     }
 
-    if (!falloMail){
-        return res.json({ ok: true,  responseMessage: "Se han enviado todos los emails correctamente"});
-    } else {
-        return res.json({ ok: true,  responseMessage: errores});
-    }
+    
+    return res.json({ ok: true,  responseMessage: "Se han añadido todas las tareas a la cola de envío de mail"});
+
     
 
   } catch (error) {
@@ -276,23 +282,23 @@ export const altaUsuarios = async (req, res) => {
 }
 
 
-const enviarMailSeleccion = async (usuario, docente) => {
-  try {
-      const info = await transporter.sendMail({
-          from: 'Ciencia Conecta',
-          to: usuario.email,
-          subject: "Su cuenta de CienciaConecta ha sido activada",
-          html: altaMailHtml(docente)
-        });
+// const enviarMailSeleccion = async (usuario, docente) => {
+//   try {
+//       const info = await transporter.sendMail({
+//           from: 'Ciencia Conecta',
+//           to: usuario.email,
+//           subject: "Su cuenta de CienciaConecta ha sido activada",
+//           html: altaMailHtml(docente)
+//         });
 
-      // Verificar si el correo se envió exitosamente
-      if (info.accepted.length === 0) {
-          // No se pudo enviar el correo
-          throw new Error(`No se pudo enviar el correo a ${usuario.email}`);
-      }
+//       // Verificar si el correo se envió exitosamente
+//       if (info.accepted.length === 0) {
+//           // No se pudo enviar el correo
+//           throw new Error(`No se pudo enviar el correo a ${usuario.email}`);
+//       }
 
-  } catch (error) {
-      throw error;
-  }
-  
-}
+//   } catch (error) {
+//       throw error;
+//   }
+// }
+

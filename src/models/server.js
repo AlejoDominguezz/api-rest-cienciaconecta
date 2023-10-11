@@ -75,19 +75,19 @@ class Server {
             req.headers.origin = req.headers.origin || 'http://' + req.headers.host;
             next();
           });
-
-        const whitelist = [process.env.ORIGIN1, process.env.ORIGIN2, ]
+        //test cors
+        const whitelist = [process.env.ORIGIN1, process.env.ORIGIN2, process.env.ORIGIN3 ]
 
         this.app.use(cors(
-            {
-            origin: function(origin, callback){
-                if(whitelist.includes(origin)){
-                    return callback(null, origin) 
-                }
-                return callback("Error de CORS - Origin: " + origin + " No autorizado")
-            },
-            credentials: true  
-            }
+             {
+             origin: function(origin, callback){
+                 if(whitelist.includes(origin)){
+                     return callback(null, origin) 
+                 }
+                 return callback("Error de CORS - Origin: " + origin + " No autorizado")
+             },
+             credentials: true  
+             }
         ))
 
         //parseo y lectura del body

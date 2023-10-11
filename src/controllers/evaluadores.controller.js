@@ -16,6 +16,7 @@ import {
   download_Cv
 } from "../services/drive/helpers-drive.js";
 import { getFeriaActivaFuncion } from "../controllers/ferias.controller.js"
+import { emailCola, fileCv } from "../helpers/queueManager.js";
 
 
 export const postularEvaluador = async (req, res) => {
@@ -114,9 +115,6 @@ export const seleccionarEvaluadores = async (req, res) => {
   try {
     const { postulaciones } = req.body;
 
-    var falloMail = false;
-    var errores = [];
-
     for (const idSeleccionado of postulaciones) {
       const postulacion = await Evaluador.findById(idSeleccionado);
       if (!postulacion)
@@ -140,59 +138,37 @@ export const seleccionarEvaluadores = async (req, res) => {
 
         usuario.save();
         postulacion.save();
+        
+        try {   
+            await emailCola.add("email:seleccionEvaluador", {
+                usuario, 
+                docente})
 
-        try {
-          await enviarMailSeleccion(usuario, docente);
         } catch (error) {
-          falloMail = true;
-          errores.push(`Fallo en el envío de mail a ${usuario.email}`);
+            return res.status(500).json({ error: "Error de servidor" });
         }
-      } else {
-        return res
-          .status(403)
-          .json({ error: "Este usuario ya posee el rol de evaluador" });
-      }
-    }
 
-    if (!falloMail) {
-      return res.json({
-        ok: true,
-        responseMessage: "Se han enviado todos los emails correctamente",
-      });
-    } else {
-      return res.json({ ok: true, responseMessage: errores });
+      } else {
+          return res.status(403).json({ error: "Este usuario ya posee el rol de evaluador" });
+      }
+
     }
+      
+    return res.json({ ok: true,  responseMessage: "Se han añadido todas las tareas a la cola de envío de mail"});
+
+    
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Error de servidor" });
   }
 };
 
-const enviarMailSeleccion = async (usuario, docente) => {
-  try {
-    await transporter.sendMail({
-      from: "Ciencia Conecta",
-      to: usuario.email,
-      subject: "Resultado de Postulación como Evaluador",
-      html: seleccionMailHtml(docente),
-    });
-
-    // Verificar si el correo se envió exitosamente
-    if (info.accepted.length === 0) {
-      // No se pudo enviar el correo
-      throw new Error(`No se pudo enviar el correo a ${usuario.email}`);
-    }
-  } catch (error) {
-    throw error;
-  }
-};
 
 export const cargarCv = async (req, res) => {
   try {
     const uid = req.uid;
     const _docente = await Docente.findOne({ usuario: uid });
     const evaluador = await Evaluador.findOne({ idDocente: _docente.id });
-
     if (!_docente) {
       return res.status(401).json({ message: "NO EXISTE EL DOCENTE" });
     }
@@ -234,38 +210,13 @@ export const cargarCv = async (req, res) => {
         }
       }
 
-      const name_folder = _docente.cuil;
-      //creo la nueva carpeta
-      const id_folder_new = await createFolder(name_folder, drive);
-
-      if (id_folder_new) {
-        evaluador.id_carpeta_cv = id_folder_new;
-        // Compartir la carpeta creada en paralelo
-        const email_ciencia_conecta = "cienciaconecta.utn@gmail.com";
-        await shareFolderWithPersonalAccount(
-          id_folder_new,
-          email_ciencia_conecta,
-          drive,
-          "writer"
-        );
-        const id_cv = await sendFileToDrive(files.cv, id_folder_new, drive);
-        if (id_cv) {
-          //https://drive.google.com/file/d/${id_cv}/preview
-          evaluador.CV = `${id_cv}`;
-          evaluador.save();
-          return res.status(200).json({
-            message: "CV CARGADO CORRECTAMENTE EN DRIVE",
-          });
-        } else {
-          return res.status(400).json({
-            message: "ERROR AL CARGAR EL CV EN DRIVE",
-          });
-        }
-      } else {
-        res.status(500).json({
-          message: "ERROR AL CREAR LA CARPETA EN DRIVE",
-        });
+      const cola = await fileCv.add({uid , files});
+      if(cola){
+        res.status(200).json({message: "CV CARGANDOSE..."});
+      }else{
+        res.status(400).json({message: "ERROR AL INTENTAR CARGAR EL CV"});
       }
+
 
     });
   } catch (error) {

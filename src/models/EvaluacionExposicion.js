@@ -1,6 +1,6 @@
 import { Schema, model } from 'mongoose';
 
-const evaluacionSchema = new Schema({
+const evaluacionExposicionSchema = new Schema({
   evaluacion: [{
     rubricaId: {
         type: Schema.Types.ObjectId,
@@ -34,9 +34,13 @@ const evaluacionSchema = new Schema({
     required: true,
     ref: 'Evaluador',
   }],
-  puntajeTeorico: {
+  puntajeExposicion: {
     type: Number,
-    required: true,
+    required: false,
+  },
+  puntajeFinal: {
+    type: Number,
+    required: false,
   },
   proyectoId: {
     type: Schema.Types.ObjectId,
@@ -71,9 +75,9 @@ const evaluacionSchema = new Schema({
   }
 });
 
-export const Evaluacion = model('Evaluacion', evaluacionSchema);
+export const EvaluacionExposicion = model('EvaluacionExposicion', evaluacionExposicionSchema);
 
-export const estadoEvaluacion = {
+export const estadoEvaluacionExposicion = {
   enEvaluacion: "1", // Cuando alguien se encuentra evaluando ese proyecto
   abierta: "2", // Cuando nadie está evaluando el proyecto, pero se aún es posible evaluar
   cerrada: "3" // Cuando todos han dado "Listo" o el período de evaluación ha finalizado
@@ -86,7 +90,7 @@ export const estadoEvaluacion = {
  * @swagger
  * components:
  *   schemas:
- *     Evaluacion:
+ *     EvaluacionExposicion:
  *       type: object
  *       properties:
  *         evaluacion:
@@ -122,9 +126,12 @@ export const estadoEvaluacion = {
  *             type: string
  *             description: ID del evaluador asociado a la evaluación.
  *           description: Lista de evaluadores asociados al proyecto.
- *         puntajeTeorico:
+ *         puntajeExposicion:
  *           type: number
- *           description: Puntaje teórico asignado al proyecto.
+ *           description: Puntaje de exposición asignado al proyecto.
+ *         puntajeFinal:
+ *           type: number
+ *           description: Puntaje final asignado al proyecto.
  *         proyectoId:
  *           type: string
  *           description: ID del proyecto asociado a la evaluación.
@@ -149,7 +156,8 @@ export const estadoEvaluacion = {
  *       required:
  *         - evaluacion
  *         - evaluadorId
- *         - puntajeTeorico
+ *         - puntajeExposicion
+ *         - puntajeFinal
  *         - proyectoId
  *         - estado
  */

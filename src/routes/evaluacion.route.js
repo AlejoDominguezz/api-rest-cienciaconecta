@@ -453,7 +453,9 @@ export default routerEvaluacion;
  * /api/v1/evaluacion/pendientes:
  *   get:
  *     summary: Obtener evaluaciones pendientes.
- *     tags: [Evaluacion] 
+ *     tags: 
+ *       - Evaluacion
+ *       - Exposicion 
  *     description: Obtiene una lista de evaluaciones pendientes para el usuario actual.
  *     parameters:
  *       - in: query
@@ -556,6 +558,34 @@ export default routerEvaluacion;
  *                           evaluando:
  *                             type: string
  *                             description: ID del evaluador que está realizando la evaluación en curso (si está disponible).
+ *                       exposicion:
+ *                         type: object
+ *                         description: Datos de la evaluación asociada al proyecto (si está disponible).
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             description: ID de la evaluación.
+ *                           evaluadorId:
+ *                             type: array
+ *                             description: Lista de IDs de evaluadores que realizaron la evaluación al menos una vez.
+ *                           puntajeExposicion:
+ *                             type: number
+ *                             description: Puntaje de exposición otorgado en la evaluación.
+ *                           puntajeFinal:
+ *                             type: number
+ *                             description: Puntaje final otorgado al proyecto (suma de teórico y exposición).
+ *                           listo:
+ *                             type: array
+ *                             description: Lista de IDs de evaluadores que han confirmado la evaluación.
+ *                           estado:
+ *                             type: string
+ *                             description: Estado actual de la evaluación.
+ *                           ultimaEvaluacion:
+ *                             type: string
+ *                             description: ID del último evaluador que realizó la evaluación.
+ *                           evaluando:
+ *                             type: string
+ *                             description: ID del evaluador que está realizando la evaluación en curso (si está disponible).
  *             example:
  *               proyectos:
  *                 - _id: "64ff135a816053f97af6c165"
@@ -584,6 +614,19 @@ export default routerEvaluacion;
  *                       - "6500f3926b839eed0a99b55f"
  *                       - "6504c5aec6266617467ca0ca"
  *                     puntajeTeorico: 100
+ *                     listo:
+ *                       - "6504c5aec6266617467ca0ca"
+ *                       - "6500f3926b839eed0a99b55f"
+ *                     estado: "3"
+ *                     ultimaEvaluacion: "6500f3926b839eed0a99b55f"
+ *                     evaluando: null
+ *                   exposicion:
+ *                     _id: "650db75b7dd72ab4aaa0a54e"
+ *                     evaluadorId:
+ *                       - "6500f3926b839eed0a99b55f"
+ *                       - "6504c5aec6266617467ca0ca"
+ *                     puntajeExposicion: 100
+ *                     puntajeFinal: 100
  *                     listo:
  *                       - "6504c5aec6266617467ca0ca"
  *                       - "6500f3926b839eed0a99b55f"
@@ -625,6 +668,7 @@ export default routerEvaluacion;
  *     description: Obtiene una evaluación pendiente por su ID.
  *     tags:
  *       - Evaluacion
+ *       - Exposicion
  *     parameters:
  *       - in: path
  *         name: id
@@ -644,6 +688,8 @@ export default routerEvaluacion;
  *                   $ref: '#/components/schemas/Proyecto'
  *                 evaluacion:
  *                   $ref: '#/components/schemas/Evaluacion'
+ *                 exposicion:
+ *                   $ref: '#/components/schemas/EvaluacionExposicion'
  *       404:
  *         description: No se encontró la evaluación pendiente
  *         content:

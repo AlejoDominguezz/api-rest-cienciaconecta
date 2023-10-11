@@ -28,4 +28,6 @@ jobs:
     - run: |
         touch .env
         echo "${{secrets.PROD_SECRET}}" > .env
+    - run: pm2 save
+    - run: pm2 restart cienciaconecta
     

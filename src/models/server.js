@@ -153,6 +153,7 @@ class Server {
         this.app.listen( this.port , () => {
             console.log('servidor corriendo en puerto' , process.env.PORT );
             console.log(`Servidor corriendo en: ${process.env.ORIGIN1}` );
+            console.log('test ci');
             swaggerDocs(this.app, process.env.PORT);
         });
     }

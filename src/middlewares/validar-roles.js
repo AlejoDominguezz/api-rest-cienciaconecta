@@ -123,7 +123,7 @@ export const esReferenteDelProyecto = async (req, res, next) => {
   
   try {
     // Si es evaluador, dejamos pasar ya que pasó el middleware de evaluador
-    if(req.roles.includes(roles.evaluador)){
+    if(!req.roles.includes(roles.refEvaluador)){
       return next();
     }
 

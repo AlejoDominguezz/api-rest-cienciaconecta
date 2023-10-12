@@ -20,7 +20,6 @@ import {
   actualizarArchivosRegional,
   downloadDocuments,
   downloadDocumentEspecific,
-  generarQR,
   generarPDFconQR
 } from "../controllers/proyectos.controller.js";
 import {
@@ -141,14 +140,6 @@ routerProyectos.get(
 
 routerProyectos.get(
   "/generarQR/:id",
-  requireToken,
-  checkRolAuth([roles.admin, roles.responsableProyecto]),
-  esPropietario,
-  generarQR
-)
-
-routerProyectos.get(
-  "/generarPDF/:id",
   requireToken,
   checkRolAuth([roles.admin, roles.responsableProyecto]),
   esPropietario,

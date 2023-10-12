@@ -749,37 +749,39 @@ export const downloadDocumentEspecific = async (req, res) => {
 
 
 
-export const generarQR = async (req, res) => {
-  const proyecto = req.proyecto;
-  const urlEvaluacion = `${process.env.RUTA_QR}/${proyecto._id}`;
+const generarQR = async (proyecto) => {
+  return new Promise((resolve, reject) => {
+    const urlEvaluacion = `${process.env.RUTA_QR}/${proyecto._id}`;
 
-  try {
     // Genera el código QR con la URL
     QRCode.toDataURL(urlEvaluacion, { type: 'image/png' }, async (err, url) => {
       if (err) {
-        return res.status(500).json({ error: 'Error al generar el QR' });
+        reject('Error al generar el QR');
+        return;
       }
 
-      // Usa sharp para cargar la imagen y convertirla a formato PNG
-      const qrBuffer = await sharp(Buffer.from(url.replace(/^data:image\/\w+;base64,/, ''), 'base64'))
-        .toFormat('png')
-        .toBuffer();
+      try {
+        // Usa sharp para cargar la imagen y convertirla a formato PNG
+        const qrBuffer = await sharp(Buffer.from(url.replace(/^data:image\/\w+;base64,/, ''), 'base64'))
+          .toFormat('png')
+          .toBuffer();
 
-      // Convierte el buffer a una cadena base64 para almacenarlo en el atributo QR
-      const qrBase64 = qrBuffer.toString('base64');
+        // Convierte el buffer a una cadena base64 para almacenarlo en el atributo QR
+        const qrBase64 = qrBuffer.toString('base64');
 
-      // Almacena el código QR como cadena base64 en el atributo QR del proyecto
-      proyecto.QR = qrBase64;
+        // Almacena el código QR como cadena base64 en el atributo QR del proyecto
+        proyecto.QR = qrBase64;
 
-      // Guarda el proyecto con el atributo QR actualizado
-      await proyecto.save();
+        // Guarda el proyecto con el atributo QR actualizado
+        await proyecto.save();
 
-      // Envía una respuesta exitosa
-      return res.json({ message: 'Código QR generado y almacenado exitosamente' });
+        // Resuelve la promesa con el proyecto actualizado
+        resolve(proyecto);
+      } catch (error) {
+        reject('Error al generar o guardar el QR');
+      }
     });
-  } catch (error) {
-    res.status(500).json({ error: 'Error de servidor' });
-  }
+  });
 };
 
 
@@ -787,7 +789,11 @@ export const generarQR = async (req, res) => {
 
 export const generarPDFconQR = async (req, res) => {
   try {
-    const proyecto = req.proyecto;
+    let proyecto = req.proyecto;
+
+    if(!proyecto?.QR) {
+      proyecto = await generarQR(proyecto)
+    }
 
     // Crea un nuevo documento PDF con el formato A4 (595 puntos de ancho x 842 puntos de alto)
     const pdfDoc = await PDFDocument.create();
@@ -817,19 +823,6 @@ export const generarPDFconQR = async (req, res) => {
       height: qrDims.height,
     });
 
-    // Agregar contenido adicional (Título y Descripción)
-    // const content = `
-    //   ${proyecto.titulo}
-    // `;
-
-    // // Dibuja el contenido en la página del PDF
-    // page.drawText(content, {
-    //   x: qrX,
-    //   y: qrY+450, 
-    //   size: 20,
-    //   color: rgb(0, 0, 0), // Color negro
-    // });
-
     const title = proyecto.titulo.replace(/\n/g, ' '); // Reemplazar las nuevas líneas con espacios
 
     // Dividir el título en líneas de no más de 30 caracteres
@@ -845,25 +838,32 @@ export const generarPDFconQR = async (req, res) => {
       }
     }
 
-    // Unir las líneas con saltos de línea
-    const wrappedTitle = titleLines.join('\n');
+    // Calcular la posición y para centrar el título
+    const titleY = qrY + 450; // La posición inicial de Y
 
-    // Calcular el ancho del título
     const fontSize = 20; // Tamaño del título
-    const font = await pdfDoc.embedFont('Helvetica'); // Puedes cambiar 'Helvetica' a la fuente que estás utilizando
-    const titleWidth = font.widthOfTextAtSize(wrappedTitle, fontSize);
+    const font = await pdfDoc.embedFont('Helvetica');
+    
+    // Dibuja cada línea del título centrada en la página
+    for (let i = 0; i < titleLines.length; i++) {
+      const line = titleLines[i];
+      
+      // Calcular el ancho de la línea actual
+      const lineWidth = font.widthOfTextAtSize(line, fontSize);
+      
+      // Calcular la posición x para centrar la línea actual
+      const lineX = qrX + (qrDims.width - lineWidth) / 2;
+      
+      // Dibuja la línea centrada en la página
+      page.drawText(line, {
+        x: lineX,
+        y: titleY - i * fontSize, // Posición de Y ajustada para cada línea
+        size: fontSize, // Tamaño del título
+        color: rgb(0, 0, 0), // Color negro
+        font: font, // La fuente que estás utilizando
+      });
+    }
 
-    // Calcular la posición x para centrar el título
-    const titleX = qrX + (qrDims.width - titleWidth) / 2;
-
-    // Dibuja el título centrado
-    page.drawText(wrappedTitle, {
-      x: titleX,
-      y: qrY + 450, // Ajusta la posición según tus necesidades
-      size: fontSize, // Tamaño del título
-      color: rgb(0, 0, 0), // Color negro
-      font: font, // La fuente que estás utilizando
-    });
     
 
 

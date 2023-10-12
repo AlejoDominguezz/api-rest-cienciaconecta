@@ -14,14 +14,17 @@ if (process.env.MODO === 'production') {
 
     // Crea un servidor HTTPS con los certificados
     const httpsServer = https.createServer(credentials, server.app);
-
-    httpsServer.listen(443, () => {
+    console.log('https test')
+    httpsServer.listen(8443, () => {
         console.log('Servidor HTTPS corriendo en el puerto 443');
     });
+
 } else {
     // En desarrollo, utiliza HTTP en el puerto 80
     const httpServer = http.createServer(server.app);
-    httpServer.listen();
+    httpServer.listen(80, () => {
+        console.log('Servidor HTTP corriendo en el puerto 80');
+    });
 }
 
 server.listen();

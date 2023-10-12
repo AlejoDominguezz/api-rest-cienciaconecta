@@ -748,42 +748,6 @@ export const downloadDocumentEspecific = async (req, res) => {
 };
 
 
-// Función para generar un Código QR del proyecto -----------------------------------------------------------------------------------------
-// export const generarQR = async (req, res) => {
-//   const proyecto = req.proyecto;
-
-//   const urlEvaluacion = `${process.env.RUTA_QR}/${proyecto._id}`;
-
-//   try {
-//     // Genera el código QR con la URL y almacénalo en un buffer en formato JPEG
-//     QRCode.toBuffer(urlEvaluacion, { type: 'image/jpeg' }, (err, buffer) => {
-//       if (err) {
-//         return res.status(500).json({ error: 'Error al generar el QR' });
-//       }
-
-//       // Convierte el buffer a una cadena base64 para almacenarlo en el atributo QR
-//       const qrBase64 = buffer.toString('base64');
-
-//       // Almacena la cadena base64 en el atributo QR del proyecto
-//       proyecto.QR = qrBase64;
-
-//       // Guarda el proyecto con el atributo QR actualizado
-//       proyecto.save()
-
-//       // Envía la imagen del código QR al cliente utilizando la URL base64
-//       //return res.send(`<img src="data:image/jpeg;base64,${qrBase64}" alt="QR del proyecto">`);
-//       return res.json({
-//         tag: `<img src="data:image/jpeg;base64,${qrBase64}" alt="QR del proyecto">`,
-//         qrBase64: qrBase64
-//       });
-
-//     });
-  
-//   } catch (error) {
-//     res.status(500).json({ error: 'Error de servidor' });
-//   }
-// };
-
 
 export const generarQR = async (req, res) => {
   const proyecto = req.proyecto;
@@ -821,84 +785,6 @@ export const generarQR = async (req, res) => {
 
 
 
-// export const generarPDFconQR = async (req, res) => {
-//   try {
-//     const proyecto = req.proyecto;
-
-//     // Crea un nuevo documento PDF con el formato A4 (595 puntos de ancho x 842 puntos de alto)
-//     const pdfDoc = await PDFDocument.create();
-//     const page = pdfDoc.addPage([595.276, 841.890]);
-
-//     // Decodificar el código QR en formato JPG
-//     // const qrBase64 = proyecto.QR;
-//     // const qrData = qrBase64.replace(/^data:image\/jpeg;base64,/, '');
-//     // const qrBuffer = Buffer.from(qrData, 'base64');
-//     // const qrImageData = jpeg.decode(qrBuffer);
-
-//     // Decodificar el código QR en formato base64
-//     const qrBase64 = proyecto.QR;
-
-//     // Convierte la cadena base64 a un buffer
-//     const qrBuffer = Buffer.from(qrBase64, 'base64');
-
-//     // Agrega el código QR al PDF
-//     const qrImage = await pdfDoc.embedJpg(qrBuffer);
-//     const qrDims = qrImage.scale(1);
-
-
-//     // Dibuja el código QR en la página
-//     page.drawImage(qrImage, {
-//       x: 50,
-//       y: 300, // Ajusta la posición según tus necesidades
-//       width: qrDims.width,
-//       height: qrDims.height,
-//     });
-
-//     // Agregar contenido adicional (Título y Descripción)
-//     const content = `
-//       Título del Proyecto: ${proyecto.titulo}
-//       Descripción: ${proyecto.descripcion}
-//     `;
-
-//     // Dibuja el contenido en la página del PDF
-//     page.drawText(content, {
-//       x: 50,
-//       y: 100, // Ajusta la posición según tus necesidades
-//       size: 20,
-//       color: rgb(0, 0, 0), // Color negro
-//     });
-
-//     // Serializa el PDF en un ArrayBuffer
-//     const pdfBytes = await pdfDoc.save();
-
-//     // Obtener ruta del directorio actual
-//     const currentDir = path.dirname(fileURLToPath(import.meta.url));
-
-//     // Crea un archivo temporal para almacenar el PDF
-//     const tempFilePath = path.join(currentDir, '../temp', `temp-qr-${proyecto._id}.pdf`).replace(/\\/g, '/');
-
-//     // Utiliza promesas para escribir el archivo
-//     await new Promise((resolve, reject) => {
-//       fs.writeFile(tempFilePath, pdfBytes, (err) => {
-//         if (err) {
-//           reject(err);
-//         } else {
-//           resolve();
-//         }
-//       });
-//     });
-
-//     // Envía el PDF como una respuesta
-//     res.setHeader('Content-Type', 'application/pdf');
-//     res.setHeader('Content-Disposition', `attachment; filename="Proyecto - ${proyecto.titulo}.pdf`);
-//     res.status(200).sendFile(tempFilePath);
-//   } catch (error) {
-//     console.error('Error al generar el PDF', error);
-//     res.status(500).json({ error: 'Error al generar el PDF' });
-//   }
-// };
-
-
 export const generarPDFconQR = async (req, res) => {
   try {
     const proyecto = req.proyecto;
@@ -932,17 +818,56 @@ export const generarPDFconQR = async (req, res) => {
     });
 
     // Agregar contenido adicional (Título y Descripción)
-    const content = `
-      ${proyecto.titulo}
-    `;
+    // const content = `
+    //   ${proyecto.titulo}
+    // `;
 
-    // Dibuja el contenido en la página del PDF
-    page.drawText(content, {
-      x: qrX,
-      y: qrY+450, 
-      size: 20,
+    // // Dibuja el contenido en la página del PDF
+    // page.drawText(content, {
+    //   x: qrX,
+    //   y: qrY+450, 
+    //   size: 20,
+    //   color: rgb(0, 0, 0), // Color negro
+    // });
+
+    const title = proyecto.titulo.replace(/\n/g, ' '); // Reemplazar las nuevas líneas con espacios
+
+    // Dividir el título en líneas de no más de 30 caracteres
+    const maxLineLength = 30;
+    const titleLines = [];
+    let currentLine = '';
+
+    for (let i = 0; i < title.length; i++) {
+      currentLine += title[i];
+      if (currentLine.length >= maxLineLength || i === title.length - 1) {
+        titleLines.push(currentLine);
+        currentLine = '';
+      }
+    }
+
+    // Unir las líneas con saltos de línea
+    const wrappedTitle = titleLines.join('\n');
+
+    // Calcular el ancho del título
+    const fontSize = 20; // Tamaño del título
+    const font = await pdfDoc.embedFont('Helvetica'); // Puedes cambiar 'Helvetica' a la fuente que estás utilizando
+    const titleWidth = font.widthOfTextAtSize(wrappedTitle, fontSize);
+
+    // Calcular la posición x para centrar el título
+    const titleX = qrX + (qrDims.width - titleWidth) / 2;
+
+    // Dibuja el título centrado
+    page.drawText(wrappedTitle, {
+      x: titleX,
+      y: qrY + 450, // Ajusta la posición según tus necesidades
+      size: fontSize, // Tamaño del título
       color: rgb(0, 0, 0), // Color negro
+      font: font, // La fuente que estás utilizando
     });
+    
+
+
+
 
     // Serializa el PDF en un ArrayBuffer
     const pdfBytes = await pdfDoc.save();

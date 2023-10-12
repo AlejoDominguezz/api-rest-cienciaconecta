@@ -37,7 +37,7 @@ export default routerReferente;
  * /api/v1/referente:
  *   post:
  *     summary: Seleccionar referentes
- *     description: Crea referentes y asigna roles a docentes como referentes de evaluador.
+ *     description: Selección/Modificación de selección de referentes a sedes.
  *     tags:
  *       - Referente
  *     security:
@@ -59,7 +59,7 @@ export default routerReferente;
  *                       description: ID de la sede a la cual se quiere asignar el referente de evaluador.
  *                     referente:
  *                       type: string
- *                       description: ID del docente que se desea seleccionar como referente.
+ *                       description: ID del docente que se desea seleccionar como referente. Puede ser Null si no se asigna ningún referente a esa sede
  *                 required:
  *                   - sede
  *                   - referente
@@ -68,71 +68,6 @@ export default routerReferente;
  *         description: Se han seleccionado los referentes correctamente.
  *       401:
  *         description: Error en la selección de referentes.
- *       500:
- *         description: Error de servidor.
- */
-
-
-
-
-/**
- * @swagger
- * /api/v1/referente/:id:
- *   patch:
- *     summary: Modificar un referente
- *     description: Modifica la sede de un referente seleccionado.
- *     tags:
- *       - Referente
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: ID del referente seleccionado a modificar.
- *         schema:
- *           type: string
- *       - in: body
- *         name: body
- *         required: true
- *         description: Datos para la modificación del referente.
- *         schema:
- *           type: object
- *           properties:
- *             sede:
- *               type: string
- *               description: ID de la nueva sede a asignar al referente.
- *     responses:
- *       200:
- *         description: Referente modificado exitosamente.
- *       401:
- *         description: Error en la modificación del referente.
- *       500:
- *         description: Error de servidor.
- */
-
-/**
- * @swagger
- * /api/v1/referente/:id:
- *   delete:
- *     summary: Eliminar un referente
- *     description: Elimina un referente seleccionado y revierte los roles del docente asociado.
- *     tags:
- *       - Referente
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: ID del referente seleccionado a eliminar.
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Referente eliminado exitosamente.
- *       401:
- *         description: Error en la eliminación del referente.
  *       500:
  *         description: Error de servidor.
  */

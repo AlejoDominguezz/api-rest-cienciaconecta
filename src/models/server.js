@@ -20,7 +20,7 @@ import routerEvaluadores from '../routes/evaluador.route.js';
 import routerEvaluacion from '../routes/evaluacion.route.js';
 import routerReferente from '../routes/referente.route.js';
 import routerExposicion from '../routes/exposicion.route.js';
-import routerValidator from '../routes/validator.route.js';
+
 
 
 
@@ -47,8 +47,7 @@ class Server {
             evaluador:      '/api/v1/evaluador',
             evaluacion:     '/api/v1/evaluacion',
             exposicion:     '/api/v1/exposicion',
-            referente:      '/api/v1/referente',
-            validator:      '/.well-known/pki-validation/'
+            referente:      '/api/v1/referente'
         }
 
         
@@ -147,10 +146,6 @@ class Server {
 
         //path de referentes
         this.app.use(this.paths.referente, routerReferente);
-
-        //validation
-        this.app.use(this.paths.validator, routerValidator);
-
     }
 
 
@@ -158,6 +153,7 @@ class Server {
         this.app.listen( this.port , () => {
             console.log('servidor corriendo en puerto' , process.env.PORT );
             console.log(`Servidor corriendo en: ${process.env.ORIGIN1}` );
+            console.log('test ci');
             swaggerDocs(this.app, process.env.PORT);
         });
     }

@@ -28,3 +28,4 @@ jobs:
     - run: |
         touch .env
         echo "${{secrets.PROD_SECRET}}" > .env
+    - run: pm2 reload 0

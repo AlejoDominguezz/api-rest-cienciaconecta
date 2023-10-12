@@ -31,5 +31,3 @@ export const fileCv = new Queue("fileCv", {
       db: process.env.REDIS_DB,
     },
   });
-
-console.log("test")

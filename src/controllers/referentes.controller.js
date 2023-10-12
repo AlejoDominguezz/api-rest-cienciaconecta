@@ -10,108 +10,69 @@ export const seleccionarReferentes = async (req, res) => {
     try {
         const {seleccion} = req.body;
 
+        const feriaActiva = await getFeriaActivaFuncion()
+
+        // Buscar y eliminar todos los referentes de la feria activa
+        const referentesEliminados = await Referente.find({ feria: feriaActiva._id });
+        await Referente.deleteMany({ feria: feriaActiva._id });
+
+        for (const referenteEliminado of referentesEliminados) {
+        // Buscar el docente relacionado con el referente eliminado
+        const docente = await Docente.findById(referenteEliminado.idDocente);
+
+        if (docente) {
+            // Buscar el usuario relacionado con el docente
+            const usuario = await Usuario.findById(docente.usuario);
+
+            if (usuario) {
+            // Quitar el rol roles.refEvaluador al usuario
+            if (usuario.roles.includes(roles.refEvaluador)) {
+                usuario.roles = usuario.roles.filter((rol) => rol !== roles.refEvaluador);
+                await usuario.save();
+            }
+            }
+        }
+        }
+
+        // Asignación de nuevos referentes de evaluador
         for (const obj of seleccion) {
-            
-            const docente = await Docente.findById(obj.referente)
-            if(!docente){
-                return res.status(401).json({ error: `${obj.referente} no es un ID de un docente registrado` });
+
+            // Solo se crean referentes que sean distintos de null
+            if (obj.referente !== null) {
+
+              // Si se envía un referente, crear un nuevo referente y asignar la sede.
+                const docente = await Docente.findById(obj.referente)
+                if(!docente){
+                    return res.status(401).json({ error: `${obj.referente} no es un ID de un docente registrado` });
+                }
+
+                const usuario = await Usuario.findById(docente.usuario)
+                if(!usuario){
+                    return res.status(401).json({ error: `${obj.referente} no tiene asociado a un usuario registrado` });
+                }
+
+                // Creación de referente
+                const referente = new Referente({
+                    sede: obj.sede,
+                    idDocente: obj.referente,
+                    feria: feriaActiva._id,
+                });
+                
+                // Modificación de roles
+                if(usuario.roles.includes(roles.evaluador)){
+                    usuario.roles.push(roles.refEvaluador)
+                    usuario.roles = usuario.roles.filter(rol => rol !== roles.evaluador);
+                } else {
+                    usuario.roles.push(roles.refEvaluador)
+                }
+
+                usuario.save()
+                referente.save()
+
             }
-
-            const usuario = await Usuario.findById(docente.usuario)
-            if(!usuario){
-                return res.status(401).json({ error: `${obj.referente} no tiene asociado a un usuario registrado` });
-            }
-
-            const feriaActiva = await getFeriaActivaFuncion()
-
-            const referente = new Referente({
-                sede: obj.sede,
-                idDocente: obj.referente,
-                evaluadoresAsignados: [],
-                feria: feriaActiva._id
-            })
-
-            if(usuario.roles.includes(roles.refEvaluador)){
-                return res.status(401).json({ error: `${obj.referente} ya ha sido seleccionado como referente de evaluador` });
-            }
-
-
-            if(usuario.roles.includes(roles.evaluador)){
-                usuario.roles.push(roles.refEvaluador)
-                usuario.roles = usuario.roles.filter(rol => rol !== roles.evaluador);
-            } else {
-                usuario.roles.push(roles.refEvaluador)
-            }
-
-            usuario.save()
-            referente.save()
-
         }
+
         return res.json({msg: "Se han seleccionado todos los referentes correctamente"}); 
-
-    } catch (error) {
-        return res.status(500).json({error: "Error de servidor"})
-    }
-
-}
-
-
-export const modificarReferente = async (req, res) => {
-    try {
-        const {id} = req.params;
-        const {sede} = req.body;
-
-        const feriaActiva = await getFeriaActivaFuncion()
-
-        const referente = await Referente.findById(id);
-        if(!referente){
-            return res.status(401).json({ error: `${id} no es un ID de un referente seleccionado` });
-        }
-        if(referente.feria != feriaActiva.id){
-            return res.status(401).json({ error: "No se permite modificar un referente de una feria anterior" });
-        }
-
-        referente.sede = sede.toString()
-        referente.save()
-
-        return res.json({referente}); 
-
-    } catch (error) {
-        return res.status(500).json({error: "Error de servidor"})
-    }
-
-}
-
-
-export const eliminarReferente = async (req, res) => {
-    try {
-        const {id} = req.params;
-
-        const feriaActiva = await getFeriaActivaFuncion()
-
-        const referente = await Referente.findById(id);
-        if(!referente){
-            return res.status(401).json({ error: `${id} no es un ID de un referente seleccionado` });
-        }
-        if(referente.feria != feriaActiva.id){
-            return res.status(401).json({ error: "No se permite eliminar un referente de una feria anterior" });
-        }
-
-        const docente = await Docente.findById(referente.idDocente);
-        if(!docente){
-            return res.status(401).json({ error: `${id} no tiene un docente asociado registrado` });
-        }
-
-        const usuario = await Usuario.findById(docente.usuario);
-        if(!usuario){
-            return res.status(401).json({ error: `${id} no tiene un usuario asociado registrado` });
-        }
-
-        usuario.roles = usuario.roles.filter(rol => rol !== roles.refEvaluador);
-        usuario.save()
-        referente.deleteOne()
-
-        return res.json({ msg: `El referente con ID ${id} se ha eliminado correctamente`}); 
 
     } catch (error) {
         return res.status(500).json({error: "Error de servidor"})

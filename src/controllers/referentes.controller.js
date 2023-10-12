@@ -373,7 +373,7 @@ export const obtenerEvaluadores = async (req, res) => {
 
 const calcularCoincidencia = (evaluador, proyecto) => {
     
-    console.log("NIVEL DE COINCIDENCIA -------------------- Evaluador: ", evaluador._id.toString())
+    //console.log("NIVEL DE COINCIDENCIA -------------------- Evaluador: ", evaluador._id.toString())
 
     const MAX_PUNTUACION = 100; // Puntuación máxima
 
@@ -383,14 +383,14 @@ const calcularCoincidencia = (evaluador, proyecto) => {
     // Comprobar coincidencia de nivel
     if (evaluador.niveles.toString().includes(proyecto.nivel.toString())) {
         puntuacionTotal += MAX_PUNTUACION / 4; // Asignar 25 puntos (25%)
-        console.log("NIVEL: ", MAX_PUNTUACION / 4)
+        //console.log("NIVEL: ", MAX_PUNTUACION / 4)
     }
 
 
     // Comprobar coincidencia de categoría
     if (evaluador.categorias.toString().includes(proyecto.categoria.toString())) {
         puntuacionTotal += MAX_PUNTUACION / 4; // Asignar 25 puntos (25%)
-        console.log("CATEGORIA: ", MAX_PUNTUACION / 4)
+        //console.log("CATEGORIA: ", MAX_PUNTUACION / 4)
     }
 
     // Comprobar antecedentes
@@ -424,16 +424,16 @@ const calcularCoincidencia = (evaluador, proyecto) => {
     const escalaLogaritmica = decaimientoLogaritmico(antecedentesPuntaje);
     puntuacionTotal += Math.min(escalaLogaritmica, MAX_PUNTUACION_ANTECEDENTES);
 
-    console.log("ANTECEDENTES: ", Math.min(escalaLogaritmica, MAX_PUNTUACION_ANTECEDENTES))
+    //console.log("ANTECEDENTES: ", Math.min(escalaLogaritmica, MAX_PUNTUACION_ANTECEDENTES))
 
     // Comprobar coincidencia de sede
     if (evaluador.sede.toString() == proyecto.sede.toString()) {
         puntuacionTotal += MAX_PUNTUACION / 4; // Asignar 25 puntos (25%)
-        console.log("SEDE: ", MAX_PUNTUACION / 4)
+        //console.log("SEDE: ", MAX_PUNTUACION / 4)
     }
 
     
-    console.log("TOTAL: ", parseFloat(puntuacionTotal.toFixed(2)))
+    //console.log("TOTAL: ", parseFloat(puntuacionTotal.toFixed(2)))
     
     return parseFloat(puntuacionTotal.toFixed(2));
 }

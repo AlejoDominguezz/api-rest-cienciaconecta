@@ -20,6 +20,7 @@ import routerEvaluadores from '../routes/evaluador.route.js';
 import routerEvaluacion from '../routes/evaluacion.route.js';
 import routerReferente from '../routes/referente.route.js';
 import routerExposicion from '../routes/exposicion.route.js';
+import routerPromocion from '../routes/promocion.route.js';
 
 
 
@@ -47,7 +48,8 @@ class Server {
             evaluador:      '/api/v1/evaluador',
             evaluacion:     '/api/v1/evaluacion',
             exposicion:     '/api/v1/exposicion',
-            referente:      '/api/v1/referente'
+            referente:      '/api/v1/referente',
+            promocion:      '/api/v1/promocion',
         }
 
         
@@ -146,6 +148,9 @@ class Server {
 
         //path de referentes
         this.app.use(this.paths.referente, routerReferente);
+
+         //path de promoción de proyectos
+         this.app.use(this.paths.promocion, routerPromocion);
     }
 
 

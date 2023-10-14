@@ -215,42 +215,42 @@ export const obtenerProyectosAsignadosAReferente = async (req, res) => {
 
 }
 
-export const eliminarAsignaciónEvaluadorAProyecto = async (req, res) => {
-    try {
+// export const eliminarAsignaciónEvaluadorAProyecto = async (req, res) => {
+//     try {
 
-        //const { id } = req.params;
-        const { evaluador } = req.body;
+//         //const { id } = req.params;
+//         const { evaluador } = req.body;
 
-        const errores = [];
+//         const errores = [];
 
-        const proyecto = req.proyecto;
-        if (!proyecto) {
-            return res.status(401).json({ error: "No existe el proyecto con el ID ingresado" });
-        }
+//         const proyecto = req.proyecto;
+//         if (!proyecto) {
+//             return res.status(401).json({ error: "No existe el proyecto con el ID ingresado" });
+//         }
 
-        if (proyecto.evaluadoresRegionales.length == 0) {
-            return res.status(401).json({ error: `El proyecto no tiene evaluadores asignados` });
-        }
+//         if (proyecto.evaluadoresRegionales.length == 0) {
+//             return res.status(401).json({ error: `El proyecto no tiene evaluadores asignados` });
+//         }
 
-        const ev = await Evaluador.findById(evaluador);
-        if (!ev) {
-            return res.status(401).json({ error: "No existe el evaluador con el ID ingresado" });
-        }
+//         const ev = await Evaluador.findById(evaluador);
+//         if (!ev) {
+//             return res.status(401).json({ error: "No existe el evaluador con el ID ingresado" });
+//         }
 
-        proyecto.evaluadoresRegionales = proyecto.evaluadoresRegionales.filter(id => id.toString() !== evaluador.toString());
+//         proyecto.evaluadoresRegionales = proyecto.evaluadoresRegionales.filter(id => id.toString() !== evaluador.toString());
         
-        proyecto.save()
+//         proyecto.save()
 
-        return res.json({ msg: `Se ha eliminado la asignación del evaluador ID ${ev._id} al proyecto '${proyecto.titulo}'` });
+//         return res.json({ msg: `Se ha eliminado la asignación del evaluador ID ${ev._id} al proyecto '${proyecto.titulo}'` });
 
-    } catch (error) {
-        return res.status(500).json({ error: "Error de servidor" });
-    }
-}
+//     } catch (error) {
+//         return res.status(500).json({ error: "Error de servidor" });
+//     }
+// }
 
 export const asignarEvaluadoresAProyecto = async (req, res) => {
     try {
-        //const { id } = req.params;
+
         const { evaluadores } = req.body;
         const errores = [];
 
@@ -259,25 +259,27 @@ export const asignarEvaluadoresAProyecto = async (req, res) => {
             return res.status(401).json({ error: "No existe el proyecto con el ID ingresado" });
         }
 
-        if (proyecto.evaluadoresRegionales.length >= 3) {
-            return res.status(401).json({ error: `El proyecto ya tiene 3 evaluadores asignados` });
-        }
+        proyecto.evaluadoresRegionales = []
 
-        if (proyecto.evaluadoresRegionales.length + evaluadores.length > 3) {
-            return res.status(401).json(
-                { error: `No puedes asignar ${evaluadores.length} evaluadores, hay ${proyecto.evaluadoresRegionales.length} evaluadores asignados en el proyecto. Puedes asignar ${3 - proyecto.evaluadoresRegionales.length} como máximo` });
-        }
+        // if (proyecto.evaluadoresRegionales.length >= 3) {
+        //     return res.status(401).json({ error: `El proyecto ya tiene 3 evaluadores asignados` });
+        // }
+
+        // if (proyecto.evaluadoresRegionales.length + evaluadores.length > 3) {
+        //     return res.status(401).json(
+        //         { error: `No puedes asignar ${evaluadores.length} evaluadores, hay ${proyecto.evaluadoresRegionales.length} evaluadores asignados en el proyecto. Puedes asignar ${3 - proyecto.evaluadoresRegionales.length} como máximo` });
+        // }
 
         for (const evaluadorID of evaluadores) {
             try {
-                if (proyecto.evaluadoresRegionales.includes(evaluadorID.toString())) {
-                    errores.push(`El evaluador con ID ${evaluadorID} ya ha sido asignado al proyecto`);
-                } else {
+                // if (proyecto.evaluadoresRegionales.includes(evaluadorID.toString())) {
+                //     errores.push(`El evaluador con ID ${evaluadorID} ya ha sido asignado al proyecto`);
+                // } else {
                     const evaluador = await Evaluador.findById(evaluadorID);
                     if (!evaluador) {
                         errores.push(`No existe un evaluador registrado con ID ${evaluadorID}`);
                     } else {
-                        const proyectosAsignados = await Proyecto.find({ evaluadoresRegionales: evaluadorID }).countDocuments();
+                        const proyectosAsignados = await Proyecto.find({ evaluadoresRegionales: evaluadorID, _id: { $ne: proyecto._id } }).countDocuments();
                         if (proyectosAsignados >= 5) {
                             errores.push(`Evaluador con ID ${evaluadorID} ya está asignado a 5 proyectos`);
                         } else if(evaluador.sede.toString() != proyecto.sede.toString()) {
@@ -286,14 +288,14 @@ export const asignarEvaluadoresAProyecto = async (req, res) => {
                             proyecto.evaluadoresRegionales.push(evaluadorID);
                         }
                     }
-                }
+                // }
             } catch (error) {
                 errores.push(`Error al procesar evaluador con ID ${evaluadorID}: ${error.message}`);
             }
         }
 
         if (errores.length > 0) {
-            return res.status(401).json({ errores });
+            return res.status(401).json({ error: "Han ocurrido errores al asignar evaluadores al proyecto", errors: errores });
         } else {
             await proyecto.save();
             return res.json({ msg: `Todos los evaluadores han sido asignados correctamente al proyecto '${proyecto.titulo}'` });

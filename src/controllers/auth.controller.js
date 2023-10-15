@@ -106,6 +106,9 @@ export const logout = (req, res) => {
     //domain: process.env.COOKIE_ORIGIN,
     domain: 'https://54.90.160.149.nip.io',
     path: '/',
+    httpOnly: true,
+    sameSite: 'none',
+    secure: !(process.env.MODO === "developer"),
 
   });
   res.json({ ok: true });

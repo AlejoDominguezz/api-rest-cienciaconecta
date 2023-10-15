@@ -83,6 +83,11 @@ export const estadoEvaluacionExposicion = {
   cerrada: "3" // Cuando todos han dado "Listo" o el período de evaluación ha finalizado
 }
 
+export const nombreEstadoExposicion = {
+  1: "En evaluación",
+  2: "Abierta",
+  3: "Cerrada"
+}
 
 // DOCUMENTACION SWAGGER -------------------------------------------------------------------------------------------------
 

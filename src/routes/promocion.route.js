@@ -7,15 +7,16 @@
 
 import { Router } from "express";
 import { requireToken } from '../middlewares/requireToken.js';
-import { checkRolAuth, esEvaluadorDelProyecto, esReferenteDelProyecto } from "../middlewares/validar-roles.js";
+import { checkRolAuth } from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
-import { cancelarEvaluacion, confirmarEvaluacion, evaluarProyecto, iniciarEvaluacion, visualizarEvaluacion, obtenerEvaluacionesPendientes, obtenerEvaluacionPendienteById } from "../controllers/evaluaciones.controller.js";
-import { evaluacionValidator } from "../middlewares/validationManagerEvaluacion.js";
+import { obtenerProyectosProvincial, promoverProyectos_Provincial } from "../controllers/promociones.controller.js";
+import { obtenerProvincialValidator, promoverProvincialValidator } from "../middlewares/validationManagerPromocion.js";
 
 const routerPromocion = Router();
 
-routerPromocion.get("/nivel/:id", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), obtenerProyectosPorNivel);
-routerPromocion.post("/nivel/:id", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), promoverProyectosPorNivel);
-
+routerPromocion.post("/provincial/proyectos", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), obtenerProvincialValidator, obtenerProyectosProvincial);
+//routerPromocion.post("/regional", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), promoverProyectosPorNivel_Regional);
+routerPromocion.post("/provincial", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), promoverProvincialValidator, promoverProyectos_Provincial);
+//routerPromocion.post("/nacional", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), promoverProyectosPorNivel_Nacional);
 
 export default routerPromocion;

@@ -47,7 +47,7 @@ routerEvaluadores.post(
 routerEvaluadores.get(
   "/postulaciones",
   requireToken,
-  checkRolAuth([roles.admin, roles.comAsesora]),
+  checkRolAuth([roles.admin, roles.comAsesora, roles.refEvaluador]),
   //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
   getPostulaciones
 );
@@ -55,7 +55,7 @@ routerEvaluadores.get(
 routerEvaluadores.get(
   '/postulaciones/:id',
   requireToken,
-  checkRolAuth([roles.admin, roles.comAsesora]),
+  checkRolAuth([roles.admin, roles.comAsesora, roles.refEvaluador]),
   //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
   getPostulacionById
 )
@@ -71,7 +71,7 @@ routerEvaluadores.post(
 routerEvaluadores.get(
   "/download/v1/cv/:id",
   requireToken,
-  checkRolAuth([roles.admin, roles.docente]),
+  checkRolAuth([roles.admin, roles.comAsesora, roles.refEvaluador]),
   //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
   getCv
 );
@@ -79,14 +79,14 @@ routerEvaluadores.get(
 routerEvaluadores.get(
   "/download/v2/cv/:id",
   requireToken,
-  checkRolAuth([roles.admin, roles.docente]),
+  checkRolAuth([roles.admin, roles.comAsesora, roles.refEvaluador]),
   //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
   getCvV2
 );
 routerEvaluadores.get(
   "/download/v3/cv/:id",
   requireToken,
-  checkRolAuth([roles.admin, roles.docente]),
+  checkRolAuth([roles.admin, roles.comAsesora, roles.refEvaluador]),
   //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
   getCv_
 );

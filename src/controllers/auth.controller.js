@@ -102,21 +102,16 @@ export const register = async (req, res) => {
 
 // Función de deslogueo
 export const logout = (req, res) => {
-  // res.clearCookie("refreshToken", {
-  //   //domain: process.env.COOKIE_ORIGIN,
-  //   domain: 'localhost',
-  //   path: '/',
-  //   httpOnly: true,
-  //   sameSite: 'none',
-  //   secure: !(process.env.MODO === "developer"),
-
-  // });
-  res.cookie("refreshToken", '', {
+  res.clearCookie("refreshToken", {
+    //domain: process.env.COOKIE_ORIGIN,
+    domain: 'localhost',
+    path: '/',
     httpOnly: true,
     sameSite: 'none',
     secure: !(process.env.MODO === "developer"),
-    
-})
+
+  });
+
   res.json({ ok: true });
 };
 

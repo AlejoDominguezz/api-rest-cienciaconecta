@@ -1,6 +1,6 @@
 import { Evaluacion, estadoEvaluacion } from "../models/Evaluacion.js";
 import { arraysEvaluacionIguales, arraysComentariosIguales } from "../helpers/arrayComparation.js"
-import { Proyecto, nombreEstado } from "../models/Proyecto.js";
+import { Proyecto, estado, nombreEstado } from "../models/Proyecto.js";
 import { Docente } from "../models/Docente.js";
 import { Evaluador } from "../models/Evaluador.js";
 import { Types } from "mongoose";
@@ -131,6 +131,16 @@ export const iniciarEvaluacion = async (req, res) => {
   // SI NO EXISTE UNA EVALUACIÓN PREVIA, SE CREA, DEVOLVIENDO LA ESTRUCTURA SIN OPCIONES SELECCIONADAS NI COMENTARIOS
   // TAMBIÉN PASA POR ESTA RAMA SI EXISTE EVALUACIÓN PREVIA, Y LA EVALUACIÓN ESTÁ VACÍA
   if (!evaluacion || (evaluacion.evaluando?.toString() == evaluador._id.toString() && evaluacion.evaluacion == null)) {
+
+    // Sólo si no existe evaluación previa, se cambia el estado del proyecto
+    if(!evaluacion){
+      // Completar validación sobre si el proyecto está en instancia regional
+      if (proyecto.estado != (estado.instanciaRegional)){
+        return res.status(401).json({ error: "Este proyecto no puede ser evaluado porque no se encuentra en instancia regional" });
+      }
+      proyecto.estado = estado.enEvaluacionRegional
+      proyecto.save()
+    }
 
     // Obtengo la estructura de rubricas sólo para la evaluación teórica
     const evaluacion_estructura_teorica = [];

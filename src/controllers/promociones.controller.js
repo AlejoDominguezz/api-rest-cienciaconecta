@@ -33,7 +33,7 @@ export const obtenerProyectosProvincial = async (req, res) => {
 
 
 // Función para agregar información sobre la Evaluación Teórica y de Exposición a un proyecto -----------------------------------------------------
-const agregarInformacionEvaluacion = async (proyectos) => {
+export const agregarInformacionEvaluacion = async (proyectos) => {
     const proyectosInfoEvaluacion = await Promise.all(
         proyectos.map(async (proyecto) => {
             const evaluacion_teorica = await Evaluacion.findOne({proyectoId: proyecto._id})

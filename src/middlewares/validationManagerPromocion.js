@@ -2,7 +2,7 @@ import { checkEstablecimientoIsSede } from "../controllers/establecimientos.cont
 import { Evaluacion, estadoEvaluacion } from "../models/Evaluacion.js";
 import { EvaluacionExposicion, estadoEvaluacionExposicion } from "../models/EvaluacionExposicion.js";
 import { Nivel } from "../models/Nivel.js";
-import { Proyecto } from "../models/Proyecto.js";
+import { Proyecto, estado } from "../models/Proyecto.js";
 import { validarCampos } from "./validar-campos.js";
 import { body } from 'express-validator';
 import { Types } from 'mongoose';
@@ -18,16 +18,23 @@ export const promoverProvincialValidator = [
         .custom(async (value, { req }) => {
             const proyecto = await Proyecto.findById(value);
         
+            // Validar que exista el proyecto
             if (!proyecto) {
               throw new Error(`No se encontró un proyecto con el ID ${value}`);
             }
         
+            // Validar que coincida el nivel del proyecto
             if (proyecto.nivel.toString() !== req.body.nivel) {
               throw new Error(`El nivel del proyecto ${value} no coincide con el nivel proporcionado`);
             }
-        
+
+            // Validar que coincida al sede del proyecto
             if (proyecto.sede.toString() !== req.body.sede) {
               throw new Error(`La sede del proyecto ${value} no coincide con la sede proporcionada`);
+            }
+
+            if (proyecto.estado !== estado.evaluadoRegional) {
+              throw new Error(`No es posible promover al proyecto ID ${proyecto._id} porque ha finalizado su evaluación regional`);
             }
         
             return true;

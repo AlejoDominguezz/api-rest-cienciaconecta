@@ -1,4 +1,4 @@
-import { Evaluacion, estadoEvaluacion } from "../models/Evaluacion.js";
+import { Evaluacion, estadoEvaluacion, nombreEstadoEvaluacion } from "../models/Evaluacion.js";
 import { arraysEvaluacionIguales, arraysComentariosIguales } from "../helpers/arrayComparation.js"
 import { Proyecto, nombreEstado } from "../models/Proyecto.js";
 import { Docente } from "../models/Docente.js";
@@ -6,7 +6,7 @@ import { Evaluador } from "../models/Evaluador.js";
 import { Types } from "mongoose";
 import { roles } from "../helpers/roles.js";
 import { Referente } from "../models/Referente.js";
-import { EvaluacionExposicion } from "../models/EvaluacionExposicion.js";
+import { EvaluacionExposicion, nombreEstadoExposicion } from "../models/EvaluacionExposicion.js";
 
 export const evaluarProyecto = async (req, res) => {
     const evaluacion = req.body.evaluacion;
@@ -472,6 +472,7 @@ export const obtenerEvaluacionesPendientes = async (req, res) => {
 
           } else if(!evaluacion_exposicion) {
 
+            evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
             return {
               ...proyecto,
               nombreEstado: nombreEstado[proyecto.estado],
@@ -480,6 +481,8 @@ export const obtenerEvaluacionesPendientes = async (req, res) => {
 
           } 
 
+          evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+          evaluacion_exposicion.nombreEstado = nombreEstadoExposicion[evaluacion_exposicion.estado];
           return {
             ...proyecto,
             nombreEstado: nombreEstado[proyecto.estado],
@@ -551,6 +554,7 @@ export const obtenerEvaluacionesPendientes = async (req, res) => {
 
           } else if(!evaluacion_exposicion) {
 
+            evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
             return {
               ...proyecto,
               nombreEstado: nombreEstado[proyecto.estado],
@@ -559,6 +563,8 @@ export const obtenerEvaluacionesPendientes = async (req, res) => {
 
           } 
 
+          evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+          evaluacion_exposicion.nombreEstado = nombreEstadoExposicion[evaluacion_exposicion.estado];
           return {
             ...proyecto,
             nombreEstado: nombreEstado[proyecto.estado],
@@ -625,6 +631,7 @@ export const obtenerEvaluacionPendienteById = async (req, res) => {
 
       } else if(!evaluacion_exposicion) {
 
+        evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
         return res.json({
           proyecto, 
           nombreEstado: nombreEstado[proyecto.estado],
@@ -633,6 +640,8 @@ export const obtenerEvaluacionPendienteById = async (req, res) => {
 
       }
 
+      evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+      evaluacion_exposicion.nombreEstado = nombreEstadoExposicion[evaluacion_exposicion.estado];
       return res.json({
         proyecto,
         nombreEstado: nombreEstado[proyecto.estado],
@@ -688,6 +697,7 @@ export const obtenerEvaluacionPendienteById = async (req, res) => {
 
       } else if(!evaluacion_exposicion) {
 
+        evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
         return res.json({
           proyecto, 
           nombreEstado: nombreEstado[proyecto.estado],
@@ -696,6 +706,8 @@ export const obtenerEvaluacionPendienteById = async (req, res) => {
 
       }
 
+      evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+      evaluacion_exposicion.nombreEstado = nombreEstadoExposicion[evaluacion_exposicion.estado];
       return res.json({
         proyecto,
         nombreEstado: nombreEstado[proyecto.estado],

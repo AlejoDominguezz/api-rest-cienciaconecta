@@ -533,6 +533,9 @@ export default routerEvaluacion;
  *                       evaluadoresRegionales:
  *                         type: array
  *                         description: Lista de IDs de evaluadores regionales asignados al proyecto.
+ *                       nombreEstado:
+ *                         type: string
+ *                         description: Nombre del estado actual del proyecto.
  *                       evaluacion:
  *                         type: object
  *                         description: Datos de la evaluación asociada al proyecto (si está disponible).
@@ -552,6 +555,9 @@ export default routerEvaluacion;
  *                           estado:
  *                             type: string
  *                             description: Estado actual de la evaluación.
+ *                           nombreEstado:
+ *                             type: string
+ *                             description: Nombre del estado actual de la evaluación.
  *                           ultimaEvaluacion:
  *                             type: string
  *                             description: ID del último evaluador que realizó la evaluación.
@@ -580,6 +586,9 @@ export default routerEvaluacion;
  *                           estado:
  *                             type: string
  *                             description: Estado actual de la evaluación.
+ *                           nombreEstado:
+ *                             type: string
+ *                             description: Nombre del estado actual de la evaluación.
  *                           ultimaEvaluacion:
  *                             type: string
  *                             description: ID del último evaluador que realizó la evaluación.
@@ -608,6 +617,7 @@ export default routerEvaluacion;
  *                   evaluadoresRegionales:
  *                     - "6500f3926b839eed0a99b55f"
  *                     - "6504c5aec6266617467ca0ca"
+ *                   nombreEstado: "Instancia escolar"
  *                   evaluacion:
  *                     _id: "650db75b7dd72ab4aaa0a54e"
  *                     evaluadorId:
@@ -618,6 +628,7 @@ export default routerEvaluacion;
  *                       - "6504c5aec6266617467ca0ca"
  *                       - "6500f3926b839eed0a99b55f"
  *                     estado: "3"
+ *                     nombreEstado: "Cerrada"
  *                     ultimaEvaluacion: "6500f3926b839eed0a99b55f"
  *                     evaluando: null
  *                   exposicion:
@@ -631,6 +642,7 @@ export default routerEvaluacion;
  *                       - "6504c5aec6266617467ca0ca"
  *                       - "6500f3926b839eed0a99b55f"
  *                     estado: "3"
+ *                     nombreEstado: "Cerrada"
  *                     ultimaEvaluacion: "6500f3926b839eed0a99b55f"
  *                     evaluando: null
  *                 - _id: "64ffd509cd8baf7a43ea7bff"
@@ -653,6 +665,7 @@ export default routerEvaluacion;
  *                   evaluadoresRegionales:
  *                     - "6500f3926b839eed0a99b55f"
  *                     - "6504c5aec6266617467ca0ca"
+ *                   nombreEstado: "Instancia escolar"
  *       204:
  *         description: No Content. No se encontraron evaluaciones pendientes.
  *       500:
@@ -685,11 +698,172 @@ export default routerEvaluacion;
  *               type: object
  *               properties:
  *                 proyecto:
- *                   $ref: '#/components/schemas/Proyecto'
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       description: ID del proyecto.
+ *                     titulo:
+ *                       type: string
+ *                       description: Título del proyecto.
+ *                     descripcion:
+ *                       type: string
+ *                       description: Descripción del proyecto.
+ *                     nivel:
+ *                       type: string
+ *                       description: Nivel del proyecto.
+ *                     categoria:
+ *                       type: string
+ *                       description: Categoría del proyecto.
+ *                     establecimientoEducativo:
+ *                       type: string
+ *                       description: Establecimiento educativo del proyecto.
+ *                     emailEscuela:
+ *                       type: string
+ *                       description: Correo electrónico de la escuela.
+ *                     idResponsable:
+ *                       type: string
+ *                       description: ID del responsable del proyecto.
+ *                     feria:
+ *                       type: string
+ *                       description: ID de la feria asociada al proyecto.
+ *                     estado:
+ *                       type: string
+ *                       description: Estado del proyecto.
+ *                     fechaInscripcion:
+ *                       type: string
+ *                       description: Fecha de inscripción del proyecto.
+ *                     grupoProyecto:
+ *                       type: array
+ *                       description: Lista de miembros del grupo del proyecto.
+ *                     autorizacionImagen:
+ *                       type: string
+ *                       description: URL de autorización de imágenes.
+ *                     carpetaCampo:
+ *                       type: string
+ *                       description: URL de la carpeta de campo del proyecto.
+ *                     id_carpeta_drive:
+ *                       type: string
+ *                       description: ID de la carpeta en Google Drive.
+ *                     informeTrabajo:
+ *                       type: string
+ *                       description: URL del informe de trabajo del proyecto.
+ *                     registroPedagogico:
+ *                       type: string
+ *                       description: URL del registro pedagógico del proyecto.
+ *                     evaluadoresRegionales:
+ *                       type: array
+ *                       description: Lista de IDs de evaluadores regionales asignados al proyecto.
+ *                     nombreEstado:
+ *                       type: string
+ *                       description: Nombre del estado actual del proyecto.
+ *                     evaluacion:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                           description: ID de la evaluación.
+ *                         evaluadorId:
+ *                           type: array
+ *                           description: Lista de IDs de evaluadores que realizaron la evaluación al menos una vez.
+ *                         puntajeTeorico:
+ *                           type: number
+ *                           description: Puntaje teórico otorgado en la evaluación.
+ *                         listo:
+ *                           type: array
+ *                           description: Lista de IDs de evaluadores que han confirmado la evaluación.
+ *                         estado:
+ *                           type: string
+ *                           description: Estado actual de la evaluación.
+ *                         nombreEstado:
+ *                           type: string
+ *                           description: Nombre del estado actual de la evaluación.
+ *                         ultimaEvaluacion:
+ *                           type: string
+ *                           description: ID del último evaluador que realizó la evaluación.
+ *                         evaluando:
+ *                           type: string
+ *                           description: ID del evaluador que está realizando la evaluación en curso (si está disponible).
+ *                     exposicion:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                           description: ID de la evaluación.
+ *                         evaluadorId:
+ *                           type: array
+ *                           description: Lista de IDs de evaluadores que realizaron la evaluación al menos una vez.
+ *                         puntajeExposicion:
+ *                           type: number
+ *                           description: Puntaje de exposición otorgado en la evaluación.
+ *                         puntajeFinal:
+ *                           type: number
+ *                           description: Puntaje final otorgado al proyecto (suma de teórico y exposición).
+ *                         listo:
+ *                           type: array
+ *                           description: Lista de IDs de evaluadores que han confirmado la evaluación.
+ *                         estado:
+ *                           type: string
+ *                           description: Estado actual de la evaluación.
+ *                         nombreEstado:
+ *                           type: string
+ *                           description: Nombre del estado actual de la evaluación.
+ *                         ultimaEvaluacion:
+ *                           type: string
+ *                           description: ID del último evaluador que realizó la evaluación.
+ *                         evaluando:
+ *                           type: string
+ *                           description: ID del evaluador que está realizando la evaluación en curso (si está disponible).
+ *             example:
+ *               proyecto:
+ *                 id: "64ff135a816053f97af6c165"
+ *                 titulo: "Casa Inteligente"
+ *                 descripcion: "Test"
+ *                 nivel: "64fd1a8cad4c6e68aac561c1"
+ *                 categoria: "64fd1a8cad4c6e68aac561d1"
+ *                 establecimientoEducativo: "64fd1a95ad4c6e68aac561e4"
+ *                 emailEscuela: "escuela@test.com"
+ *                 idResponsable: "64fd22ba0a0f7d5ce9518ff9"
+ *                 feria: "64fd22332ff0def81fb192f8"
+ *                 estado: "0"
+ *                 fechaInscripcion: "2023-09-11T13:17"
+ *                 grupoProyecto: []
+ *                 autorizacionImagen: "https://drive.google.com/file/d/1J-ALaKfTxCEOy2AaQJF0FK914BjG3F6i/preview"
+ *                 carpetaCampo: "https://drive.google.com/file/d/16lemohQnFJq-socQEKWYf2-u-4U5opbe/preview"
+ *                 id_carpeta_drive: "1HAXnbEaNWIr4eT-JkKzlWR1jQXVA_yWP"
+ *                 informeTrabajo: "https://drive.google.com/file/d/1SA4ediBscEffRrWezW8zblZwIs7sql2x/preview"
+ *                 registroPedagogico: "https://drive.google.com/file/d/15pPLyNOO0YuS1gmM3sqe6JHwQyn1iiW_/preview"
+ *                 evaluadoresRegionales:
+ *                   - "6500f3926b839eed0a99b55f"
+ *                   - "6504c5aec6266617467ca0ca"
+ *                 nombreEstado: "Instancia escolar"
  *                 evaluacion:
- *                   $ref: '#/components/schemas/Evaluacion'
+ *                   id: "650db75b7dd72ab4aaa0a54e"
+ *                   evaluadorId:
+ *                     - "6500f3926b839eed0a99b55f"
+ *                     - "6504c5aec6266617467ca0ca"
+ *                   puntajeTeorico: 100
+ *                   listo:
+ *                     - "6504c5aec6266617467ca0ca"
+ *                     - "6500f3926b839eed0a99b55f"
+ *                   estado: "3"
+ *                   nombreEstado: "Cerrada"
+ *                   ultimaEvaluacion: "6500f3926b839eed0a99b55f"
+ *                   evaluando: null
  *                 exposicion:
- *                   $ref: '#/components/schemas/EvaluacionExposicion'
+ *                   id: "650db75b7dd72ab4aaa0a54e"
+ *                   evaluadorId:
+ *                     - "6500f3926b839eed0a99b55f"
+ *                     - "6504c5aec6266617467ca0ca"
+ *                   puntajeExposicion: 100
+ *                   puntajeFinal: 100
+ *                   listo:
+ *                     - "6504c5aec6266617467ca0ca"
+ *                     - "6500f3926b839eed0a99b55f"
+ *                   estado: "3"
+ *                   nombreEstado: "Cerrada"
+ *                   ultimaEvaluacion: "6500f3926b839eed0a99b55f"
+ *                   evaluando: null
  *       404:
  *         description: No se encontró la evaluación pendiente
  *         content:

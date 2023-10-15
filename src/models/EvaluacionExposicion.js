@@ -84,6 +84,13 @@ export const estadoEvaluacionExposicion = {
 }
 
 
+export const nombreEstadoExposicion = {
+  1: "En evaluación",
+  2: "Abierta",
+  3: "Cerrada"
+}
+
+
 // DOCUMENTACION SWAGGER -------------------------------------------------------------------------------------------------
 
 /**

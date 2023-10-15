@@ -104,7 +104,7 @@ export const register = async (req, res) => {
 export const logout = (req, res) => {
   res.clearCookie("refreshToken", {
     //domain: process.env.COOKIE_ORIGIN,
-    domain: 'https://54.90.160.149.nip.io',
+    domain: '54.90.160.149.nip.io',
     path: '/',
     httpOnly: true,
     sameSite: 'none',

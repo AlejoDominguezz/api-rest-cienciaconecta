@@ -104,8 +104,12 @@ export const register = async (req, res) => {
 export const logout = (req, res) => {
   res.clearCookie("refreshToken", {
     //domain: process.env.COOKIE_ORIGIN,
-    domain: 'http://localhost:3000',
-    path: '/'
+    //domain: 'http://localhost:3000',
+    //path: '/',
+    httpOnly: true,
+    sameSite: 'none',
+    secure: !(process.env.MODO === "developer"),
+
   });
   res.json({ ok: true });
 };

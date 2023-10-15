@@ -74,12 +74,19 @@ export const asignarEvaluadorValidator = [
     .isArray()
     .withMessage('El atributo evaluadores debe ser un Array')
     .custom((value) => {
-      // Verificar que el array tenga al menos un elemento
-      if (!Array.isArray(value) || value.length === 0) {
-        throw new Error('El array evaluadores debe contener al menos un elemento');
+      // Verificar que el array no tenga más de 3 elementos
+      if (value.length > 3) {
+        throw new Error('El array evaluadores no puede tener más de 3 elementos');
       }
       return true;
     })
+    // .custom((value) => {
+    //   // Verificar que el array tenga al menos un elemento
+    //   if (!Array.isArray(value) || value.length === 0) {
+    //     throw new Error('El array evaluadores debe contener al menos un elemento');
+    //   }
+    //   return true;
+    // })
     .custom((value) => {
       // Validar cada elemento del array como un Mongo ID
       if (value.some((element) => !Types.ObjectId.isValid(element))) {
@@ -98,10 +105,10 @@ export const asignarEvaluadorValidator = [
   validarCampos
 ];
 
-export const desasignarEvaluadorValidator = [
-  body('evaluador')
-    .isMongoId()
-    .withMessage('El atributo evaluador debe ser un Mongo ID válido'),
+// export const desasignarEvaluadorValidator = [
+//   body('evaluador')
+//     .isMongoId()
+//     .withMessage('El atributo evaluador debe ser un Mongo ID válido'),
     
-  validarCampos
-];
+//   validarCampos
+// ];

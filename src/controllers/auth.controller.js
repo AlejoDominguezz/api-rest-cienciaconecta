@@ -103,7 +103,8 @@ export const register = async (req, res) => {
 // Función de deslogueo
 export const logout = (req, res) => {
   res.clearCookie("refreshToken", {
-    domain: process.env.COOKIE_ORIGIN,
+    //domain: process.env.COOKIE_ORIGIN,
+    domain: 'http://localhost:3000',
     path: '/'
   });
   res.json({ ok: true });

@@ -17,6 +17,7 @@ import {
 } from "../services/drive/helpers-drive.js";
 import { getFeriaActivaFuncion } from "../controllers/ferias.controller.js"
 import { emailCola, fileCv } from "../helpers/queueManager.js";
+import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js";
 
 
 export const postularEvaluador = async (req, res) => {
@@ -94,16 +95,43 @@ export const getPostulacionById = async (req, res) => {
   try {
     const {id} = req.params;
 
-    const postulacion = await Evaluador.findOne({ pendiente: true, _id: id});
+    const postulacion = await Evaluador.findOne({ pendiente: true, _id: id})
+      .select('-__v -id_carpeta_cv')
+      .lean()
+      .exec();
+
     if (!postulacion) {
       return res
         .status(204)
         .json({ error: "No se han encontrado la postulación pendiente con el ID ingresado" });
     }
 
-    const datos_docente = await Docente.findById(postulacion.idDocente);
+    const datos_docente = await Docente.findOne({_id: postulacion.idDocente})
+      .select('-__v -_id')
+      .lean()
+      .exec();
 
-    return res.json({ postulacion, datos_docente });
+    if (!datos_docente) {
+      return res
+        .status(401)
+        .json({ error: "No existen los datos de docente asociados a la postulación" });
+    }
+
+    const datos_establecimiento = await EstablecimientoEducativo.findOne({_id: postulacion.sede})
+      .select('-__v -_id')
+      .lean()
+      .exec();
+
+    if (!datos_establecimiento) {
+      return res
+        .status(401)
+        .json({ error: "No existen los datos la sede asociada a la postulación" });
+    }
+
+    postulacion.datos_docente = datos_docente;
+    postulacion.datos_establecimiento = datos_establecimiento;
+
+    return res.json({ postulacion });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Error de servidor" });
@@ -171,54 +199,54 @@ export const cargarCv = async (req, res) => {
     const evaluador = await Evaluador.findOne({ idDocente: _docente.id });
     if (!_docente) {
       return res.status(401).json({ message: "NO EXISTE EL DOCENTE" });
-    }
-    if(evaluador.id_carpeta_cv){
+    }else if(evaluador.id_carpeta_cv){
       res.status(400).json({
         message: "ERROR, YA EXISTE UNA CARPETA DE DRIVE ASOCIADA A ESTE EVALUADOR, DEBE ACTUALIZAR EL CV, NO INTENTAR CARGARLO POR PRIMERA VEZ."
       })
+    }else{
+      const form = formidable({ multiples: false });
+
+      form.parse(req, async (err, fields, files) => {
+  
+        if (err) {
+          console.error("ERROR EN FORM DATA AL PROCESARLO", err.message);
+          res.status(500).send("ERROR AL PROCESAR EL FORM DATA");
+          return;
+        }
+  
+        if(!files.cv){
+          return res.status(400).json({
+            msg: "DEBE INGRESAR EL ARCHIVO PDF LLAMADO 'cv' ",
+          });
+        }
+  
+        //falta incorporar el === 0 object
+        if (!files || Object.keys(files).length === 0) {
+          return res.status(400).json({
+            msg: "DEBE INGRESAR ARCHIVOS PDF, NO HA INGRESADO NADA.",
+          });
+        }
+  
+        const extensionValida = "application/pdf";
+        for (const archivoKey in files) {
+          if (files.hasOwnProperty(archivoKey)) {
+            const archivo = files[archivoKey];
+            if(archivo.mimetype !== extensionValida)
+            return res.status(400).json({message: "ERROR, DEBE INGRESAR SOLO ARCHIVOS EN FORMATO PDF!"})
+          }
+        }
+  
+        const cola = await fileCv.add({uid , files});
+        if(cola){
+          console.log(cola);
+          res.status(200).json({message: "CV CARGANDOSE..."});
+        }else{
+          res.status(400).json({message: "ERROR AL INTENTAR CARGAR EL CV"});
+        }
+  
+      });
     }
 
-    const form = formidable({ multiples: false });
-
-    form.parse(req, async (err, fields, files) => {
-
-      if (err) {
-        console.error("ERROR EN FORM DATA AL PROCESARLO", err.message);
-        res.status(500).send("ERROR AL PROCESAR EL FORM DATA");
-        return;
-      }
-
-      if(!files.cv){
-        return res.status(400).json({
-          msg: "DEBE INGRESAR EL ARCHIVO PDF LLAMADO 'cv' ",
-        });
-      }
-
-      //falta incorporar el === 0 object
-      if (!files || Object.keys(files).length === 0) {
-        return res.status(400).json({
-          msg: "DEBE INGRESAR ARCHIVOS PDF, NO HA INGRESADO NADA.",
-        });
-      }
-
-      const extensionValida = "application/pdf";
-      for (const archivoKey in files) {
-        if (files.hasOwnProperty(archivoKey)) {
-          const archivo = files[archivoKey];
-          if(archivo.mimetype !== extensionValida)
-          return res.status(400).json({message: "ERROR, DEBE INGRESAR SOLO ARCHIVOS EN FORMATO PDF!"})
-        }
-      }
-
-      const cola = await fileCv.add({uid , files});
-      if(cola){
-        res.status(200).json({message: "CV CARGANDOSE..."});
-      }else{
-        res.status(400).json({message: "ERROR AL INTENTAR CARGAR EL CV"});
-      }
-
-
-    });
   } catch (error) {
     console.error(error);
     res.status(500).json({

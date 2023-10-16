@@ -85,6 +85,7 @@ export const nombreEstadoEvaluacion = {
   3: "Cerrada"
 }
 
+
 // DOCUMENTACION SWAGGER -------------------------------------------------------------------------------------------------
 
 /**

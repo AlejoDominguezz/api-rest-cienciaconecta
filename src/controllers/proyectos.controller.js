@@ -20,7 +20,15 @@ import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js"
 import { Feria, estadoFeria } from "../models/Feria.js";
 import { roles } from "../helpers/roles.js";
 import multer from "multer";
+import QRCode from 'qrcode'
+import { PDFDocument, rgb } from 'pdf-lib';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import jpeg  from 'jpeg-js';
+import sharp from 'sharp';
 import { fileCola, fileUpdateCola } from "../helpers/queueManager.js";
+
 
 // Configurar multer para manejar la subida de archivos
 const storage = multer.memoryStorage(); // Almacenar los archivos en la memoria
@@ -736,5 +744,181 @@ export const downloadDocumentEspecific = async (req, res) => {
     res.status(500).json({
       message: "ERROR AL DESCARGAR EL CV - ERROR DEL SERVIDOR",
     });
+  }
+};
+
+
+
+const generarQR = async (proyecto) => {
+  return new Promise((resolve, reject) => {
+    const urlEvaluacion = `${process.env.RUTA_QR}/${proyecto._id}`;
+
+    // Genera el código QR con la URL
+    QRCode.toDataURL(urlEvaluacion, { type: 'image/png' }, async (err, url) => {
+      if (err) {
+        reject('Error al generar el QR');
+        return;
+      }
+
+      try {
+        // Usa sharp para cargar la imagen y convertirla a formato PNG
+        const qrBuffer = await sharp(Buffer.from(url.replace(/^data:image\/\w+;base64,/, ''), 'base64'))
+          .toFormat('png')
+          .toBuffer();
+
+        // Convierte el buffer a una cadena base64 para almacenarlo en el atributo QR
+        const qrBase64 = qrBuffer.toString('base64');
+
+        // Almacena el código QR como cadena base64 en el atributo QR del proyecto
+        proyecto.QR = qrBase64;
+
+        // Guarda el proyecto con el atributo QR actualizado
+        await proyecto.save();
+
+        // Resuelve la promesa con el proyecto actualizado
+        resolve(proyecto);
+      } catch (error) {
+        reject('Error al generar o guardar el QR');
+      }
+    });
+  });
+};
+
+
+
+
+export const generarPDFconQR = async (req, res) => {
+  try {
+    let proyecto = req.proyecto;
+
+    if(!proyecto?.QR) {
+      proyecto = await generarQR(proyecto)
+    }
+
+    // Crea un nuevo documento PDF con el formato A4 (595 puntos de ancho x 842 puntos de alto)
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([595.276, 841.890]);
+
+    // Decodificar el código QR en formato base64
+    const qrBase64 = proyecto.QR;
+
+    // Convierte la cadena base64 a un buffer
+    const qrBuffer = Buffer.from(qrBase64, 'base64');
+
+    // Agrega el código QR al PDF
+    const qrImage = await pdfDoc.embedPng(qrBuffer); // Usar embedPng para una imagen PNG
+    const qrDims = qrImage.scale(2);
+
+    const pageDims = page.getSize();
+
+    // Calcula la posición para centrar el QR en la página
+    const qrX = (pageDims.width - qrDims.width) / 2;
+    const qrY = (pageDims.height - qrDims.height) / 2;
+
+    // Dibuja el código QR en el centro de la página
+    page.drawImage(qrImage, {
+      x: qrX,
+      y: qrY,
+      width: qrDims.width,
+      height: qrDims.height,
+    });
+
+    const title = proyecto.titulo.replace(/\n/g, ' '); // Reemplazar las nuevas líneas con espacios
+
+    // Dividir el título en líneas de no más de 30 caracteres
+    const maxLineLength = 30;
+    const titleLines = [];
+    let currentLine = '';
+
+    for (let i = 0; i < title.length; i++) {
+      currentLine += title[i];
+      if (currentLine.length >= maxLineLength || i === title.length - 1) {
+        titleLines.push(currentLine);
+        currentLine = '';
+      }
+    }
+
+    // Calcular la posición y para centrar el título
+    const titleY = qrY + 450; // La posición inicial de Y
+
+    const fontSize = 20; // Tamaño del título
+    const font = await pdfDoc.embedFont('Helvetica');
+    
+    // Dibuja cada línea del título centrada en la página
+    for (let i = 0; i < titleLines.length; i++) {
+      const line = titleLines[i];
+      
+      // Calcular el ancho de la línea actual
+      const lineWidth = font.widthOfTextAtSize(line, fontSize);
+      
+      // Calcular la posición x para centrar la línea actual
+      const lineX = qrX + (qrDims.width - lineWidth) / 2;
+      
+      // Dibuja la línea centrada en la página
+      page.drawText(line, {
+        x: lineX,
+        y: titleY - i * fontSize, // Posición de Y ajustada para cada línea
+        size: fontSize, // Tamaño del título
+        color: rgb(0, 0, 0), // Color negro
+        font: font, // La fuente que estás utilizando
+      });
+    }
+
+    // Serializa el PDF en un ArrayBuffer
+    const pdfBytes = await pdfDoc.save();
+
+    // Obtener ruta del directorio actual
+    const currentDir = path.dirname(fileURLToPath(import.meta.url));
+
+    // Crea un archivo temporal para almacenar el PDF
+    const tempFilePath = path.join(currentDir, '../temp', `temp-qr-${proyecto._id}.pdf`).replace(/\\/g, '/');
+
+    // Utiliza promesas para escribir el archivo
+    await new Promise((resolve, reject) => {
+      fs.writeFile(tempFilePath, pdfBytes, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    // Envía el PDF como una respuesta
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="Proyecto - ${proyecto.titulo}.pdf`);
+    //res.status(200).sendFile(tempFilePath);
+
+    // Envía el archivo como respuesta
+    res.status(200).sendFile(tempFilePath, async (err) => {
+      if (!err) {
+        try {
+          // Elimina el archivo temporal después de enviarlo como respuesta
+          await deleteTemporaryFile(tempFilePath);
+        } catch (error) {
+          console.error('Error al eliminar el archivo temporal', error);
+        }
+      } else {
+        res.status(500).json({ error: 'Error al enviar el archivo como respuesta' });
+      }
+    });
+
+    // Eliminar archivo temporal
+    const deleteTemporaryFile = (filePath) => {
+      return new Promise((resolve, reject) => {
+        // Elimina el archivo
+        fs.unlink(filePath, (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+    };
+
+  } catch (error) {
+    console.error('Error al generar el PDF', error);
+    res.status(500).json({ error: 'Error al generar el PDF' });
   }
 };

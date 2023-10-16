@@ -108,7 +108,11 @@ const ProyectoSchema = new Schema({
     type: [Schema.Types.ObjectId],
     required: false,
     ref: "Evaluador",
-  }
+  },
+
+  QR: {
+    type: String,
+  } 
 
 });
 

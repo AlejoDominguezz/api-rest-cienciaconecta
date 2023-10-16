@@ -19,7 +19,8 @@ import {
   cargarArchivosRegional,
   actualizarArchivosRegional,
   downloadDocuments,
-  downloadDocumentEspecific
+  downloadDocumentEspecific,
+  generarPDFconQR
 } from "../controllers/proyectos.controller.js";
 import {
   bodyInscribirProyectoValidator,
@@ -136,6 +137,16 @@ routerProyectos.get(
     //fecha(fechasFeria.fechaFinEscolar, fechasFeria.fechaInicioEvaluacionRegional),
     downloadDocumentEspecific
 );
+
+
+routerProyectos.get(
+  "/generarQR/:id",
+  requireToken,
+  checkRolAuth([roles.admin, roles.responsableProyecto]),
+  esPropietario,
+  generarPDFconQR
+)
+
 
 // requireToken , checkRolAuth([roles.admin, roles.responsableProyecto]), esPropietario,
 export default routerProyectos;
@@ -930,4 +941,31 @@ export default routerProyectos;
  *     security:
  *       - bearerAuth: []
  *       - roles: [admin, responsableProyecto]
+ */
+
+
+
+/**
+ * @swagger
+ * /api/v1/proyecto/generarQR/:id:
+ *   get:
+ *     summary: Genera un PDF con un código QR para un proyecto específico
+ *     tags: 
+ *       - Proyectos
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID del proyecto
+ *     responses:
+ *       200:
+ *         description: Archivo PDF con el código QR del proyecto
+ *       401:
+ *         description: No autorizado
+ *       404:
+ *         description: No se encuentra el proyecto
+ *       500:
+ *         description: Error interno del servidor al generar el PDF
  */

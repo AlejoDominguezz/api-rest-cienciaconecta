@@ -17,6 +17,7 @@ import {
 } from "../services/drive/helpers-drive.js";
 import { getFeriaActivaFuncion } from "../controllers/ferias.controller.js"
 import { emailCola, fileCv } from "../helpers/queueManager.js";
+import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js";
 
 
 export const postularEvaluador = async (req, res) => {
@@ -94,16 +95,43 @@ export const getPostulacionById = async (req, res) => {
   try {
     const {id} = req.params;
 
-    const postulacion = await Evaluador.findOne({ pendiente: true, _id: id});
+    const postulacion = await Evaluador.findOne({ pendiente: true, _id: id})
+      .select('-__v -id_carpeta_cv')
+      .lean()
+      .exec();
+
     if (!postulacion) {
       return res
         .status(204)
         .json({ error: "No se han encontrado la postulación pendiente con el ID ingresado" });
     }
 
-    const datos_docente = await Docente.findById(postulacion.idDocente);
+    const datos_docente = await Docente.findOne({_id: postulacion.idDocente})
+      .select('-__v -_id')
+      .lean()
+      .exec();
 
-    return res.json({ postulacion, datos_docente });
+    if (!datos_docente) {
+      return res
+        .status(401)
+        .json({ error: "No existen los datos de docente asociados a la postulación" });
+    }
+
+    const datos_establecimiento = await EstablecimientoEducativo.findOne({_id: postulacion.sede})
+      .select('-__v -_id')
+      .lean()
+      .exec();
+
+    if (!datos_establecimiento) {
+      return res
+        .status(401)
+        .json({ error: "No existen los datos la sede asociada a la postulación" });
+    }
+
+    postulacion.datos_docente = datos_docente;
+    postulacion.datos_establecimiento = datos_establecimiento;
+
+    return res.json({ postulacion });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Error de servidor" });

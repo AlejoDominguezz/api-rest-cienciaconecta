@@ -16,11 +16,11 @@ const ReferenteSchema = new Schema({
     required: [true, "Se debe indicar el docente que se ha postulado"],
     ref: 'Docente'
   },
-  evaluadoresAsignados:{
-    type: [Schema.Types.ObjectId],
-    required: false,
-    ref: 'Evaluador'
-  }
+  // evaluadoresAsignados:{
+  //   type: [Schema.Types.ObjectId],
+  //   required: false,
+  //   ref: 'Evaluador'
+  // }
 });
 
 

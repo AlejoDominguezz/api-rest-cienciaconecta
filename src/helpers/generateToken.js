@@ -23,8 +23,10 @@ export const generateRefreshToken = (uid, res) => {
         // Guardamos el Refresh Token en cookie segura
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
+            sameSite: 'none',
             secure: !(process.env.MODO === "developer"),
             expires: new Date(Date.now() + expiresIn  * 1000) //*1000 porque está en milisegundos
+            
         })
         const refreshExpiresIn = new Date(Date.now() + expiresIn * 1000)
         return refreshExpiresIn;

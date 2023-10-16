@@ -19,6 +19,8 @@ import routerEstablecimiento from '../routes/establecimiento.route.js';
 import routerEvaluadores from '../routes/evaluador.route.js';
 import routerEvaluacion from '../routes/evaluacion.route.js';
 import routerReferente from '../routes/referente.route.js';
+import routerExposicion from '../routes/exposicion.route.js';
+import routerPromocion from '../routes/promocion.route.js';
 
 
 
@@ -45,7 +47,9 @@ class Server {
             establecimiento:'/api/v1/establecimiento',
             evaluador:      '/api/v1/evaluador',
             evaluacion:     '/api/v1/evaluacion',
-            referente:      '/api/v1/referente'
+            exposicion:     '/api/v1/exposicion',
+            referente:      '/api/v1/referente',
+            promocion:      '/api/v1/promocion',
         }
 
         
@@ -73,20 +77,20 @@ class Server {
             req.headers.origin = req.headers.origin || 'http://' + req.headers.host;
             next();
           });
+        //test cors
+        const whitelist = [process.env.ORIGIN1, process.env.ORIGIN2, process.env.ORIGIN3 , process.env.ORIGIN4 ]
 
-        // const whitelist = [process.env.ORIGIN1, process.env.ORIGIN2, ]
-
-        // this.app.use(cors(
-        //     {
-        //     origin: function(origin, callback){
-        //         if(whitelist.includes(origin)){
-        //             return callback(null, origin) 
-        //         }
-        //         return callback("Error de CORS - Origin: " + origin + " No autorizado")
-        //     },
-        //     credentials: true  
-        //     }
-        // ))
+        this.app.use(cors(
+             {
+             origin: function(origin, callback){
+                 if(whitelist.includes(origin)){
+                     return callback(null, origin) 
+                 }
+                 return callback("Error de CORS - Origin: " + origin + " No autorizado")
+             },
+             credentials: true  
+             }
+        ))
 
         //parseo y lectura del body
         this.app.use(express.json());
@@ -95,9 +99,9 @@ class Server {
         this.app.use(cookieParser())
 
         //Inicialización de categorias y niveles
-        crearCategorias();
-        crearNiveles();
-        crearEstablecimientosEducativos();
+        //crearCategorias();
+        //crearNiveles();
+        //crearEstablecimientosEducativos();
     }
 
 
@@ -139,8 +143,14 @@ class Server {
         //path de evaluaciones
         this.app.use(this.paths.evaluacion, routerEvaluacion);
 
+        //path de exposiciones
+        this.app.use(this.paths.exposicion, routerExposicion);
+
         //path de referentes
         this.app.use(this.paths.referente, routerReferente);
+
+         //path de promoción de proyectos
+         this.app.use(this.paths.promocion, routerPromocion);
     }
 
 

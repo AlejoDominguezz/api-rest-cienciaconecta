@@ -1,11 +1,12 @@
-import { Evaluacion, estadoEvaluacion } from "../models/Evaluacion.js";
+import { Evaluacion, estadoEvaluacion, nombreEstadoEvaluacion } from "../models/Evaluacion.js";
 import { arraysEvaluacionIguales, arraysComentariosIguales } from "../helpers/arrayComparation.js"
-import { Proyecto, nombreEstado } from "../models/Proyecto.js";
+import { Proyecto, estado, nombreEstado } from "../models/Proyecto.js";
 import { Docente } from "../models/Docente.js";
 import { Evaluador } from "../models/Evaluador.js";
 import { Types } from "mongoose";
 import { roles } from "../helpers/roles.js";
 import { Referente } from "../models/Referente.js";
+import { EvaluacionExposicion, nombreEstadoExposicion } from "../models/EvaluacionExposicion.js";
 
 export const evaluarProyecto = async (req, res) => {
     const evaluacion = req.body.evaluacion;
@@ -15,6 +16,9 @@ export const evaluarProyecto = async (req, res) => {
     const feria = req.feria;
 
     const evaluacion_anterior = await Evaluacion.findOne({proyectoId: proyecto.id})
+    if(!evaluacion_anterior) {
+      return res.status(401).json({ error: "No puedes enviar una evaluación porque ningún usuario estaba evaluando el proyecto" });
+    }
 
     if(evaluacion_anterior.evaluando == null){
       return res.status(401).json({ error: "No puedes enviar una evaluación porque ningún usuario estaba evaluando el proyecto" });
@@ -76,8 +80,8 @@ export const evaluarProyecto = async (req, res) => {
     
 }
   
-// Funcion para obtener puntaje de una evaluacion teorica ---------------------------------------------------------------------------
-  const obtenerPuntaje = (evaluacion, estructuraCriterios) => {
+// Funcion para obtener puntaje de una evaluacion ---------------------------------------------------------------------------
+export const obtenerPuntaje = (evaluacion, estructuraCriterios) => {
     let puntajeTotal = 0;
   
     for (const rubricaPos in estructuraCriterios) {
@@ -127,6 +131,16 @@ export const iniciarEvaluacion = async (req, res) => {
   // SI NO EXISTE UNA EVALUACIÓN PREVIA, SE CREA, DEVOLVIENDO LA ESTRUCTURA SIN OPCIONES SELECCIONADAS NI COMENTARIOS
   // TAMBIÉN PASA POR ESTA RAMA SI EXISTE EVALUACIÓN PREVIA, Y LA EVALUACIÓN ESTÁ VACÍA
   if (!evaluacion || (evaluacion.evaluando?.toString() == evaluador._id.toString() && evaluacion.evaluacion == null)) {
+
+    // Sólo si no existe evaluación previa, se cambia el estado del proyecto
+    if(!evaluacion){
+      // Completar validación sobre si el proyecto está en instancia regional
+      if (proyecto.estado != (estado.instanciaRegional)){
+        return res.status(401).json({ error: "Este proyecto no puede ser evaluado porque no se encuentra en instancia regional" });
+      }
+      proyecto.estado = estado.enEvaluacionRegional
+      proyecto.save()
+    }
 
     // Obtengo la estructura de rubricas sólo para la evaluación teórica
     const evaluacion_estructura_teorica = [];
@@ -206,7 +220,7 @@ export const iniciarEvaluacion = async (req, res) => {
           const rubricaConSeleccionada = {
             _id: rubrica._id,
             nombreRubrica: rubrica.nombreRubrica,
-            comentario: comentario.comentario,
+            comentario: comentario?.comentario,
             criterios: rubrica.criterios.map((criterio) => {
 
               // Buscamos en la evaluacion encontrada, cual es la opcion seleccionada del criterio actual
@@ -341,7 +355,7 @@ export const visualizarEvaluacion = async (req, res) => {
       const rubricaConSeleccionada = {
         _id: rubrica._id,
         nombreRubrica: rubrica.nombreRubrica,
-        comentario: comentario.comentario,
+        comentario: comentario?.comentario,
         criterios: rubrica.criterios.map((criterio) => {
 
           // Buscamos en la evaluacion encontrada, cual es la opcion seleccionada del criterio actual
@@ -449,22 +463,43 @@ export const obtenerEvaluacionesPendientes = async (req, res) => {
   
       const proyecto_detalle = await Promise.all(
         proyectos_evaluacion_pendiente.map(async (proyecto) => {
-          const evaluacion = await Evaluacion.findOne({proyectoId: proyecto._id})
+          const evaluacion_teorica = await Evaluacion.findOne({proyectoId: proyecto._id})
+          .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+          .lean()
+          .exec();
+
+          const evaluacion_exposicion = await EvaluacionExposicion.findOne({proyectoId: proyecto._id})
           .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
           .lean()
           .exec();
   
-          if(!evaluacion){
+          if(!evaluacion_teorica ){
+
             return {
               ...proyecto,
               nombreEstado: nombreEstado[proyecto.estado],
             }
-          }
+
+          } else if(!evaluacion_exposicion) {
+
+            evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+            return {
+              ...proyecto,
+              nombreEstado: nombreEstado[proyecto.estado],
+              evaluacion: evaluacion_teorica,
+            };
+
+          } 
+
+          evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+          evaluacion_exposicion.nombreEstado = nombreEstadoExposicion[evaluacion_exposicion.estado];
           return {
             ...proyecto,
             nombreEstado: nombreEstado[proyecto.estado],
-            evaluacion: evaluacion,
+            evaluacion: evaluacion_teorica,
+            exposicion: evaluacion_exposicion,
           };
+          
         })
       );
   
@@ -510,21 +545,41 @@ export const obtenerEvaluacionesPendientes = async (req, res) => {
   
       const proyecto_detalle = await Promise.all(
         proyectos_evaluacion_pendiente.map(async (proyecto) => {
-          const evaluacion = await Evaluacion.findOne({proyectoId: proyecto._id})
+          const evaluacion_teorica = await Evaluacion.findOne({proyectoId: proyecto._id})
+          .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+          .lean()
+          .exec();
+
+          const evaluacion_exposicion = await EvaluacionExposicion.findOne({proyectoId: proyecto._id})
           .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
           .lean()
           .exec();
   
-          if(!evaluacion){
+          if(!evaluacion_teorica ){
+
             return {
               ...proyecto,
               nombreEstado: nombreEstado[proyecto.estado],
             }
-          }
+
+          } else if(!evaluacion_exposicion) {
+
+            evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+            return {
+              ...proyecto,
+              nombreEstado: nombreEstado[proyecto.estado],
+              evaluacion: evaluacion_teorica,
+            };
+
+          } 
+
+          evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+          evaluacion_exposicion.nombreEstado = nombreEstadoExposicion[evaluacion_exposicion.estado];
           return {
             ...proyecto,
             nombreEstado: nombreEstado[proyecto.estado],
-            evaluacion: evaluacion,
+            evaluacion: evaluacion_teorica,
+            exposicion: evaluacion_exposicion,
           };
         })
       );
@@ -567,16 +622,42 @@ export const obtenerEvaluacionPendienteById = async (req, res) => {
         return res.status(404).json({ error: "No existe una evaluación asignada al evaluador con el ID ingresado" });
       }
   
-      const evaluacion = await Evaluacion.findOne({proyectoId: proyecto._id})
+      const evaluacion_teorica = await Evaluacion.findOne({proyectoId: proyecto._id})
       .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
       .lean()
       .exec();
-  
-      if(!evaluacion){
-        return res.json({proyecto, nombreEstado: nombreEstado[proyecto.estado]})
-      } else {
-        return res.json({proyecto, nombreEstado: nombreEstado[proyecto.estado], evaluacion})
+
+      const evaluacion_exposicion = await EvaluacionExposicion.findOne({proyectoId: proyecto._id})
+      .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+      .lean()
+      .exec();
+
+      if(!evaluacion_teorica ){
+
+        return res.json({
+          proyecto, 
+          nombreEstado: nombreEstado[proyecto.estado],
+        })
+
+      } else if(!evaluacion_exposicion) {
+
+        evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+        return res.json({
+          proyecto, 
+          nombreEstado: nombreEstado[proyecto.estado],
+          evaluacion: evaluacion_teorica,
+        })
+
       }
+
+      evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+      evaluacion_exposicion.nombreEstado = nombreEstadoExposicion[evaluacion_exposicion.estado];
+      return res.json({
+        proyecto,
+        nombreEstado: nombreEstado[proyecto.estado],
+        evaluacion: evaluacion_teorica,
+        exposicion: evaluacion_exposicion,
+      })
   
     } catch (error) {
       return res.status(500).json({ error: "Error de servidor" });
@@ -607,16 +688,42 @@ export const obtenerEvaluacionPendienteById = async (req, res) => {
         return res.status(404).json({ error: "No existe una evaluación asignada al referente con el ID ingresado" });
       }
   
-      const evaluacion = await Evaluacion.findOne({proyectoId: proyecto._id})
+      const evaluacion_teorica = await Evaluacion.findOne({proyectoId: proyecto._id})
       .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
       .lean()
       .exec();
-  
-      if(!evaluacion){
-        return res.json({proyecto, nombreEstado: nombreEstado[proyecto.estado]})
-      } else {
-        return res.json({proyecto, nombreEstado: nombreEstado[proyecto.estado], evaluacion})
+
+      const evaluacion_exposicion = await EvaluacionExposicion.findOne({proyectoId: proyecto._id})
+      .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+      .lean()
+      .exec();
+
+      if(!evaluacion_teorica){
+
+        return res.json({
+          proyecto, 
+          nombreEstado: nombreEstado[proyecto.estado],
+        })
+
+      } else if(!evaluacion_exposicion) {
+
+        evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+        return res.json({
+          proyecto, 
+          nombreEstado: nombreEstado[proyecto.estado],
+          evaluacion: evaluacion_teorica,
+        })
+
       }
+
+      evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+      evaluacion_exposicion.nombreEstado = nombreEstadoExposicion[evaluacion_exposicion.estado];
+      return res.json({
+        proyecto,
+        nombreEstado: nombreEstado[proyecto.estado],
+        evaluacion: evaluacion_teorica,
+        exposicion: evaluacion_exposicion,
+      })
   
     } catch (error) {
       return res.status(500).json({ error: "Error de servidor" });

@@ -9,20 +9,18 @@ import { Router } from "express";
 import { requireToken } from '../middlewares/requireToken.js';
 import { checkRolAuth, esReferenteDelProyecto } from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
-import { asignarEvaluadoresAProyecto, eliminarAsignaciónEvaluadorAProyecto, eliminarReferente, modificarReferente, obtenerEvaluadores, obtenerListadoDocentes, obtenerProyectosAsignadosAReferente, obtenerReferentesSeleccionados, seleccionarReferentes } from "../controllers/referentes.controller.js";
-import { asignarEvaluadorValidator, desasignarEvaluadorValidator, modificarReferenteValidator, seleccionarReferentesValidator } from "../middlewares/validationManagerReferente.js";
+import { asignarEvaluadoresAProyecto, obtenerEvaluadores, obtenerListadoDocentes, obtenerProyectosAsignadosAReferente, obtenerReferentesSeleccionados, seleccionarReferentes } from "../controllers/referentes.controller.js";
+import { asignarEvaluadorValidator, seleccionarReferentesValidator } from "../middlewares/validationManagerReferente.js";
 
 
 const routerReferente = Router();
 
 routerReferente.post("/", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), seleccionarReferentesValidator, seleccionarReferentes);
-routerReferente.patch("/:id", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), modificarReferenteValidator, modificarReferente);
-routerReferente.delete("/:id", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), eliminarReferente);
 routerReferente.get("/", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), obtenerListadoDocentes);
 routerReferente.get("/asignados", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), obtenerReferentesSeleccionados);
 routerReferente.get("/proyectos", requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), obtenerProyectosAsignadosAReferente);
 routerReferente.post('/asignar/:id', requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), asignarEvaluadorValidator, esReferenteDelProyecto, asignarEvaluadoresAProyecto)
-routerReferente.post('/desasignar/:id', requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), desasignarEvaluadorValidator, esReferenteDelProyecto, eliminarAsignaciónEvaluadorAProyecto)
+//routerReferente.post('/desasignar/:id', requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), desasignarEvaluadorValidator, esReferenteDelProyecto, eliminarAsignaciónEvaluadorAProyecto)
 routerReferente.get('/evaluadores/:id', requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), esReferenteDelProyecto, obtenerEvaluadores)
 
 
@@ -39,7 +37,7 @@ export default routerReferente;
  * /api/v1/referente:
  *   post:
  *     summary: Seleccionar referentes
- *     description: Crea referentes y asigna roles a docentes como referentes de evaluador.
+ *     description: Selección/Modificación de selección de referentes a sedes.
  *     tags:
  *       - Referente
  *     security:
@@ -61,7 +59,7 @@ export default routerReferente;
  *                       description: ID de la sede a la cual se quiere asignar el referente de evaluador.
  *                     referente:
  *                       type: string
- *                       description: ID del docente que se desea seleccionar como referente.
+ *                       description: ID del docente que se desea seleccionar como referente. Puede ser Null si no se asigna ningún referente a esa sede
  *                 required:
  *                   - sede
  *                   - referente
@@ -70,71 +68,6 @@ export default routerReferente;
  *         description: Se han seleccionado los referentes correctamente.
  *       401:
  *         description: Error en la selección de referentes.
- *       500:
- *         description: Error de servidor.
- */
-
-
-
-
-/**
- * @swagger
- * /api/v1/referente/:id:
- *   patch:
- *     summary: Modificar un referente
- *     description: Modifica la sede de un referente seleccionado.
- *     tags:
- *       - Referente
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: ID del referente seleccionado a modificar.
- *         schema:
- *           type: string
- *       - in: body
- *         name: body
- *         required: true
- *         description: Datos para la modificación del referente.
- *         schema:
- *           type: object
- *           properties:
- *             sede:
- *               type: string
- *               description: ID de la nueva sede a asignar al referente.
- *     responses:
- *       200:
- *         description: Referente modificado exitosamente.
- *       401:
- *         description: Error en la modificación del referente.
- *       500:
- *         description: Error de servidor.
- */
-
-/**
- * @swagger
- * /api/v1/referente/:id:
- *   delete:
- *     summary: Eliminar un referente
- *     description: Elimina un referente seleccionado y revierte los roles del docente asociado.
- *     tags:
- *       - Referente
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: ID del referente seleccionado a eliminar.
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Referente eliminado exitosamente.
- *       401:
- *         description: Error en la eliminación del referente.
  *       500:
  *         description: Error de servidor.
  */
@@ -276,7 +209,7 @@ export default routerReferente;
  * /api/v1/referente/asignar/:id:
  *   post:
  *     summary: Asignar evaluadores a un proyecto.
- *     description: Asigna evaluadores a un proyecto específico.
+ *     description: Asigna evaluadores a un proyecto específico. Se eliminan todos los evaluadores anteriores asignados al proyecto (se pisa).
  *     tags:
  *       - Referente
  *     security:
@@ -312,6 +245,12 @@ export default routerReferente;
  *           application/json:
  *             example:
  *               msg: "Todos los evaluadores han sido asignados correctamente al proyecto 'Casa Inteligente'"
+ *       400:
+ *         description: Error en validaciones del array de evaluadores.
+ *         content:
+ *           application/json:
+ *             example:
+ *               errors: []
  *       401:
  *         description: No autorizado o datos de sesión incorrectos.
  *         content:
@@ -327,55 +266,6 @@ export default routerReferente;
  */
 
 
-/**
- * @swagger
- * /api/v1/referente/desasignar/:id:
- *   post:
- *     summary: Desasignar evaluador de un proyecto.
- *     description: Desasigna un evaluador de un proyecto específico.
- *     tags:
- *       - Referente
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: ID del proyecto del que se desasignará el evaluador.
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       description: Datos de la solicitud de desasignación del evaluador.
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               evaluador:
- *                 type: string
- *                 description: ID del evaluador que se desasignará del proyecto.
- *                 required: true
- *     responses:
- *       200:
- *         description: Evaluador desasignado correctamente.
- *         content:
- *           application/json:
- *             example:
- *               msg: "Se ha eliminado la asignación del evaluador ID 650f4549483ba1af04c685c4 al proyecto 'Casa Inteligente'"
- *       401:
- *         description: No autorizado o datos de sesión incorrectos.
- *         content:
- *           application/json:
- *             example:
- *               error: "No existe el proyecto con el ID ingresado"
- *       500:
- *         description: Error de servidor.
- *         content:
- *           application/json:
- *             example:
- *               error: "Error de servidor"
- */
 
 /**
  * @swagger

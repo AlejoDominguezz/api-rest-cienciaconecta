@@ -20,7 +20,6 @@ import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js"
 import { Feria, estadoFeria } from "../models/Feria.js";
 import { roles } from "../helpers/roles.js";
 import multer from "multer";
-import { fileCola, fileUpdateCola } from "../helpers/queueFile.js";
 import QRCode from 'qrcode'
 import { PDFDocument, rgb } from 'pdf-lib';
 import fs from 'fs';
@@ -28,6 +27,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import jpeg  from 'jpeg-js';
 import sharp from 'sharp';
+import { fileCola, fileUpdateCola } from "../helpers/queueManager.js";
 
 
 // Configurar multer para manejar la subida de archivos

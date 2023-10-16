@@ -10,108 +10,69 @@ export const seleccionarReferentes = async (req, res) => {
     try {
         const {seleccion} = req.body;
 
+        const feriaActiva = await getFeriaActivaFuncion()
+
+        // Buscar y eliminar todos los referentes de la feria activa
+        const referentesEliminados = await Referente.find({ feria: feriaActiva._id });
+        await Referente.deleteMany({ feria: feriaActiva._id });
+
+        for (const referenteEliminado of referentesEliminados) {
+        // Buscar el docente relacionado con el referente eliminado
+        const docente = await Docente.findById(referenteEliminado.idDocente);
+
+        if (docente) {
+            // Buscar el usuario relacionado con el docente
+            const usuario = await Usuario.findById(docente.usuario);
+
+            if (usuario) {
+            // Quitar el rol roles.refEvaluador al usuario
+            if (usuario.roles.includes(roles.refEvaluador)) {
+                usuario.roles = usuario.roles.filter((rol) => rol !== roles.refEvaluador);
+                await usuario.save();
+            }
+            }
+        }
+        }
+
+        // Asignación de nuevos referentes de evaluador
         for (const obj of seleccion) {
-            
-            const docente = await Docente.findById(obj.referente)
-            if(!docente){
-                return res.status(401).json({ error: `${obj.referente} no es un ID de un docente registrado` });
+
+            // Solo se crean referentes que sean distintos de null
+            if (obj.referente !== null) {
+
+              // Si se envía un referente, crear un nuevo referente y asignar la sede.
+                const docente = await Docente.findById(obj.referente)
+                if(!docente){
+                    return res.status(401).json({ error: `${obj.referente} no es un ID de un docente registrado` });
+                }
+
+                const usuario = await Usuario.findById(docente.usuario)
+                if(!usuario){
+                    return res.status(401).json({ error: `${obj.referente} no tiene asociado a un usuario registrado` });
+                }
+
+                // Creación de referente
+                const referente = new Referente({
+                    sede: obj.sede,
+                    idDocente: obj.referente,
+                    feria: feriaActiva._id,
+                });
+                
+                // Modificación de roles
+                if(usuario.roles.includes(roles.evaluador)){
+                    usuario.roles.push(roles.refEvaluador)
+                    usuario.roles = usuario.roles.filter(rol => rol !== roles.evaluador);
+                } else {
+                    usuario.roles.push(roles.refEvaluador)
+                }
+
+                usuario.save()
+                referente.save()
+
             }
-
-            const usuario = await Usuario.findById(docente.usuario)
-            if(!usuario){
-                return res.status(401).json({ error: `${obj.referente} no tiene asociado a un usuario registrado` });
-            }
-
-            const feriaActiva = await getFeriaActivaFuncion()
-
-            const referente = new Referente({
-                sede: obj.sede,
-                idDocente: obj.referente,
-                evaluadoresAsignados: [],
-                feria: feriaActiva._id
-            })
-
-            if(usuario.roles.includes(roles.refEvaluador)){
-                return res.status(401).json({ error: `${obj.referente} ya ha sido seleccionado como referente de evaluador` });
-            }
-
-
-            if(usuario.roles.includes(roles.evaluador)){
-                usuario.roles.push(roles.refEvaluador)
-                usuario.roles = usuario.roles.filter(rol => rol !== roles.evaluador);
-            } else {
-                usuario.roles.push(roles.refEvaluador)
-            }
-
-            usuario.save()
-            referente.save()
-
         }
+
         return res.json({msg: "Se han seleccionado todos los referentes correctamente"}); 
-
-    } catch (error) {
-        return res.status(500).json({error: "Error de servidor"})
-    }
-
-}
-
-
-export const modificarReferente = async (req, res) => {
-    try {
-        const {id} = req.params;
-        const {sede} = req.body;
-
-        const feriaActiva = await getFeriaActivaFuncion()
-
-        const referente = await Referente.findById(id);
-        if(!referente){
-            return res.status(401).json({ error: `${id} no es un ID de un referente seleccionado` });
-        }
-        if(referente.feria != feriaActiva.id){
-            return res.status(401).json({ error: "No se permite modificar un referente de una feria anterior" });
-        }
-
-        referente.sede = sede.toString()
-        referente.save()
-
-        return res.json({referente}); 
-
-    } catch (error) {
-        return res.status(500).json({error: "Error de servidor"})
-    }
-
-}
-
-
-export const eliminarReferente = async (req, res) => {
-    try {
-        const {id} = req.params;
-
-        const feriaActiva = await getFeriaActivaFuncion()
-
-        const referente = await Referente.findById(id);
-        if(!referente){
-            return res.status(401).json({ error: `${id} no es un ID de un referente seleccionado` });
-        }
-        if(referente.feria != feriaActiva.id){
-            return res.status(401).json({ error: "No se permite eliminar un referente de una feria anterior" });
-        }
-
-        const docente = await Docente.findById(referente.idDocente);
-        if(!docente){
-            return res.status(401).json({ error: `${id} no tiene un docente asociado registrado` });
-        }
-
-        const usuario = await Usuario.findById(docente.usuario);
-        if(!usuario){
-            return res.status(401).json({ error: `${id} no tiene un usuario asociado registrado` });
-        }
-
-        usuario.roles = usuario.roles.filter(rol => rol !== roles.refEvaluador);
-        usuario.save()
-        referente.deleteOne()
-
-        return res.json({ msg: `El referente con ID ${id} se ha eliminado correctamente`}); 
 
     } catch (error) {
         return res.status(500).json({error: "Error de servidor"})
@@ -254,42 +215,42 @@ export const obtenerProyectosAsignadosAReferente = async (req, res) => {
 
 }
 
-export const eliminarAsignaciónEvaluadorAProyecto = async (req, res) => {
-    try {
+// export const eliminarAsignaciónEvaluadorAProyecto = async (req, res) => {
+//     try {
 
-        //const { id } = req.params;
-        const { evaluador } = req.body;
+//         //const { id } = req.params;
+//         const { evaluador } = req.body;
 
-        const errores = [];
+//         const errores = [];
 
-        const proyecto = req.proyecto;
-        if (!proyecto) {
-            return res.status(401).json({ error: "No existe el proyecto con el ID ingresado" });
-        }
+//         const proyecto = req.proyecto;
+//         if (!proyecto) {
+//             return res.status(401).json({ error: "No existe el proyecto con el ID ingresado" });
+//         }
 
-        if (proyecto.evaluadoresRegionales.length == 0) {
-            return res.status(401).json({ error: `El proyecto no tiene evaluadores asignados` });
-        }
+//         if (proyecto.evaluadoresRegionales.length == 0) {
+//             return res.status(401).json({ error: `El proyecto no tiene evaluadores asignados` });
+//         }
 
-        const ev = await Evaluador.findById(evaluador);
-        if (!ev) {
-            return res.status(401).json({ error: "No existe el evaluador con el ID ingresado" });
-        }
+//         const ev = await Evaluador.findById(evaluador);
+//         if (!ev) {
+//             return res.status(401).json({ error: "No existe el evaluador con el ID ingresado" });
+//         }
 
-        proyecto.evaluadoresRegionales = proyecto.evaluadoresRegionales.filter(id => id.toString() !== evaluador.toString());
+//         proyecto.evaluadoresRegionales = proyecto.evaluadoresRegionales.filter(id => id.toString() !== evaluador.toString());
         
-        proyecto.save()
+//         proyecto.save()
 
-        return res.json({ msg: `Se ha eliminado la asignación del evaluador ID ${ev._id} al proyecto '${proyecto.titulo}'` });
+//         return res.json({ msg: `Se ha eliminado la asignación del evaluador ID ${ev._id} al proyecto '${proyecto.titulo}'` });
 
-    } catch (error) {
-        return res.status(500).json({ error: "Error de servidor" });
-    }
-}
+//     } catch (error) {
+//         return res.status(500).json({ error: "Error de servidor" });
+//     }
+// }
 
 export const asignarEvaluadoresAProyecto = async (req, res) => {
     try {
-        //const { id } = req.params;
+
         const { evaluadores } = req.body;
         const errores = [];
 
@@ -298,25 +259,27 @@ export const asignarEvaluadoresAProyecto = async (req, res) => {
             return res.status(401).json({ error: "No existe el proyecto con el ID ingresado" });
         }
 
-        if (proyecto.evaluadoresRegionales.length >= 3) {
-            return res.status(401).json({ error: `El proyecto ya tiene 3 evaluadores asignados` });
-        }
+        proyecto.evaluadoresRegionales = []
 
-        if (proyecto.evaluadoresRegionales.length + evaluadores.length > 3) {
-            return res.status(401).json(
-                { error: `No puedes asignar ${evaluadores.length} evaluadores, hay ${proyecto.evaluadoresRegionales.length} evaluadores asignados en el proyecto. Puedes asignar ${3 - proyecto.evaluadoresRegionales.length} como máximo` });
-        }
+        // if (proyecto.evaluadoresRegionales.length >= 3) {
+        //     return res.status(401).json({ error: `El proyecto ya tiene 3 evaluadores asignados` });
+        // }
+
+        // if (proyecto.evaluadoresRegionales.length + evaluadores.length > 3) {
+        //     return res.status(401).json(
+        //         { error: `No puedes asignar ${evaluadores.length} evaluadores, hay ${proyecto.evaluadoresRegionales.length} evaluadores asignados en el proyecto. Puedes asignar ${3 - proyecto.evaluadoresRegionales.length} como máximo` });
+        // }
 
         for (const evaluadorID of evaluadores) {
             try {
-                if (proyecto.evaluadoresRegionales.includes(evaluadorID.toString())) {
-                    errores.push(`El evaluador con ID ${evaluadorID} ya ha sido asignado al proyecto`);
-                } else {
+                // if (proyecto.evaluadoresRegionales.includes(evaluadorID.toString())) {
+                //     errores.push(`El evaluador con ID ${evaluadorID} ya ha sido asignado al proyecto`);
+                // } else {
                     const evaluador = await Evaluador.findById(evaluadorID);
                     if (!evaluador) {
                         errores.push(`No existe un evaluador registrado con ID ${evaluadorID}`);
                     } else {
-                        const proyectosAsignados = await Proyecto.find({ evaluadoresRegionales: evaluadorID }).countDocuments();
+                        const proyectosAsignados = await Proyecto.find({ evaluadoresRegionales: evaluadorID, _id: { $ne: proyecto._id } }).countDocuments();
                         if (proyectosAsignados >= 5) {
                             errores.push(`Evaluador con ID ${evaluadorID} ya está asignado a 5 proyectos`);
                         } else if(evaluador.sede.toString() != proyecto.sede.toString()) {
@@ -325,14 +288,14 @@ export const asignarEvaluadoresAProyecto = async (req, res) => {
                             proyecto.evaluadoresRegionales.push(evaluadorID);
                         }
                     }
-                }
+                // }
             } catch (error) {
                 errores.push(`Error al procesar evaluador con ID ${evaluadorID}: ${error.message}`);
             }
         }
 
         if (errores.length > 0) {
-            return res.status(401).json({ errores });
+            return res.status(401).json({ error: "Han ocurrido errores al asignar evaluadores al proyecto", errors: errores });
         } else {
             await proyecto.save();
             return res.json({ msg: `Todos los evaluadores han sido asignados correctamente al proyecto '${proyecto.titulo}'` });
@@ -412,7 +375,7 @@ export const obtenerEvaluadores = async (req, res) => {
 
 const calcularCoincidencia = (evaluador, proyecto) => {
     
-    console.log("NIVEL DE COINCIDENCIA -------------------- Evaluador: ", evaluador._id.toString())
+    //console.log("NIVEL DE COINCIDENCIA -------------------- Evaluador: ", evaluador._id.toString())
 
     const MAX_PUNTUACION = 100; // Puntuación máxima
 
@@ -422,14 +385,14 @@ const calcularCoincidencia = (evaluador, proyecto) => {
     // Comprobar coincidencia de nivel
     if (evaluador.niveles.toString().includes(proyecto.nivel.toString())) {
         puntuacionTotal += MAX_PUNTUACION / 4; // Asignar 25 puntos (25%)
-        console.log("NIVEL: ", MAX_PUNTUACION / 4)
+        //console.log("NIVEL: ", MAX_PUNTUACION / 4)
     }
 
 
     // Comprobar coincidencia de categoría
     if (evaluador.categorias.toString().includes(proyecto.categoria.toString())) {
         puntuacionTotal += MAX_PUNTUACION / 4; // Asignar 25 puntos (25%)
-        console.log("CATEGORIA: ", MAX_PUNTUACION / 4)
+        //console.log("CATEGORIA: ", MAX_PUNTUACION / 4)
     }
 
     // Comprobar antecedentes
@@ -463,16 +426,16 @@ const calcularCoincidencia = (evaluador, proyecto) => {
     const escalaLogaritmica = decaimientoLogaritmico(antecedentesPuntaje);
     puntuacionTotal += Math.min(escalaLogaritmica, MAX_PUNTUACION_ANTECEDENTES);
 
-    console.log("ANTECEDENTES: ", Math.min(escalaLogaritmica, MAX_PUNTUACION_ANTECEDENTES))
+    //console.log("ANTECEDENTES: ", Math.min(escalaLogaritmica, MAX_PUNTUACION_ANTECEDENTES))
 
     // Comprobar coincidencia de sede
     if (evaluador.sede.toString() == proyecto.sede.toString()) {
         puntuacionTotal += MAX_PUNTUACION / 4; // Asignar 25 puntos (25%)
-        console.log("SEDE: ", MAX_PUNTUACION / 4)
+        //console.log("SEDE: ", MAX_PUNTUACION / 4)
     }
 
     
-    console.log("TOTAL: ", parseFloat(puntuacionTotal.toFixed(2)))
+    //console.log("TOTAL: ", parseFloat(puntuacionTotal.toFixed(2)))
     
     return parseFloat(puntuacionTotal.toFixed(2));
 }

@@ -948,51 +948,23 @@ export default routerProyectos;
  * @swagger
  * /api/v1/proyecto/generarQR/:id:
  *   get:
- *     summary: Generar un Código QR del Proyecto
- *     tags:
+ *     summary: Genera un PDF con un código QR para un proyecto específico
+ *     tags: 
  *       - Proyectos
  *     parameters:
  *       - in: path
  *         name: id
- *         required: true
  *         schema:
  *           type: string
- *         description: Identificador único del proyecto.
+ *         required: true
+ *         description: ID del proyecto
  *     responses:
- *       '200':
- *         description: Código QR generado exitosamente.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 tag:
- *                   type: string
- *                   description: Etiqueta HTML para mostrar el código QR en el cliente.
- *                 qrBase64:
- *                   type: string
- *                   description: Representación en base64 del código QR.
- *       '400':
- *         description: Error de cliente.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   description: Error al encontrar el proyecto o no es propietario del mismo.
- *       '500':
- *         description: Error de servidor.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   description: Mensaje de error.
- *     security:
- *       - bearerAuth: []
- *       - roles: [admin, responsableProyecto]
+ *       200:
+ *         description: Archivo PDF con el código QR del proyecto
+ *       401:
+ *         description: No autorizado
+ *       404:
+ *         description: No se encuentra el proyecto
+ *       500:
+ *         description: Error interno del servidor al generar el PDF
  */

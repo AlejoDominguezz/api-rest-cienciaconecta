@@ -864,11 +864,6 @@ export const generarPDFconQR = async (req, res) => {
       });
     }
 
-    
-
-
-
-
     // Serializa el PDF en un ArrayBuffer
     const pdfBytes = await pdfDoc.save();
 
@@ -892,7 +887,36 @@ export const generarPDFconQR = async (req, res) => {
     // Envía el PDF como una respuesta
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="Proyecto - ${proyecto.titulo}.pdf`);
-    res.status(200).sendFile(tempFilePath);
+    //res.status(200).sendFile(tempFilePath);
+
+    // Envía el archivo como respuesta
+    res.status(200).sendFile(tempFilePath, async (err) => {
+      if (!err) {
+        try {
+          // Elimina el archivo temporal después de enviarlo como respuesta
+          await deleteTemporaryFile(tempFilePath);
+        } catch (error) {
+          console.error('Error al eliminar el archivo temporal', error);
+        }
+      } else {
+        res.status(500).json({ error: 'Error al enviar el archivo como respuesta' });
+      }
+    });
+
+    // Eliminar archivo temporal
+    const deleteTemporaryFile = (filePath) => {
+      return new Promise((resolve, reject) => {
+        // Elimina el archivo
+        fs.unlink(filePath, (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+    };
+
   } catch (error) {
     console.error('Error al generar el PDF', error);
     res.status(500).json({ error: 'Error al generar el PDF' });

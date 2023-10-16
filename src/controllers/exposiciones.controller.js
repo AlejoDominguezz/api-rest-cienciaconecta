@@ -2,7 +2,7 @@ import { EvaluacionExposicion, estadoEvaluacionExposicion } from "../models/Eval
 import { Evaluacion, estadoEvaluacion } from "../models/Evaluacion.js";
 import { arraysEvaluacionIguales, arraysComentariosIguales } from "../helpers/arrayComparation.js"
 import { obtenerPuntaje } from "./evaluaciones.controller.js"
-import { Proyecto, nombreEstado } from "../models/Proyecto.js";
+import { Proyecto, estado, nombreEstado } from "../models/Proyecto.js";
 import { Docente } from "../models/Docente.js";
 import { Evaluador } from "../models/Evaluador.js";
 import { Types } from "mongoose";
@@ -393,9 +393,11 @@ export const confirmarEvaluacionExposicion = async (req, res) => {
 
   if(evaluacion_anterior.listo.length == evaluacion_anterior.evaluadorId.length) {
     evaluacion_anterior.estado = estadoEvaluacionExposicion.cerrada;
+    proyecto.estado = estado.evaluadoRegional;
     responseMessage = `Todos los evaluadores han confirmado la evaluación. La evaluación del proyecto '${proyecto.titulo}' ha finalizado`;
   }
 
+  proyecto.save()
   evaluacion_anterior.save()
 
   return res.json({ ok: true , responseMessage });

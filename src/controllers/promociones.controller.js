@@ -8,7 +8,7 @@ import { Proyecto, nombreEstado } from "../models/Proyecto.js";
 import { getFeriaActivaFuncion } from "./ferias.controller.js"
 
 
-// Función para obtener todos los proyectos que están en condiciones de ser promovidos a instancia regional --------------------------------------
+// Función para obtener todos los proyectos regionales que están en condiciones de ser promovidos a instancia provincial --------------------------------------
 export const obtenerProyectosProvincial = async (req, res) => {
     const id_nivel = req.body.nivel;
     const id_sede = req.body.sede;
@@ -34,7 +34,7 @@ export const obtenerProyectosProvincial = async (req, res) => {
 }
 
 
-// Función para obtener todos los proyectos que están en condiciones de ser promovidos a instancia regional --------------------------------------
+// Función para obtener todos los proyectos provinciales que están en condiciones de ser promovidos a instancia nacionales --------------------------------------
 export const obtenerProyectosNacional = async (req, res) => {
   const id_nivel = req.body.nivel;
 
@@ -60,7 +60,7 @@ export const obtenerProyectosNacional = async (req, res) => {
 
 
 
-// Función para agregar información sobre la Evaluación Teórica y de Exposición a un proyecto -----------------------------------------------------
+// Función para agregar información sobre la Evaluación Teórica y de Exposición Regional a un proyecto -----------------------------------------------------
 const agregarInformacionEvaluacion = async (proyectos) => {
     const proyectosInfoEvaluacion = await Promise.all(
         proyectos.map(async (proyecto) => {
@@ -109,7 +109,7 @@ const agregarInformacionEvaluacion = async (proyectos) => {
 
 
 
-// Función para agregar información sobre la Evaluación Teórica y de Exposición a un proyecto -----------------------------------------------------
+// Función para agregar información sobre la Evaluación Teórica y de Exposición Provincial a un proyecto -----------------------------------------------------
 const agregarInformacionEvaluacion_Provincial = async (proyectos) => {
   const proyectosInfoEvaluacion = await Promise.all(
       proyectos.map(async (proyecto) => {
@@ -159,7 +159,7 @@ const agregarInformacionEvaluacion_Provincial = async (proyectos) => {
 
 
 
-// Función para agregar información sobre la Evaluación Teórica y de Exposición a un proyecto -----------------------------------------------------
+// Función para agregar información sobre la Evaluación Teórica y de Exposición Regional a un proyecto -----------------------------------------------------
 export const agregarInformacionEvaluacionProyecto = async (proyecto) => {
     
             const evaluacion_teorica = await Evaluacion.findOne({proyectoId: proyecto._id})
@@ -202,7 +202,7 @@ export const agregarInformacionEvaluacionProyecto = async (proyecto) => {
 }
 
 
-// Función para agregar información sobre la Evaluación Teórica y de Exposición a un proyecto -----------------------------------------------------
+// Función para agregar información sobre la Evaluación Teórica y de Exposición Provincial a un proyecto -----------------------------------------------------
 export const agregarInformacionEvaluacionProyecto_Provincial = async (proyecto) => {
     
   const evaluacion_teorica = await EvaluacionProvincial.findOne({proyectoId: proyecto._id})
@@ -245,7 +245,7 @@ export const agregarInformacionEvaluacionProyecto_Provincial = async (proyecto) 
 }
 
 
-// Funcion para promover proyectos a la instancia Provincial ---------------------------------------------------------------------------------------------------
+// Funcion para promover proyectos a la instancia Nacional ---------------------------------------------------------------------------------------------------
 export const promoverProyectos_Nacional = async (req, res) => {
     try {
         const id_proyectos = req.body.proyectos

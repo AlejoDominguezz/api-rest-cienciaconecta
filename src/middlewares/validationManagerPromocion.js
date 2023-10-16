@@ -6,7 +6,7 @@ import { Proyecto, estado } from "../models/Proyecto.js";
 import { validarCampos } from "./validar-campos.js";
 import { body } from 'express-validator';
 import { Types } from 'mongoose';
-import { agregarInformacionEvaluacionProyecto } from "../controllers/promociones.controller.js";
+import { agregarInformacionEvaluacionProyecto, agregarInformacionEvaluacionProyecto_Provincial } from "../controllers/promociones.controller.js";
 import { estadoEvaluacionExposicionProvincial } from "../models/EvaluacionExposicion_Provincial.js";
 import { estadoEvaluacionProvincial } from "../models/Evaluacion_Provincial.js";
 
@@ -181,6 +181,32 @@ export const promoverProvincialValidator = [
     
           })
         .withMessage('El establecimiento elegido no es una sede actual'),
+
+    validarCampos
+  ];
+
+
+
+  
+  export const obtenerNacionalValidator = [
+
+    // Validación de Nivel
+    body('nivel')
+    .isMongoId()
+    .withMessage('El nivel ingresado no es un ID de Mongo válido')
+    .custom(async (nivelId) => {
+        if (!Types.ObjectId.isValid(nivelId)) {
+            throw new Error('El nivel ingresado no es un ID de Mongo válido');
+        }
+    
+        const nivel = await Nivel.findOne({ _id: nivelId });
+    
+        if (!nivel) {
+            throw new Error('No existe el Nivel con el ID ingresado');
+        }
+    
+        return true; 
+        }),
 
     validarCampos
   ];

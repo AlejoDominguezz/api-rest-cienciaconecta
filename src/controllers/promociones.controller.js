@@ -33,7 +33,7 @@ export const obtenerProyectosProvincial = async (req, res) => {
 
 
 // Función para agregar información sobre la Evaluación Teórica y de Exposición a un proyecto -----------------------------------------------------
-export const agregarInformacionEvaluacion = async (proyectos) => {
+const agregarInformacionEvaluacion = async (proyectos) => {
     const proyectosInfoEvaluacion = await Promise.all(
         proyectos.map(async (proyecto) => {
             const evaluacion_teorica = await Evaluacion.findOne({proyectoId: proyecto._id})
@@ -80,6 +80,50 @@ export const agregarInformacionEvaluacion = async (proyectos) => {
 }
 
 
+
+// Función para agregar información sobre la Evaluación Teórica y de Exposición a un proyecto -----------------------------------------------------
+export const agregarInformacionEvaluacionProyecto = async (proyecto) => {
+    
+            const evaluacion_teorica = await Evaluacion.findOne({proyectoId: proyecto._id})
+            .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+            .lean()
+            .exec();
+
+            const evaluacion_exposicion = await EvaluacionExposicion.findOne({proyectoId: proyecto._id})
+            .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+            .lean()
+            .exec();
+
+            if(!evaluacion_teorica ){
+
+                return {
+                  ...proyecto,
+                  nombreEstado: nombreEstado[proyecto.estado],
+                }
+    
+              } else if(!evaluacion_exposicion) {
+    
+                evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+                return {
+                  ...proyecto,
+                  nombreEstado: nombreEstado[proyecto.estado],
+                  evaluacion: evaluacion_teorica,
+                };
+    
+              } 
+    
+              evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+              evaluacion_exposicion.nombreEstado = nombreEstadoExposicion[evaluacion_exposicion.estado];
+              return {
+                ...proyecto,
+                nombreEstado: nombreEstado[proyecto.estado],
+                evaluacion: evaluacion_teorica,
+                exposicion: evaluacion_exposicion,
+              };
+
+}
+
+
 // Funcion para promover proyectos a la instancia Provincial ---------------------------------------------------------------------------------------------------
 export const promoverProyectos_Provincial = async (req, res) => {
     try {
@@ -87,7 +131,7 @@ export const promoverProyectos_Provincial = async (req, res) => {
         const id_nivel = req.body.nivel;
         const id_sede = req.body.sede;
         const feriaActiva = await getFeriaActivaFuncion()
-        const cuposNivelSede = feriaActiva.instancias.instanciaRegional.cupos.find(cupo => (cupo.nivel.toString() === id_nivel.toString()) && (cupo.sede.toString() === id_sede.toString()));
+        const cuposNivelSede = feriaActiva.instancias.instanciaRegional.cupos.find(cupo => (cupo.nivel?.toString() === id_nivel.toString()) && (cupo.sede?.toString() === id_sede.toString()));
         const cantidadCupos = cuposNivelSede ? cuposNivelSede.cantidad : 0;
 
         if(id_proyectos.length > cantidadCupos) {

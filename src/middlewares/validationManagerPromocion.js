@@ -6,6 +6,7 @@ import { Proyecto, estado } from "../models/Proyecto.js";
 import { validarCampos } from "./validar-campos.js";
 import { body } from 'express-validator';
 import { Types } from 'mongoose';
+import { agregarInformacionEvaluacionProyecto } from "../controllers/promociones.controller.js";
 
 export const promoverProvincialValidator = [
     body('proyectos')
@@ -34,13 +35,16 @@ export const promoverProvincialValidator = [
             }
 
             if (proyecto.estado !== estado.evaluadoRegional) {
-              throw new Error(`No es posible promover al proyecto ID ${proyecto._id} porque ha finalizado su evaluación regional`);
+              throw new Error(`No es posible promover al proyecto ID ${proyecto._id} porque no ha finalizado su evaluación regional`);
             }
-        
+
+            const proyectoInfoEvaluacion = await agregarInformacionEvaluacionProyecto(proyecto)
+            if(!((proyectoInfoEvaluacion.exposicion?.estado == estadoEvaluacionExposicion.cerrada) && (proyectoInfoEvaluacion.evaluacion?.estado == estadoEvaluacion.cerrada)))
+              throw new Error(`No es posible promover al proyecto ID ${proyecto._id} porque no ha finalizado su evaluación regional`);
+
             return true;
           }),
         
-        //COMPLETAR ----------------------------
 
 
     // Validación de Nivel

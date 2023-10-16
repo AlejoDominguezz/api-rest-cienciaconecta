@@ -171,54 +171,54 @@ export const cargarCv = async (req, res) => {
     const evaluador = await Evaluador.findOne({ idDocente: _docente.id });
     if (!_docente) {
       return res.status(401).json({ message: "NO EXISTE EL DOCENTE" });
-    }
-    if(evaluador.id_carpeta_cv){
+    }else if(evaluador.id_carpeta_cv){
       res.status(400).json({
         message: "ERROR, YA EXISTE UNA CARPETA DE DRIVE ASOCIADA A ESTE EVALUADOR, DEBE ACTUALIZAR EL CV, NO INTENTAR CARGARLO POR PRIMERA VEZ."
       })
+    }else{
+      const form = formidable({ multiples: false });
+
+      form.parse(req, async (err, fields, files) => {
+  
+        if (err) {
+          console.error("ERROR EN FORM DATA AL PROCESARLO", err.message);
+          res.status(500).send("ERROR AL PROCESAR EL FORM DATA");
+          return;
+        }
+  
+        if(!files.cv){
+          return res.status(400).json({
+            msg: "DEBE INGRESAR EL ARCHIVO PDF LLAMADO 'cv' ",
+          });
+        }
+  
+        //falta incorporar el === 0 object
+        if (!files || Object.keys(files).length === 0) {
+          return res.status(400).json({
+            msg: "DEBE INGRESAR ARCHIVOS PDF, NO HA INGRESADO NADA.",
+          });
+        }
+  
+        const extensionValida = "application/pdf";
+        for (const archivoKey in files) {
+          if (files.hasOwnProperty(archivoKey)) {
+            const archivo = files[archivoKey];
+            if(archivo.mimetype !== extensionValida)
+            return res.status(400).json({message: "ERROR, DEBE INGRESAR SOLO ARCHIVOS EN FORMATO PDF!"})
+          }
+        }
+  
+        const cola = await fileCv.add({uid , files});
+        if(cola){
+          console.log(cola);
+          res.status(200).json({message: "CV CARGANDOSE..."});
+        }else{
+          res.status(400).json({message: "ERROR AL INTENTAR CARGAR EL CV"});
+        }
+  
+      });
     }
 
-    const form = formidable({ multiples: false });
-
-    form.parse(req, async (err, fields, files) => {
-
-      if (err) {
-        console.error("ERROR EN FORM DATA AL PROCESARLO", err.message);
-        res.status(500).send("ERROR AL PROCESAR EL FORM DATA");
-        return;
-      }
-
-      if(!files.cv){
-        return res.status(400).json({
-          msg: "DEBE INGRESAR EL ARCHIVO PDF LLAMADO 'cv' ",
-        });
-      }
-
-      //falta incorporar el === 0 object
-      if (!files || Object.keys(files).length === 0) {
-        return res.status(400).json({
-          msg: "DEBE INGRESAR ARCHIVOS PDF, NO HA INGRESADO NADA.",
-        });
-      }
-
-      const extensionValida = "application/pdf";
-      for (const archivoKey in files) {
-        if (files.hasOwnProperty(archivoKey)) {
-          const archivo = files[archivoKey];
-          if(archivo.mimetype !== extensionValida)
-          return res.status(400).json({message: "ERROR, DEBE INGRESAR SOLO ARCHIVOS EN FORMATO PDF!"})
-        }
-      }
-
-      const cola = await fileCv.add({uid , files});
-      if(cola){
-        res.status(200).json({message: "CV CARGANDOSE..."});
-      }else{
-        res.status(400).json({message: "ERROR AL INTENTAR CARGAR EL CV"});
-      }
-
-
-    });
   } catch (error) {
     console.error(error);
     res.status(500).json({

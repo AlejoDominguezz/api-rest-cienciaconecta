@@ -500,7 +500,7 @@ export const modificarProyectoRegional = async (req, res) => {
       categoria,
       establecimientoEducativo,
       emailEscuela,
-      // videoPresentacion,
+      videoPresentacion,
       // registroPedagogico,
       // carpetaCampo,
       // informeTrabajo,
@@ -534,8 +534,7 @@ export const modificarProyectoRegional = async (req, res) => {
       establecimientoEducativo ?? proyecto.establecimientoEducativo;
     proyecto.emailEscuela = emailEscuela ?? proyecto.emailEscuela;
 
-    // proyecto.videoPresentacion =
-    //   videoPresentacion ?? proyecto.videoPresentacion;
+    proyecto.videoPresentacion = videoPresentacion ?? proyecto.videoPresentacion;
     // proyecto.registroPedagogico =
     //   registroPedagogico ?? proyecto.registroPedagogico;
     // proyecto.carpetaCampo = carpetaCampo ?? proyecto.carpetaCampo;

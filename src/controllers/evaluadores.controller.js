@@ -67,24 +67,38 @@ export const postularEvaluador = async (req, res) => {
 
 export const getPostulaciones = async (req, res) => {
   try {
-    const postulaciones = await Evaluador.find({ pendiente: true });
+    const postulaciones = await Evaluador.find({ pendiente: true })
+    .select('-__v -id_carpeta_cv')
+    .lean()
+    .exec();
+
     if (postulaciones.length === 0) {
       return res
         .status(204)
         .json({ error: "No se han encontrado postulaciones pendientes" });
     }
 
-    const postulacionesConDatosDocente = await Promise.all(
+    const postulacionesConDatosDocenteEstablecimiento = await Promise.all(
       postulaciones.map(async (postulacion) => {
-        const datos_docente = await Docente.findById(postulacion.idDocente);
+        const datos_docente = await Docente.findById(postulacion.idDocente)
+        .select('-__v -_id')
+        .lean()
+        .exec();
+
+        const datos_establecimiento = await EstablecimientoEducativo.findOne({_id: postulacion.sede})
+        .select('-__v -_id')
+        .lean()
+        .exec();
+
         return {
-          ...postulacion.toObject(),
-          datos_docente: datos_docente.toObject(),
+          ...postulacion,
+          datos_docente: datos_docente,
+          datos_establecimiento: datos_establecimiento,
         };
       })
     );
 
-    return res.json({ postulaciones: postulacionesConDatosDocente });
+    return res.json({ postulaciones: postulacionesConDatosDocenteEstablecimiento });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Error de servidor" });

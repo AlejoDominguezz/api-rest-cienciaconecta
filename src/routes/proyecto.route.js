@@ -17,7 +17,7 @@ import {
   modificarProyectoEscolar,
   modificarProyectoRegional,
   cargarArchivosRegional,
-  actualizarArchivosRegional,
+ // actualizarArchivosRegional,
   downloadDocuments,
   downloadDocumentEspecific,
   generarPDFconQR
@@ -109,15 +109,15 @@ routerProyectos.post(
   cargarArchivosRegional
 );
 
-routerProyectos.patch(
-  "/regional/upload/:id",
-    requireToken,
-    BodyValidationDrive,
-    checkRolAuth([roles.admin, roles.responsableProyecto]),
-    //fecha(fechasFeria.fechaFinEscolar, fechasFeria.fechaInicioEvaluacionRegional),
-    esPropietario,
-    actualizarArchivosRegional
-);
+// routerProyectos.patch(
+//   "/regional/upload/:id",
+//     requireToken,
+//     BodyValidationDrive,
+//     checkRolAuth([roles.admin, roles.responsableProyecto]),
+//     //fecha(fechasFeria.fechaFinEscolar, fechasFeria.fechaInicioEvaluacionRegional),
+//     esPropietario,
+//     actualizarArchivosRegional
+// );
 
 routerProyectos.get(
   "/download/:id",

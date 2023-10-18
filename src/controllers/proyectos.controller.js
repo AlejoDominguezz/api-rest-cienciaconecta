@@ -27,7 +27,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import jpeg  from 'jpeg-js';
 import sharp from 'sharp';
-import { fileCola, fileUpdateCola , filesCola} from "../helpers/queueManager.js";
+import {filesCola} from "../helpers/queueManager.js";
 
 
 // Configurar multer para manejar la subida de archivos
@@ -706,52 +706,52 @@ export const cargarArchivosRegional = async (req, res) => {
   }
 };
 
-export const actualizarArchivosRegional = async (req, res) => {
-  try {
-    const id = req.params.id;
-    const proyecto = await Proyecto.findById(id);
+// export const actualizarArchivosRegional = async (req, res) => {
+//   try {
+//     const id = req.params.id;
+//     const proyecto = await Proyecto.findById(id);
 
-    if (!proyecto.id_carpeta_drive) {
-      return res.status(400).json({
-        msg: `El proyecto ${proyecto.titulo} no tiene carpeta de drive asociada`,
-      });
-    }
+//     if (!proyecto.id_carpeta_drive) {
+//       return res.status(400).json({
+//         msg: `El proyecto ${proyecto.titulo} no tiene carpeta de drive asociada`,
+//       });
+//     }
 
-    const form = formidable({ multiples: false });
-    form.parse(req, async (err, fields, files) => {
-      if (err) {
-        console.error("Error al form-data", err.message);
-        res.status(500).send("Error al procesar el form-data");
-        return;
-      }
-      if (!files || Object.keys(files).length === 0) {
-        return res.status(400).json({
-          msg: "Error, debe ingresar los archivos pdfs! no ha ingresado nada!",
-        });
-      }
+//     const form = formidable({ multiples: false });
+//     form.parse(req, async (err, fields, files) => {
+//       if (err) {
+//         console.error("Error al form-data", err.message);
+//         res.status(500).send("Error al procesar el form-data");
+//         return;
+//       }
+//       if (!files || Object.keys(files).length === 0) {
+//         return res.status(400).json({
+//           msg: "Error, debe ingresar los archivos pdfs! no ha ingresado nada!",
+//         });
+//       }
 
-      const extensionValida = "application/pdf";
-      for (const archivoKey in files) {
-        if (files.hasOwnProperty(archivoKey)) {
-          const archivo = files[archivoKey];
-          if(archivo.mimetype !== extensionValida)
-          return res.status(400).json({message: "ERROR, DEBE INGRESAR ARCHIVOS EN FORMATO PDF!"})
-        }
-      }
-      const cola = await fileUpdateCola.add({id , files});
-      if(cola){
-        res.status(200).json({message:"ARCHIVOS ACTUALIZANDOSE, VERIFIQUE LA CARGA."});
-      }else{
-        res.status(400).json({message:"ERROR AL INTENTAR ACTUALIZAR LOS ARCHIVOS."});
-      }
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      msg: "Error del servidor",
-    });
-  }
-};
+//       const extensionValida = "application/pdf";
+//       for (const archivoKey in files) {
+//         if (files.hasOwnProperty(archivoKey)) {
+//           const archivo = files[archivoKey];
+//           if(archivo.mimetype !== extensionValida)
+//           return res.status(400).json({message: "ERROR, DEBE INGRESAR ARCHIVOS EN FORMATO PDF!"})
+//         }
+//       }
+//       const cola = await fileUpdateCola.add({id , files});
+//       if(cola){
+//         res.status(200).json({message:"ARCHIVOS ACTUALIZANDOSE, VERIFIQUE LA CARGA."});
+//       }else{
+//         res.status(400).json({message:"ERROR AL INTENTAR ACTUALIZAR LOS ARCHIVOS."});
+//       }
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({
+//       msg: "Error del servidor",
+//     });
+//   }
+// };
 
 export const downloadDocuments = async(req , res) => {
   try {

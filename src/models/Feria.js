@@ -10,10 +10,6 @@ const feriaSchema = new Schema({
         type: String,
         required: [true , 'La descripción es obligatoria'],
     },
-    logo: {
-        type: String,
-        required: false,
-    },
     fechaInicioFeria: {
         type: Date,
         required: [true , 'La fecha de inicio de Feria es obligatoria'],
@@ -34,12 +30,6 @@ const feriaSchema = new Schema({
                 type: Date,
                 required: [true , 'La fecha de fin de instancia escolar es obligatoria'],
             },
-            estado: {
-                type: String,
-                default: "0",
-                enum:['0', '1', '2', '3', '4', '5', '6'],
-                required: [true , 'El estado de instancia escolar es obligatorio'],
-            }
         },
         instanciaRegional: {
             fechaInicioEvaluacionTeorica: {
@@ -58,11 +48,9 @@ const feriaSchema = new Schema({
                 type: Date,
                 required: [true , 'La fecha de fin de evaluación presencial de instancia regional es obligatoria'],
             },
-            estado: {
-                type: String,
-                default: "0",
-                enum:['0', '1', '2', '3', '4', '5', '6'],
-                required: [true , 'El estado de instancia regional es obligatorio'],
+            fechaPromocionAProvincial: {
+                type: Date,
+                required: [true , 'La fecha de promoción de proyectos a instancia provincial es obligatoria'],
             },
             cupos: [{
                 sede: {
@@ -83,7 +71,7 @@ const feriaSchema = new Schema({
             sedes: {
                 type: [Schema.Types.ObjectId],
                 required: [true , 'Se requiere al menos una sede para instancia regional'],
-                ref: 'Sede',
+                ref: 'EstablecimientoEducativo',
             },
         },
         instanciaProvincial: {
@@ -95,11 +83,9 @@ const feriaSchema = new Schema({
                 type: Date,
                 required: [true , 'La fecha de fin de evaluación presencial de instancia provincial es obligatoria'],
             },
-            estado: {
-                type: String,
-                default: "0",
-                enum:['0', '1', '2', '3', '4', '5', '6'],
-                required: [true , 'El estado de instancia provincial es obligatorio'],
+            fechaPromocionANacional: {
+                type: Date,
+                required: [true , 'La fecha de promoción de proyectos a instancia nacional es obligatoria'],
             },
             cupos: [{
                 nivel: {
@@ -188,7 +174,7 @@ const feriaSchema = new Schema({
     estado: {
         type: String,
         default: "1",
-        enum:['0', '1', '2', '3', '4', '5', '6'],
+        enum:['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'],
         required: true
     },
 
@@ -203,13 +189,19 @@ const feriaSchema = new Schema({
 export const Feria = model('Feria', feriaSchema);
 
 export const estadoFeria = {
-    //inactiva: '0',
-    creada: '1',
+    creada: '0',
+    iniciada: '1',
     instanciaEscolar: '2',
-    instanciaRegional: '3',
-    instanciaProvincial: '4',
-    instanciaNacional: '5',
-    finalizada: '6',
+    instanciaEscolar_Finalizada: '3',
+    instanciaRegional_EnEvaluacion: '4',
+    instanciaRegional_EvaluacionFinalizada: '5',
+    instanciaRegional_EnExposicion: '6',
+    instanciaRegional_ExposicionFinalizada: '7',
+    proyectosPromovidosA_instanciaProvincial: '8',
+    instanciaProvincial_EnExposicion: '9',
+    instanciaProvincial_ExposicionFinalizada: '10',
+    proyectosPromovidosA_instanciaNacional: '11',
+    finalizada: '12',
   };
 
 export const fechasFeria = {
@@ -221,8 +213,10 @@ export const fechasFeria = {
     fechaFinEvaluacionRegional: "instancias.instanciaRegional.fechaFinEvaluacionTeorica",
     fechaInicioExposicionRegional: "instancias.instanciaRegional.fechaInicioEvaluacionPresencial",
     fechaFinExposicionRegional: "instancias.instanciaRegional.fechaFinEvaluacionPresencial",
+    fechaPromocionAProvincial: "instancias.instanciaRegional.fechaPromocionAProvincial",
     fechaInicioExposicionProvincial: "instancias.instanciaProvincial.fechaInicioEvaluacionPresencial",
     fechaFinExposicionProvincial: "instancias.instanciaProvincial.fechaFinEvaluacionPresencial",
+    fechaPromocionANacional: "instancias.instanciaRegional.fechaPromocionANacional",
     fechaInicioPostulacion: "fechaInicioPostulacionEvaluadores",
     fechaFinPostulacion: "fechaFinPostulacionEvaluadores",
     fechaInicioAsignacion: "fechaInicioAsignacionProyectos",

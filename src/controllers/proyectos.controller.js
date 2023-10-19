@@ -27,7 +27,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import jpeg  from 'jpeg-js';
 import sharp from 'sharp';
-import { fileCola, fileUpdateCola } from "../helpers/queueManager.js";
+import {filesCola} from "../helpers/queueManager.js";
 
 
 // Configurar multer para manejar la subida de archivos
@@ -561,10 +561,14 @@ export const modificarProyectoRegional = async (req, res) => {
 export const cargarArchivosRegional = async (req, res) => {
   //obtengo el id del proyecto
   const id_proyecto = req.params.id;
+  const proyecto = await Proyecto.findById(id_proyecto);
 
   try {
-    const form = formidable({ multiples: false });
-    form.parse(req, async (err, fields, files) => {
+    if(!proyecto.id_carpeta_drive){
+      console.log('no existe la carpeta')
+      //logica para cargar por primera vez los documents
+      const form = formidable({ multiples: false });
+      form.parse(req, async (err, fields, files) => {
       if (err) {
         console.error("Error al form-data", err.message);
         res.status(500).send("Error al procesar el form-data");
@@ -607,42 +611,44 @@ export const cargarArchivosRegional = async (req, res) => {
           msg: `Los archivos ingresados tienen que tener formato pdf!! revisar: ${archivosNoPDF}`,
         });
       }
+      const name_files = [];
+      if (files.carpetaCampo) {
+        name_files.push({ file: 'carpetaCampo', name: files.carpetaCampo.originalFilename });
+      }
+      if (files.informeTrabajo) {
+        name_files.push({ file: 'informeTrabajo', name: files.informeTrabajo.originalFilename });
+      }
+      if (files.registroPedagogicopdf) {
+        name_files.push({ file: 'registroPedagogicopdf', name: files.registroPedagogicopdf.originalFilename });
+      }
+      if (files.autorizacionImagen) {
+        name_files.push({ file: 'autorizacionImagen', name: files.autorizacionImagen.originalFilename });
+      }
 
-      const cola = await fileCola.add({id_proyecto , files});
+      const cola = await filesCola.add("files_:upload", { 
+        id_proyecto: id_proyecto, 
+        files: files,
+        name_files: name_files});
+
       if(cola){
         res.status(200).json({message:"ARCHIVOS CARGANDOSE, VERIFIQUE LA CARGA."});
       }else{
         res.status(400).json({message:"ERROR AL INTENTAR SUBIR LOS ARCHIVOS."});
       }
-
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({
-      msg: "Error al enviar archivos a drive!!! ",
-    });
-  }
-};
-
-export const actualizarArchivosRegional = async (req, res) => {
-  try {
-    const id = req.params.id;
-    const proyecto = await Proyecto.findById(id);
-
-    if (!proyecto.id_carpeta_drive) {
-      return res.status(400).json({
-        msg: `El proyecto ${proyecto.titulo} no tiene carpeta de drive asociada`,
       });
-    }
 
-    const form = formidable({ multiples: false });
-    form.parse(req, async (err, fields, files) => {
+    }else{
+      //logica para modificar documents
+      console.log('existe carpeta');
+      const id = id_proyecto;
+      const form = formidable({ multiples: false });
+      form.parse(req, async (err, fields, files) => {
       if (err) {
         console.error("Error al form-data", err.message);
         res.status(500).send("Error al procesar el form-data");
         return;
       }
-      if (!files || Object.keys(files).length === 0) {
+      if (!files) {
         return res.status(400).json({
           msg: "Error, debe ingresar los archivos pdfs! no ha ingresado nada!",
         });
@@ -656,20 +662,96 @@ export const actualizarArchivosRegional = async (req, res) => {
           return res.status(400).json({message: "ERROR, DEBE INGRESAR ARCHIVOS EN FORMATO PDF!"})
         }
       }
-      const cola = await fileUpdateCola.add({id , files});
+
+      const name_files = [];
+
+      if (files.carpetaCampo) {
+        name_files.push({ file: 'carpetaCampo', name: files.carpetaCampo.originalFilename });
+      }
+      
+      if (files.informeTrabajo) {
+        name_files.push({ file: 'informeTrabajo', name: files.informeTrabajo.originalFilename });
+      }
+      
+      if (files.registroPedagogicopdf) {
+        name_files.push({ file: 'registroPedagogicopdf', name: files.registroPedagogicopdf.originalFilename });
+      }
+      
+      if (files.autorizacionImagen) {
+        name_files.push({ file: 'autorizacionImagen', name: files.autorizacionImagen.originalFilename });
+      }
+      
+
+      const cola = await filesCola.add("files_:update", { 
+        id: id, 
+        files: files,
+        name_files: name_files});
+
       if(cola){
         res.status(200).json({message:"ARCHIVOS ACTUALIZANDOSE, VERIFIQUE LA CARGA."});
       }else{
         res.status(400).json({message:"ERROR AL INTENTAR ACTUALIZAR LOS ARCHIVOS."});
       }
+
     });
+
+    }
+    
+
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      msg: "Error del servidor",
+    res.status(400).json({
+      msg: "Error al enviar archivos a drive!!! ",
     });
   }
 };
+
+// export const actualizarArchivosRegional = async (req, res) => {
+//   try {
+//     const id = req.params.id;
+//     const proyecto = await Proyecto.findById(id);
+
+//     if (!proyecto.id_carpeta_drive) {
+//       return res.status(400).json({
+//         msg: `El proyecto ${proyecto.titulo} no tiene carpeta de drive asociada`,
+//       });
+//     }
+
+//     const form = formidable({ multiples: false });
+//     form.parse(req, async (err, fields, files) => {
+//       if (err) {
+//         console.error("Error al form-data", err.message);
+//         res.status(500).send("Error al procesar el form-data");
+//         return;
+//       }
+//       if (!files || Object.keys(files).length === 0) {
+//         return res.status(400).json({
+//           msg: "Error, debe ingresar los archivos pdfs! no ha ingresado nada!",
+//         });
+//       }
+
+//       const extensionValida = "application/pdf";
+//       for (const archivoKey in files) {
+//         if (files.hasOwnProperty(archivoKey)) {
+//           const archivo = files[archivoKey];
+//           if(archivo.mimetype !== extensionValida)
+//           return res.status(400).json({message: "ERROR, DEBE INGRESAR ARCHIVOS EN FORMATO PDF!"})
+//         }
+//       }
+//       const cola = await fileUpdateCola.add({id , files});
+//       if(cola){
+//         res.status(200).json({message:"ARCHIVOS ACTUALIZANDOSE, VERIFIQUE LA CARGA."});
+//       }else{
+//         res.status(400).json({message:"ERROR AL INTENTAR ACTUALIZAR LOS ARCHIVOS."});
+//       }
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({
+//       msg: "Error del servidor",
+//     });
+//   }
+// };
 
 export const downloadDocuments = async(req , res) => {
   try {

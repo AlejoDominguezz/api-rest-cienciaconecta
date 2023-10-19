@@ -750,7 +750,7 @@ export const downloadDocumentEspecific = async (req, res) => {
 
 const generarQR = async (proyecto) => {
   return new Promise((resolve, reject) => {
-    const urlEvaluacion = `${process.env.RUTA_QR}/${proyecto._id}`;
+    const urlEvaluacion = `${process.env.URL_FRONT}/${process.env.ENDPOINT_EVALUACION}/${proyecto._id}`;
 
     // Genera el código QR con la URL
     QRCode.toDataURL(urlEvaluacion, { type: 'image/png' }, async (err, url) => {
@@ -893,6 +893,7 @@ export const generarPDFconQR = async (req, res) => {
       if (!err) {
         try {
           // Elimina el archivo temporal después de enviarlo como respuesta
+
           await deleteTemporaryFile(tempFilePath);
         } catch (error) {
           console.error('Error al eliminar el archivo temporal', error);

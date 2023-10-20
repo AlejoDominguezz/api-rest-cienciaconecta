@@ -11,7 +11,7 @@ export const getFerias = async(req = request, res = response) => {
   const {
     nombre,
     descripcion,
-    logo,
+    //logo,
     fechaInicioFeria,
     fechaFinFeria,
     fechaInicioPostulacionEvaluadores,
@@ -73,12 +73,12 @@ export const getFeriaActivaFuncion = async() => {
     const feriaActiva = await Feria.findOne({ estado: { $ne: estadoFeria.finalizada }})
 
     if(!feriaActiva)
-      return res.status(401).json({ error: "No existe una feria activa en este momento" });
+      return null;
 
     return feriaActiva
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ error: "Error de servidor" });
+    return null
   }
 }
 
@@ -224,7 +224,7 @@ export const modificarFeria = async (req, res) => {
     feria.instancias.instanciaProvincial.fechaFinEvaluacionPresencial = instancias.instanciaProvincial.fechaFinEvaluacionPresencial ?? feria.instancias.instanciaProvincial.fechaFinEvaluacionPresencial;
     feria.instancias.instanciaProvincial.fechaPromocionANacional = instancias.instanciaProvincial.fechaPromocionANacional ?? feria.instancias.instanciaProvincial.fechaPromocionANacional;
     feria.instancias.instanciaProvincial.cupos = instancias.instanciaProvincial.cupos ?? feria.instancias.instanciaProvincial.cupos;
-    feria.instancias.instanciaProvincial.sede = instancias.instanciaProvincial.sede ?? feria.instancias.instanciaProvincial.sede;
+    //feria.instancias.instanciaProvincial.sede = instancias.instanciaProvincial.sede ?? feria.instancias.instanciaProvincial.sede;
 
     feria.fechaInicioPostulacionEvaluadores = fechaInicioPostulacionEvaluadores ?? feria.fechaInicioPostulacionEvaluadores;
     feria.fechaFinPostulacionEvaluadores = fechaFinPostulacionEvaluadores ?? feria.fechaFinPostulacionEvaluadores;

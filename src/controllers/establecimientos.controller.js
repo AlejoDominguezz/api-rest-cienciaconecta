@@ -97,30 +97,30 @@ export const getSedesRegionalesActualesFunction = async () => {
 };
 
 
-export const getSedeProvincialActual = async (req = request, res = response) => {
-    try {
-        const feriaActiva = await Feria.findOne({ estado: { $ne: estadoFeria.finalizada }})
-        if (!feriaActiva) {
-            return res.status(404).json({ error: 'No existe una feria activa en este momento' });
-        }
+// export const getSedeProvincialActual = async (req = request, res = response) => {
+//     try {
+//         const feriaActiva = await Feria.findOne({ estado: { $ne: estadoFeria.finalizada }})
+//         if (!feriaActiva) {
+//             return res.status(404).json({ error: 'No existe una feria activa en este momento' });
+//         }
 
-        // Obtener la sede provincial de la feria activa
-        const sedeProvincial = feriaActiva.instancias.instanciaProvincial.sede;
+//         // Obtener la sede provincial de la feria activa
+//         const sedeProvincial = feriaActiva.instancias.instanciaProvincial.sede;
 
-        // Obtener los detalles de las sedes desde el modelo EstablecimientoEducativo
-        const sedeProvincialDetalles = await EstablecimientoEducativo.findById(sedeProvincial);
+//         // Obtener los detalles de las sedes desde el modelo EstablecimientoEducativo
+//         const sedeProvincialDetalles = await EstablecimientoEducativo.findById(sedeProvincial);
 
-        res.json({
-            sede: sedeProvincialDetalles
-        });
+//         res.json({
+//             sede: sedeProvincialDetalles
+//         });
 
-    } catch (error) {
-        console.error('Error al obtener las sedes:', error);
-        return res.status(500).json({
-            error: 'Error al obtener las sedes:'
-        });
-    }
-};
+//     } catch (error) {
+//         console.error('Error al obtener las sedes:', error);
+//         return res.status(500).json({
+//             error: 'Error al obtener las sedes:'
+//         });
+//     }
+// };
 
 export const crearEstablecimientoEducativo = async(req, res) => {
     let { nombre, cue,  departamento, localidad, domicilio, CP, telefono, email, niveles } = req.body
@@ -172,11 +172,11 @@ export const checkEstablecimientoIsSede = async (sedeId) => {
 
       // Obtener las sedes de ambas instancias de la feria activa
       const sedesRegionalesActivas = feriaActiva.instancias.instanciaRegional.sedes;
-      const sedeProvincialActiva = feriaActiva.instancias.instanciaProvincial.sede;
+      //const sedeProvincialActiva = feriaActiva.instancias.instanciaProvincial.sede;
   
-    if (sedeProvincialActiva.toString() === sedeId) {
-      return true; // La sedeId es la sede provincial activa
-    }
+    // if (sedeProvincialActiva.toString() === sedeId) {
+    //   return true; // La sedeId es la sede provincial activa
+    // }
 
     if (sedesRegionalesActivas.includes(sedeId)) {
       return true; // La sedeId está en las sedes regionales activas

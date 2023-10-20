@@ -1,5 +1,4 @@
 import {Schema , model} from 'mongoose';
-import {Sede} from './Sede.js'
 
 const feriaSchema = new Schema({
     nombre: {
@@ -98,11 +97,11 @@ const feriaSchema = new Schema({
                     required: true,
                 }
             }],
-            sede: {
-                type: Schema.Types.ObjectId,
-                required: false,
-                ref: 'EstablecimientoEducativo',
-            },
+            // sede: {
+            //     type: Schema.Types.ObjectId,
+            //     required: false,
+            //     ref: 'EstablecimientoEducativo',
+            // },
         }
 
     },
@@ -202,7 +201,8 @@ export const estadoFeria = {
     instanciaProvincial_ExposicionFinalizada: '10',
     proyectosPromovidosA_instanciaNacional: '11',
     finalizada: '12',
-  };
+};
+
 
 export const fechasFeria = {
     fechaInicio: "fechaInicioFeria",
@@ -216,12 +216,29 @@ export const fechasFeria = {
     fechaPromocionAProvincial: "instancias.instanciaRegional.fechaPromocionAProvincial",
     fechaInicioExposicionProvincial: "instancias.instanciaProvincial.fechaInicioEvaluacionPresencial",
     fechaFinExposicionProvincial: "instancias.instanciaProvincial.fechaFinEvaluacionPresencial",
-    fechaPromocionANacional: "instancias.instanciaRegional.fechaPromocionANacional",
+    fechaPromocionANacional: "instancias.instanciaProvincial.fechaPromocionANacional",
     fechaInicioPostulacion: "fechaInicioPostulacionEvaluadores",
     fechaFinPostulacion: "fechaFinPostulacionEvaluadores",
     fechaInicioAsignacion: "fechaInicioAsignacionProyectos",
     fechaFinAsignacion: "fechaFinAsignacionProyectos",
 }
+
+export const siguienteFecha = {
+    creada: fechasFeria.fechaInicio,
+    iniciada: fechasFeria.fechaInicioEscolar,
+    instanciaEscolar: fechasFeria.fechaFinEscolar,
+    instanciaEscolar_Finalizada: fechasFeria.fechaInicioEvaluacionRegional,
+    instanciaRegional_EnEvaluacion: fechasFeria.fechaFinEvaluacionRegional,
+    instanciaRegional_EvaluacionFinalizada: fechasFeria.fechaInicioExposicionRegional,
+    instanciaRegional_EnExposicion: fechasFeria.fechaFinExposicionRegional,
+    instanciaRegional_ExposicionFinalizada: fechasFeria.fechaPromocionAProvincial,
+    proyectosPromovidosA_instanciaProvincial: fechasFeria.fechaInicioExposicionProvincial,
+    instanciaProvincial_EnExposicion: fechasFeria.fechaFinExposicionProvincial,
+    instanciaProvincial_ExposicionFinalizada: fechasFeria.fechaPromocionANacional,
+    proyectosPromovidosA_instanciaNacional: fechasFeria.fechaFin,
+    finalizada: fechasFeria.fechaFin,
+};
+
 
 // Atributos de Feria --------------------------------------------
 

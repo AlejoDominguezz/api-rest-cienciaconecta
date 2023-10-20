@@ -9,13 +9,13 @@ import { Router } from "express";
 import { requireToken } from '../middlewares/requireToken.js';
 import { checkRolAuth } from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
-import { crearEstablecimientoEducativo, getEstablecimientosEducativos, getSedesRegionalesActuales, getSedeProvincialActual, getEstablecimientoById } from "../controllers/establecimientos.controller.js";
+import { crearEstablecimientoEducativo, getEstablecimientosEducativos, getSedesRegionalesActuales, getEstablecimientoById } from "../controllers/establecimientos.controller.js";
 import { bodyCrearEstablecimientoValidator } from "../middlewares/validationManagerEstablecimiento.js";
 
 const routerEstablecimiento = Router();
 
 routerEstablecimiento.get("/sedes/regional", requireToken, checkRolAuth([roles.admin, roles.comAsesora, roles.docente, roles.responsableProyecto, roles.evaluador]), getSedesRegionalesActuales);
-routerEstablecimiento.get("/sedes/provincial", requireToken, checkRolAuth([roles.admin, roles.comAsesora, roles.docente, roles.responsableProyecto, roles.evaluador]), getSedeProvincialActual);
+//routerEstablecimiento.get("/sedes/provincial", requireToken, checkRolAuth([roles.admin, roles.comAsesora, roles.docente, roles.responsableProyecto, roles.evaluador]), getSedeProvincialActual);
 routerEstablecimiento.get("/id/:id", requireToken, checkRolAuth([roles.admin, roles.comAsesora, roles.docente, roles.responsableProyecto, roles.evaluador]), getEstablecimientoById);
 routerEstablecimiento.get("/:localidad", requireToken, checkRolAuth([roles.admin, roles.comAsesora, roles.docente, roles.responsableProyecto, roles.evaluador]), getEstablecimientosEducativos);
 
@@ -82,27 +82,6 @@ export default routerEstablecimiento;
  *       - roles: [admin, comAsesora]
  */
 
-/**
- * @swagger
- * /api/v1/establecimiento/sedes/provincial:
- *   get:
- *     summary: Obtener sede provincial actual
- *     tags: [Establecimientos Educativos]
- *     responses:
- *       '200':
- *         description: Sede provincial actual
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/EstablecimientoEducativo'
- *       '404':
- *         description: No existe una feria activa en este momento
- *       '500':
- *         description: Error del servidor
- *     security:
- *       - bearerAuth: []
- *       - roles: [admin, comAsesora]
- */
 
 /**
  * @swagger

@@ -286,17 +286,17 @@ export const bodyCrearFeriaValidator = [
             .exists()
             .isInt(),
 
-    //validaciones de sede
-    body('instancias.instanciaProvincial.sede')
-        .if(body('instancias.instanciaProvincial.sede').exists())
-            .isMongoId().withMessage('La sede debe ser un ObjectId válido')
-            .custom(async (sedeId) => {
-                const sede = await EstablecimientoEducativo.findById(sedeId);
-                if (!sede) {
-                return Promise.reject('La sede proporcionada no es válida');
-                }
-                return true;
-            }),
+    // //validaciones de sede
+    // body('instancias.instanciaProvincial.sede')
+    //     .if(body('instancias.instanciaProvincial.sede').exists())
+    //         .isMongoId().withMessage('La sede debe ser un ObjectId válido')
+    //         .custom(async (sedeId) => {
+    //             const sede = await EstablecimientoEducativo.findById(sedeId);
+    //             if (!sede) {
+    //             return Promise.reject('La sede proporcionada no es válida');
+    //             }
+    //             return true;
+    //         }),
 
     // ------------------------------------------------------------------------------------------
     
@@ -686,17 +686,17 @@ export const bodyModificarFeriaValidator = [
             .isInt(),
 
 
-    //validaciones de sede
-    body('instancias.instanciaProvincial.sede')
-        .if(body('instancias.instanciaProvincial.sede').exists())
-            .isMongoId().withMessage('La sede debe ser un ObjectId válido')
-            .custom(async (sedeId) => {
-                const sede = await EstablecimientoEducativo.findById(sedeId);
-                if (!sede) {
-                return Promise.reject('La sede proporcionada no es válida');
-                }
-                return true;
-            }),
+    // //validaciones de sede
+    // body('instancias.instanciaProvincial.sede')
+    //     .if(body('instancias.instanciaProvincial.sede').exists())
+    //         .isMongoId().withMessage('La sede debe ser un ObjectId válido')
+    //         .custom(async (sedeId) => {
+    //             const sede = await EstablecimientoEducativo.findById(sedeId);
+    //             if (!sede) {
+    //             return Promise.reject('La sede proporcionada no es válida');
+    //             }
+    //             return true;
+    //         }),
 
     // ------------------------------------------------------------------------------------------
     

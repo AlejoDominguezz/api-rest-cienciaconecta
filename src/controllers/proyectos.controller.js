@@ -626,7 +626,7 @@ export const cargarArchivosRegional = async (req, res) => {
       }
 
       const cola = await filesCola.add("files_:upload", { 
-        id_proyecto: id_proyecto, 
+        id: id_proyecto, 
         files: files,
         name_files: name_files});
 
@@ -1002,5 +1002,140 @@ export const generarPDFconQR = async (req, res) => {
   } catch (error) {
     console.error('Error al generar el PDF', error);
     res.status(500).json({ error: 'Error al generar el PDF' });
+  }
+};
+
+// export const consultarDocuments = async(req , res) => {
+//   try {
+//     const id_proy = req.params.id;
+    
+//     const enCola = await filesCola.getJobs(['waiting', 'active'], 0, -1, 'asc');
+//     const enProgreso = enCola.filter(job => job.data.id_proyecto === id_proy || job.data.id === id_proy);
+//     const completados = await filesCola.getJobs(['completed'], 0, -1, 'desc', {
+//       $or: [{ id_proyecto: id_proy }, { id: id_proy }],
+//     });
+//     const fallidos = await filesCola.getFailed();
+
+//     const estado = {
+//       enCola: enCola.filter(job => job.data.id_proyecto === id_proy || job.data.id === id_proy),
+//       enProgreso: enProgreso,
+//       completados: completados,
+//       fallidos: fallidos.filter(job => job.data.id_proyecto === id_proy || job.data.id === id_proy),
+//     };
+
+//     return res.json(estado);
+
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'ERROR AL PROCESAR LA CONSULTA.' });
+//   }
+// }
+
+// s
+
+// export const consultarDocuments = async (req, res) => {
+//   try {
+//     const id_proy = req.params.id;
+
+//     const enCola = await filesCola.getJobs(['waiting', 'active'], 0, -1, 'desc');
+//     const completados = await filesCola.getJobs(['completed'], 0, -1, 'desc', {
+//       $or: [{ id_proyecto: id_proy }, { id: id_proy }],
+//     });
+//     const fallidos = await filesCola.getFailed();
+
+//     // Combinar todos los trabajos en un solo array
+//     const todosLosTrabajos = enCola.concat(completados, fallidos);
+
+//     // Ordenar los trabajos por timestamp en orden descendente
+//     todosLosTrabajos.sort((a, b) => b.timestamp - a.timestamp);
+
+//     // Obtener el último trabajo
+//     const ultimoTrabajo = todosLosTrabajos[0];
+
+//     // Filtrar trabajos en progreso, fallidos y completados
+//     const trabajosEnProgreso = enCola.length > 0 ? enCola : [];
+//     const trabajosFallidos = fallidos.length > 0 ? fallidos : [];
+
+//     const response = {
+//       trabajosEnProgreso: trabajosEnProgreso,
+//       trabajosFallidos: trabajosFallidos,
+//       ultimoTrabajo: ultimoTrabajo || {}, // Si no hay trabajo en progreso, fallido o completado, se retorna un objeto vacío
+//     };
+
+//     return res.json(response);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'ERROR AL PROCESAR LA CONSULTA.' });
+//   }
+// };
+
+// export const consultarDocuments = async (req, res) => {
+//   try {
+//     const id_proy = req.params.id;
+
+//     const enCola = await filesCola.getJobs(['waiting', 'active'], 0, -1, 'desc');
+//     const completados = await filesCola.getJobs(['completed'], 0, -1, 'desc');
+//     const fallidos = await filesCola.getFailed();
+
+//     // Combinar todos los trabajos en un solo array
+//     const todosLosTrabajos = enCola.concat(completados, fallidos);
+
+//     // Filtrar los trabajos cuyo ID coincida con el ID del proyecto
+//     const trabajosFiltrados = todosLosTrabajos.filter((trabajo) => trabajo.data.id === id_proy);
+
+//     // Ordenar los trabajos filtrados por timestamp en orden descendente
+//     trabajosFiltrados.sort((a, b) => b.timestamp - a.timestamp);
+
+//     // Obtener el último trabajo filtrado
+//     const ultimoTrabajo = trabajosFiltrados[0];
+
+//     return res.json(ultimoTrabajo.data.name_files || {}); // Si no se encuentra ningún trabajo que coincida, se retorna un objeto vacío
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'ERROR AL PROCESAR LA CONSULTA.' });
+//   }
+// };
+
+
+export const consultarDocuments = async (req, res) => {
+  try {
+    const id_proy = req.params.id;
+
+    const enCola = await filesCola.getJobs(['waiting', 'active'], 0, -1, 'desc');
+    const completados = await filesCola.getJobs(['completed'], 0, -1, 'desc');
+    const fallidos = await filesCola.getFailed();
+
+    // Combinar todos los trabajos en un solo array
+    const todosLosTrabajos = enCola.concat(completados, fallidos);
+
+    // Filtrar los trabajos cuyo ID coincida con el ID del proyecto
+    const trabajosFiltrados = todosLosTrabajos.filter((trabajo) => trabajo.data.id === id_proy);
+
+    // Comprobar si hay trabajos en progreso
+    const enProgreso = trabajosFiltrados.some((trabajo) => trabajo.state === 'active');
+
+    if (enProgreso) {
+      // Si hay trabajos en progreso, devolver "in_progress"
+      return res.json("in_progress");
+    }
+
+    // Comprobar si hay trabajos fallidos
+    const hayFallas = fallidos.some((trabajo) => trabajo.data.id === id_proy);
+
+    if (hayFallas) {
+      // Si hay trabajos fallidos, devolver "falled"
+      return res.json("falled");
+    }
+
+    // Ordenar los trabajos filtrados por timestamp en orden descendente
+    trabajosFiltrados.sort((a, b) => b.timestamp - a.timestamp);
+
+    // Obtener el último trabajo filtrado
+    const ultimoTrabajo = trabajosFiltrados[0];
+
+    return res.json(ultimoTrabajo.data.name_files || {});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'ERROR AL PROCESAR LA CONSULTA.' });
   }
 };

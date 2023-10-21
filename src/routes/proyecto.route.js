@@ -20,7 +20,8 @@ import {
  // actualizarArchivosRegional,
   downloadDocuments,
   downloadDocumentEspecific,
-  generarPDFconQR
+  generarPDFconQR,
+  consultarDocuments
 } from "../controllers/proyectos.controller.js";
 import {
   bodyInscribirProyectoValidator,
@@ -147,7 +148,13 @@ routerProyectos.get(
   generarPDFconQR
 )
 
-
+routerProyectos.get(
+  "/documents/:id",
+  requireToken,
+  checkRolAuth([roles.admin, roles.responsableProyecto]),
+  esPropietario,
+  consultarDocuments
+);
 // requireToken , checkRolAuth([roles.admin, roles.responsableProyecto]), esPropietario,
 export default routerProyectos;
 

@@ -38,10 +38,10 @@ const evaluacionExposicionProvincialSchema = new Schema({
     type: Number,
     required: false,
   },
-  puntajeFinal: {
-    type: Number,
-    required: false,
-  },
+  // puntajeFinal: {
+  //   type: Number,
+  //   required: false,
+  // },
   proyectoId: {
     type: Schema.Types.ObjectId,
     required: true,

@@ -8,7 +8,6 @@ import { body } from 'express-validator';
 import { Types } from 'mongoose';
 import { agregarInformacionEvaluacionProyecto, agregarInformacionEvaluacionProyecto_Provincial } from "../controllers/promociones.controller.js";
 import { estadoEvaluacionExposicionProvincial } from "../models/EvaluacionExposicion_Provincial.js";
-import { estadoEvaluacionProvincial } from "../models/Evaluacion_Provincial.js";
 
 export const promoverProvincialValidator = [
     body('proyectos')
@@ -114,7 +113,7 @@ export const promoverProvincialValidator = [
             }
 
             const proyectoInfoEvaluacion = await agregarInformacionEvaluacionProyecto_Provincial(proyecto)
-            if(!((proyectoInfoEvaluacion.exposicion?.estado == estadoEvaluacionExposicionProvincial.cerrada) && (proyectoInfoEvaluacion.evaluacion?.estado == estadoEvaluacionProvincial.cerrada)))
+            if(!((proyectoInfoEvaluacion.exposicion?.estado == estadoEvaluacionExposicionProvincial.cerrada)))
               throw new Error(`No es posible promover al proyecto ID ${proyecto._id} porque no ha finalizado su evaluación provincial`);
 
             return true;

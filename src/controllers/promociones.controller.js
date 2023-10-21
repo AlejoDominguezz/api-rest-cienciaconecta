@@ -1,7 +1,6 @@
 import { Evaluacion, estadoEvaluacion, nombreEstadoEvaluacion } from "../models/Evaluacion.js";
 import { EvaluacionExposicion, estadoEvaluacionExposicion, nombreEstadoExposicion } from "../models/EvaluacionExposicion.js";
-import { EvaluacionExposicionProvincial, estadoEvaluacionExposicionProvincial } from "../models/EvaluacionExposicion_Provincial.js";
-import { EvaluacionProvincial, estadoEvaluacionProvincial } from "../models/Evaluacion_Provincial.js";
+import { EvaluacionExposicionProvincial, estadoEvaluacionExposicionProvincial, nombreEstadoExposicionProvincial } from "../models/EvaluacionExposicion_Provincial.js";
 import { Nivel } from "../models/Nivel.js"
 import { Promocion, promocionA } from "../models/Promocion.js"
 import { Proyecto, nombreEstado } from "../models/Proyecto.js";
@@ -50,10 +49,9 @@ export const obtenerProyectosNacional = async (req, res) => {
   const proyectosInfoEvaluacion = await agregarInformacionEvaluacion_Provincial(proyectos)
 
   const proyectosFiltrados = proyectosInfoEvaluacion.filter((proyecto) => 
-      (proyecto.exposicion?.estado == estadoEvaluacionExposicionProvincial.cerrada) &&
-      (proyecto.evaluacion?.estado == estadoEvaluacionProvincial.cerrada))
+      (proyecto.exposicion?.estado == estadoEvaluacionExposicionProvincial.cerrada))
 
-  const proyectosSorted = proyectosFiltrados.sort((a, b) => b.exposicion.puntajeFinal - a.exposicion.puntajeFinal);
+  const proyectosSorted = proyectosFiltrados.sort((a, b) => b.exposicion.puntajeExposicion - a.exposicion.puntajeExposicion);
   
   return res.json({proyectos: proyectosSorted});
 }
@@ -113,43 +111,30 @@ const agregarInformacionEvaluacion = async (proyectos) => {
 const agregarInformacionEvaluacion_Provincial = async (proyectos) => {
   const proyectosInfoEvaluacion = await Promise.all(
       proyectos.map(async (proyecto) => {
-          const evaluacion_teorica = await EvaluacionProvincial.findOne({proyectoId: proyecto._id})
-          .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
-          .lean()
-          .exec();
 
           const evaluacion_exposicion = await EvaluacionExposicionProvincial.findOne({proyectoId: proyecto._id})
           .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
           .lean()
           .exec();
 
-          if(!evaluacion_teorica ){
+          if(!evaluacion_exposicion){
 
               return {
                 ...proyecto,
                 nombreEstado: nombreEstado[proyecto.estado],
               }
   
-            } else if(!evaluacion_exposicion) {
+            } else {
   
-              evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+              evaluacion_exposicion.nombreEstado = nombreEstadoExposicionProvincial[evaluacion_exposicion.estado];
               return {
                 ...proyecto,
                 nombreEstado: nombreEstado[proyecto.estado],
-                evaluacion: evaluacion_teorica,
+                exposicion: evaluacion_exposicion,
               };
   
             } 
   
-            evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
-            evaluacion_exposicion.nombreEstado = nombreEstadoExposicion[evaluacion_exposicion.estado];
-            return {
-              ...proyecto,
-              nombreEstado: nombreEstado[proyecto.estado],
-              evaluacion: evaluacion_teorica,
-              exposicion: evaluacion_exposicion,
-            };
-
       })
   )
 
@@ -204,43 +189,29 @@ export const agregarInformacionEvaluacionProyecto = async (proyecto) => {
 
 // Función para agregar información sobre la Evaluación Teórica y de Exposición Provincial a un proyecto -----------------------------------------------------
 export const agregarInformacionEvaluacionProyecto_Provincial = async (proyecto) => {
-    
-  const evaluacion_teorica = await EvaluacionProvincial.findOne({proyectoId: proyecto._id})
-  .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
-  .lean()
-  .exec();
 
   const evaluacion_exposicion = await EvaluacionExposicionProvincial.findOne({proyectoId: proyecto._id})
   .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
   .lean()
   .exec();
 
-  if(!evaluacion_teorica ){
+  if(!evaluacion_exposicion){
 
       return {
         ...proyecto,
         nombreEstado: nombreEstado[proyecto.estado],
       }
 
-    } else if(!evaluacion_exposicion) {
+    } else {
 
-      evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+      evaluacion_exposicion.nombreEstado = nombreEstadoExposicionProvincial[evaluacion_exposicion.estado];
       return {
         ...proyecto,
         nombreEstado: nombreEstado[proyecto.estado],
-        evaluacion: evaluacion_teorica,
+        exposicion: evaluacion_exposicion,
       };
 
     } 
-
-    evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
-    evaluacion_exposicion.nombreEstado = nombreEstadoExposicion[evaluacion_exposicion.estado];
-    return {
-      ...proyecto,
-      nombreEstado: nombreEstado[proyecto.estado],
-      evaluacion: evaluacion_teorica,
-      exposicion: evaluacion_exposicion,
-    };
 
 }
 

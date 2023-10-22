@@ -625,6 +625,12 @@ export const cargarArchivosRegional = async (req, res) => {
         name_files.push({ file: 'autorizacionImagen', name: files.autorizacionImagen.originalFilename });
       }
 
+      proyecto.nameCarpetaCampo = "Cargando...";
+      proyecto.nameAutorizacionImagen = "Cargando...";
+      proyecto.nameRegistroPedagogicopdf = "Cargando...";
+      proyecto.nameInformeTrabajo = "Cargando...";
+
+      await proyecto.save();
       const cola = await filesCola.add("files_:upload", { 
         id: id_proyecto, 
         files: files,
@@ -666,22 +672,22 @@ export const cargarArchivosRegional = async (req, res) => {
       const name_files = [];
 
       if (files.carpetaCampo) {
-        name_files.push({ file: 'carpetaCampo', name: files.carpetaCampo.originalFilename });
+        proyecto.nameCarpetaCampo = "Cargando...";
       }
       
       if (files.informeTrabajo) {
-        name_files.push({ file: 'informeTrabajo', name: files.informeTrabajo.originalFilename });
+        proyecto.nameInformeTrabajo = "Cargando...";
       }
       
       if (files.registroPedagogicopdf) {
-        name_files.push({ file: 'registroPedagogicopdf', name: files.registroPedagogicopdf.originalFilename });
+        proyecto.nameRegistroPedagogicopdf = "Cargando...";
       }
       
       if (files.autorizacionImagen) {
-        name_files.push({ file: 'autorizacionImagen', name: files.autorizacionImagen.originalFilename });
+        proyecto.nameAutorizacionImagen = "Cargando...";
       }
       
-
+      await proyecto.save();
       const cola = await filesCola.add("files_:update", { 
         id: id, 
         files: files,
@@ -705,53 +711,6 @@ export const cargarArchivosRegional = async (req, res) => {
     });
   }
 };
-
-// export const actualizarArchivosRegional = async (req, res) => {
-//   try {
-//     const id = req.params.id;
-//     const proyecto = await Proyecto.findById(id);
-
-//     if (!proyecto.id_carpeta_drive) {
-//       return res.status(400).json({
-//         msg: `El proyecto ${proyecto.titulo} no tiene carpeta de drive asociada`,
-//       });
-//     }
-
-//     const form = formidable({ multiples: false });
-//     form.parse(req, async (err, fields, files) => {
-//       if (err) {
-//         console.error("Error al form-data", err.message);
-//         res.status(500).send("Error al procesar el form-data");
-//         return;
-//       }
-//       if (!files || Object.keys(files).length === 0) {
-//         return res.status(400).json({
-//           msg: "Error, debe ingresar los archivos pdfs! no ha ingresado nada!",
-//         });
-//       }
-
-//       const extensionValida = "application/pdf";
-//       for (const archivoKey in files) {
-//         if (files.hasOwnProperty(archivoKey)) {
-//           const archivo = files[archivoKey];
-//           if(archivo.mimetype !== extensionValida)
-//           return res.status(400).json({message: "ERROR, DEBE INGRESAR ARCHIVOS EN FORMATO PDF!"})
-//         }
-//       }
-//       const cola = await fileUpdateCola.add({id , files});
-//       if(cola){
-//         res.status(200).json({message:"ARCHIVOS ACTUALIZANDOSE, VERIFIQUE LA CARGA."});
-//       }else{
-//         res.status(400).json({message:"ERROR AL INTENTAR ACTUALIZAR LOS ARCHIVOS."});
-//       }
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({
-//       msg: "Error del servidor",
-//     });
-//   }
-// };
 
 export const downloadDocuments = async(req , res) => {
   try {
@@ -1004,97 +963,6 @@ export const generarPDFconQR = async (req, res) => {
     res.status(500).json({ error: 'Error al generar el PDF' });
   }
 };
-
-// export const consultarDocuments = async(req , res) => {
-//   try {
-//     const id_proy = req.params.id;
-    
-//     const enCola = await filesCola.getJobs(['waiting', 'active'], 0, -1, 'asc');
-//     const enProgreso = enCola.filter(job => job.data.id_proyecto === id_proy || job.data.id === id_proy);
-//     const completados = await filesCola.getJobs(['completed'], 0, -1, 'desc', {
-//       $or: [{ id_proyecto: id_proy }, { id: id_proy }],
-//     });
-//     const fallidos = await filesCola.getFailed();
-
-//     const estado = {
-//       enCola: enCola.filter(job => job.data.id_proyecto === id_proy || job.data.id === id_proy),
-//       enProgreso: enProgreso,
-//       completados: completados,
-//       fallidos: fallidos.filter(job => job.data.id_proyecto === id_proy || job.data.id === id_proy),
-//     };
-
-//     return res.json(estado);
-
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: 'ERROR AL PROCESAR LA CONSULTA.' });
-//   }
-// }
-
-// s
-
-// export const consultarDocuments = async (req, res) => {
-//   try {
-//     const id_proy = req.params.id;
-
-//     const enCola = await filesCola.getJobs(['waiting', 'active'], 0, -1, 'desc');
-//     const completados = await filesCola.getJobs(['completed'], 0, -1, 'desc', {
-//       $or: [{ id_proyecto: id_proy }, { id: id_proy }],
-//     });
-//     const fallidos = await filesCola.getFailed();
-
-//     // Combinar todos los trabajos en un solo array
-//     const todosLosTrabajos = enCola.concat(completados, fallidos);
-
-//     // Ordenar los trabajos por timestamp en orden descendente
-//     todosLosTrabajos.sort((a, b) => b.timestamp - a.timestamp);
-
-//     // Obtener el último trabajo
-//     const ultimoTrabajo = todosLosTrabajos[0];
-
-//     // Filtrar trabajos en progreso, fallidos y completados
-//     const trabajosEnProgreso = enCola.length > 0 ? enCola : [];
-//     const trabajosFallidos = fallidos.length > 0 ? fallidos : [];
-
-//     const response = {
-//       trabajosEnProgreso: trabajosEnProgreso,
-//       trabajosFallidos: trabajosFallidos,
-//       ultimoTrabajo: ultimoTrabajo || {}, // Si no hay trabajo en progreso, fallido o completado, se retorna un objeto vacío
-//     };
-
-//     return res.json(response);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: 'ERROR AL PROCESAR LA CONSULTA.' });
-//   }
-// };
-
-// export const consultarDocuments = async (req, res) => {
-//   try {
-//     const id_proy = req.params.id;
-
-//     const enCola = await filesCola.getJobs(['waiting', 'active'], 0, -1, 'desc');
-//     const completados = await filesCola.getJobs(['completed'], 0, -1, 'desc');
-//     const fallidos = await filesCola.getFailed();
-
-//     // Combinar todos los trabajos en un solo array
-//     const todosLosTrabajos = enCola.concat(completados, fallidos);
-
-//     // Filtrar los trabajos cuyo ID coincida con el ID del proyecto
-//     const trabajosFiltrados = todosLosTrabajos.filter((trabajo) => trabajo.data.id === id_proy);
-
-//     // Ordenar los trabajos filtrados por timestamp en orden descendente
-//     trabajosFiltrados.sort((a, b) => b.timestamp - a.timestamp);
-
-//     // Obtener el último trabajo filtrado
-//     const ultimoTrabajo = trabajosFiltrados[0];
-
-//     return res.json(ultimoTrabajo.data.name_files || {}); // Si no se encuentra ningún trabajo que coincida, se retorna un objeto vacío
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: 'ERROR AL PROCESAR LA CONSULTA.' });
-//   }
-// };
 
 
 export const consultarDocuments = async (req, res) => {

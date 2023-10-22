@@ -163,3 +163,21 @@ export const esReferenteDelProyecto = async (req, res, next) => {
   }
 
 }
+
+
+export const esIDUsuarioLogueado = async (req, res, next) => {
+  const rolesData = req.roles;
+  if(rolesData.includes(roles.comAsesora) || rolesData.includes(roles.admin)){
+    return next();
+  }
+
+  const id_ingresado = req.params.id;
+  const id = req.uid
+
+  if(id.toString() == id_ingresado.toString()){
+    return next();
+  }
+
+  return res.status(401).json({error: "El ID ingresado no se corresponde con el usuario logueado"})
+}
+

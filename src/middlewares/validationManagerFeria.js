@@ -33,17 +33,7 @@ export const bodyCrearFeriaValidator = [
         .trim()
         .isLength({ max: 500 })
         .withMessage("Descripción máximo 500 caracteres"),
-
-    //validaciones de logo
-    body("logo")
-        .if(body('logo').exists())
-            .notEmpty()
-            .withMessage("Logo requerido")
-            .trim()
-            .isLength({ max: 1000 })
-            .withMessage("Longitud URL de logo máximo 1000 caracteres")
-            .isURL()
-            .withMessage("URL inválido"),        
+      
 
     //validaciones de fecha de inicio de feria
     body("fechaInicioFeria")
@@ -94,11 +84,7 @@ export const bodyCrearFeriaValidator = [
             return fechaAnteriorA(req.body.fechaFinFeria)(fechaFinInstancia);
             }),
 
-    // Validaciones de estado (opcional)
-    body('instancias.instanciaRegional.estado')
-        .optional() // Marcar el campo como opcional
-        .isIn(['0', '1', '2', '3', '4', '5', '6'])
-        .withMessage('El estado de instancia regional debe tener un valor válido'),
+
     // INSTANCIA REGIONAL -----------------------------------------------------------------------------------------------------
 
     //validaciones de fecha de inicio de evaluacion teorica
@@ -153,6 +139,19 @@ export const bodyCrearFeriaValidator = [
             return fechaAnteriorA(req.body.fechaFinFeria)(fechaFinEvaluacionPresencial);
             }),
 
+    //validaciones de fecha de promoción de proyectos a instancia provincial
+    body('instancias.instanciaRegional.fechaPromocionAProvincial')
+        .notEmpty()
+        .withMessage('La fecha de promoción de proyectos a instancia provincial es obligatoria')
+        .isISO8601()
+        .withMessage('La fecha de promoción de proyectos a instancia provincial debe ser una fecha válida')
+        .custom((fechaPromocionAProvincial, { req }) => {
+        return fechaPosteriorA(req.body.instancias.instanciaRegional.fechaFinEvaluacionPresencial)(fechaPromocionAProvincial);
+        })
+        .custom((fechaPromocionAProvincial, { req }) => {
+            return fechaAnteriorA(req.body.instancias.instanciaProvincial.fechaInicioEvaluacionPresencial)(fechaPromocionAProvincial);
+            }),
+
     //validaciones de cupo
     body('instancias.instanciaRegional.cupos')
         .optional()
@@ -196,12 +195,6 @@ export const bodyCrearFeriaValidator = [
             .exists()
             .isInt(),
     
-
-    //validaciones de estado
-    body('instancias.instanciaRegional.estado')
-        .optional() // Marcar el campo como opcional
-        .isIn(['0', '1', '2', '3', '4', '5', '6'])
-        .withMessage('El estado de instancia regional debe tener un valor válido'),
 
     //validaciones de sedes
     body('instancias.instanciaRegional.sedes')
@@ -249,6 +242,19 @@ export const bodyCrearFeriaValidator = [
             return fechaAnteriorA(req.body.fechaFinFeria)(fechaFinEvaluacionPresencial);
             }),
 
+    //validaciones de fecha de promoción de proyectos a instancia nacional
+    body('instancias.instanciaProvincial.fechaPromocionANacional')
+        .notEmpty()
+        .withMessage('La fecha de promoción de proyectos a instancia nacional es obligatoria')
+        .isISO8601()
+        .withMessage('La fecha de promoción de proyectos a instancia nacional debe ser una fecha válida')
+        .custom((fechaPromocionANacional, { req }) => {
+        return fechaPosteriorA(req.body.instancias.instanciaProvincial.fechaFinEvaluacionPresencial)(fechaPromocionANacional);
+        })
+        .custom((fechaPromocionANacional, { req }) => {
+            return fechaAnteriorA(req.body.fechaFinFeria)(fechaPromocionANacional);
+            }),
+
     //validaciones de cupo
     body('instancias.instanciaProvincial.cupos')
         .optional()
@@ -280,23 +286,17 @@ export const bodyCrearFeriaValidator = [
             .exists()
             .isInt(),
 
-    //validaciones de estado
-    body('instancias.instanciaProvincial.estado')
-        .optional() // Marcar el campo como opcional
-        .isIn(['0', '1', '2', '3', '4', '5', '6'])
-        .withMessage('El estado de instancia provincial debe tener un valor válido'),
-
-    //validaciones de sede
-    body('instancias.instanciaProvincial.sede')
-        .if(body('instancias.instanciaProvincial.sede').exists())
-            .isMongoId().withMessage('La sede debe ser un ObjectId válido')
-            .custom(async (sedeId) => {
-                const sede = await EstablecimientoEducativo.findById(sedeId);
-                if (!sede) {
-                return Promise.reject('La sede proporcionada no es válida');
-                }
-                return true;
-            }),
+    // //validaciones de sede
+    // body('instancias.instanciaProvincial.sede')
+    //     .if(body('instancias.instanciaProvincial.sede').exists())
+    //         .isMongoId().withMessage('La sede debe ser un ObjectId válido')
+    //         .custom(async (sedeId) => {
+    //             const sede = await EstablecimientoEducativo.findById(sedeId);
+    //             if (!sede) {
+    //             return Promise.reject('La sede proporcionada no es válida');
+    //             }
+    //             return true;
+    //         }),
 
     // ------------------------------------------------------------------------------------------
     
@@ -406,13 +406,6 @@ export const bodyCrearFeriaValidator = [
         return true;
       }),
 
-
-    //validacion de estado de feria
-    body('estado')
-        .optional() // Marcar el campo como opcional
-        .isIn(['0', '1', '2', '3', '4', '5', '6'])
-        .withMessage('El estado de feria debe tener un valor válido'),
-
     
     validarCampos,
 
@@ -440,18 +433,7 @@ export const bodyModificarFeriaValidator = [
         .withMessage("Descripción requerida")
         .trim()
         .isLength({ max: 500 })
-        .withMessage("Descripción máximo 500 caracteres"),
-
-    //validaciones de logo
-    body("logo")
-        .if(body('logo').exists())
-            .notEmpty()
-            .withMessage("Logo requerido")
-            .trim()
-            .isLength({ max: 1000 })
-            .withMessage("Longitud URL de logo máximo 1000 caracteres")
-            .isURL()
-            .withMessage("URL inválido"),        
+        .withMessage("Descripción máximo 500 caracteres"),   
 
     //validaciones de fecha de inicio de feria
     body("fechaInicioFeria")
@@ -502,11 +484,6 @@ export const bodyModificarFeriaValidator = [
             return fechaAnteriorA(req.body.fechaFinFeria)(fechaFinInstancia);
             }),
 
-    // Validaciones de estado (opcional)
-    body('instancias.instanciaRegional.estado')
-        .optional() // Marcar el campo como opcional
-        .isIn(['0', '1', '2', '3', '4', '5', '6'])
-        .withMessage('El estado de instancia regional debe tener un valor válido'),
     // INSTANCIA REGIONAL -----------------------------------------------------------------------------------------------------
 
     //validaciones de fecha de inicio de evaluacion teorica
@@ -560,6 +537,19 @@ export const bodyModificarFeriaValidator = [
         .custom((fechaFinEvaluacionPresencial, { req }) => {
             return fechaAnteriorA(req.body.fechaFinFeria)(fechaFinEvaluacionPresencial);
             }),
+        
+    //validaciones de fecha de promoción de proyectos a instancia provincial
+    body('instancias.instanciaRegional.fechaPromocionAProvincial')
+        .notEmpty()
+        .withMessage('La fecha de promoción de proyectos a instancia provincial es obligatoria')
+        .isISO8601()
+        .withMessage('La fecha de promoción de proyectos a instancia provincial debe ser una fecha válida')
+        .custom((fechaPromocionAProvincial, { req }) => {
+        return fechaPosteriorA(req.body.instancias.instanciaRegional.fechaFinEvaluacionPresencial)(fechaPromocionAProvincial);
+        })
+        .custom((fechaPromocionAProvincial, { req }) => {
+            return fechaAnteriorA(req.body.instancias.instanciaProvincial.fechaInicioEvaluacionPresencial)(fechaPromocionAProvincial);
+            }),
 
     //validaciones de cupo
     body('instancias.instanciaRegional.cupos')
@@ -604,12 +594,6 @@ export const bodyModificarFeriaValidator = [
             .exists()
             .isInt(),
     
-
-    //validaciones de estado
-    body('instancias.instanciaRegional.estado')
-        .optional() // Marcar el campo como opcional
-        .isIn(['0', '1', '2', '3', '4', '5', '6'])
-        .withMessage('El estado de instancia regional debe tener un valor válido'),
 
     //validaciones de sedes
     body('instancias.instanciaRegional.sedes')
@@ -657,6 +641,19 @@ export const bodyModificarFeriaValidator = [
             return fechaAnteriorA(req.body.fechaFinFeria)(fechaFinEvaluacionPresencial);
             }),
 
+    //validaciones de fecha de promoción de proyectos a instancia nacional
+    body('instancias.instanciaProvincial.fechaPromocionANacional')
+        .notEmpty()
+        .withMessage('La fecha de promoción de proyectos a instancia nacional es obligatoria')
+        .isISO8601()
+        .withMessage('La fecha de promoción de proyectos a instancia nacional debe ser una fecha válida')
+        .custom((fechaPromocionANacional, { req }) => {
+        return fechaPosteriorA(req.body.instancias.instanciaProvincial.fechaFinEvaluacionPresencial)(fechaPromocionANacional);
+        })
+        .custom((fechaPromocionANacional, { req }) => {
+            return fechaAnteriorA(req.body.fechaFinFeria)(fechaPromocionANacional);
+            }),
+
     //validaciones de cupo
     body('instancias.instanciaProvincial.cupos')
         .optional()
@@ -688,23 +685,18 @@ export const bodyModificarFeriaValidator = [
             .exists()
             .isInt(),
 
-    //validaciones de estado
-    body('instancias.instanciaProvincial.estado')
-        .optional() // Marcar el campo como opcional
-        .isIn(['0', '1', '2', '3', '4', '5', '6'])
-        .withMessage('El estado de instancia provincial debe tener un valor válido'),
 
-    //validaciones de sede
-    body('instancias.instanciaProvincial.sede')
-        .if(body('instancias.instanciaProvincial.sede').exists())
-            .isMongoId().withMessage('La sede debe ser un ObjectId válido')
-            .custom(async (sedeId) => {
-                const sede = await EstablecimientoEducativo.findById(sedeId);
-                if (!sede) {
-                return Promise.reject('La sede proporcionada no es válida');
-                }
-                return true;
-            }),
+    // //validaciones de sede
+    // body('instancias.instanciaProvincial.sede')
+    //     .if(body('instancias.instanciaProvincial.sede').exists())
+    //         .isMongoId().withMessage('La sede debe ser un ObjectId válido')
+    //         .custom(async (sedeId) => {
+    //             const sede = await EstablecimientoEducativo.findById(sedeId);
+    //             if (!sede) {
+    //             return Promise.reject('La sede proporcionada no es válida');
+    //             }
+    //             return true;
+    //         }),
 
     // ------------------------------------------------------------------------------------------
     
@@ -756,32 +748,6 @@ export const bodyModificarFeriaValidator = [
             return fechaAnteriorA(req.body.instancias.instanciaRegional.fechaInicioEvaluacionTeorica)(fechaFinAsignacionProyectos);
             }),
     
-    // // Validación de criteriosEvaluacion
-    // body("criteriosEvaluacion")
-    //     .notEmpty()
-    //     .withMessage("Criterios de evaluación requeridos")
-    //     .isArray({ min: 1 })
-    //     .withMessage("Debe proporcionar al menos un criterio de evaluación")
-    //     .custom((criteriosEvaluacion) => {
-    //     let totalPonderacion = 0;
-
-    //     for (const criterio of criteriosEvaluacion) {
-    //         validarCriterio(criterio);
-    //         // Sumar la ponderación del criterio actual al total
-    //         for (const criterioItem of criterio.criterios) {
-    //         totalPonderacion += criterioItem.ponderacion;
-    //         }
-
-    //         // Validar que la sumatoria de las ponderaciones sea igual a 1
-    //         if (totalPonderacion !== 1) {
-    //             throw new Error(
-    //             "La sumatoria de las ponderaciones de los criterios debe ser igual a 1"
-    //             );
-    //         }
-    //         totalPonderacion = 0;
-    //     }
-    //     return true;
-    //     }),
 
     // Validación de criteriosEvaluacion --------------------------------------------------------------------------
 
@@ -841,52 +807,12 @@ export const bodyModificarFeriaValidator = [
         return true;
       }),
 
-
-    //validacion de estado de feria ------------------------------------------------------------------------------
-    body('estado')
-        .optional() // Marcar el campo como opcional
-        .isIn(['0', '1', '2', '3', '4', '5', '6'])
-        .withMessage('El estado de feria debe tener un valor válido'),
-
     
     validarCampos,
 
 ];
 
-// Función para validar cada criterio de evaluación individualmente -----------------------------------------------
-// const validarCriterio = (criterio) => {
-//     if (
-//       !criterio ||
-//       !criterio.nombreRubrica ||
-//       typeof criterio.nombreRubrica !== "string" ||
-//       !criterio.criterios ||
-//       !Array.isArray(criterio.criterios) ||
-//       criterio.criterios.length === 0
-//     ) {
-//       throw new Error(
-//         "Cada criterio de evaluación debe tener una nombreRubrica y al menos un criterio"
-//       );
-//     }
-  
-//     for (const criterioItem of criterio.criterios) {
-//       if (
-//         !criterioItem ||
-//         !criterioItem.nombre ||
-//         typeof criterioItem.nombre !== "string" ||
-//         !criterioItem.opciones ||
-//         !Array.isArray(criterioItem.opciones) ||
-//         criterioItem.opciones.length === 0 ||
-//         !criterioItem.ponderacion ||
-//         typeof criterioItem.ponderacion !== "number" ||
-//         criterioItem.ponderacion < 0 ||
-//         criterioItem.ponderacion > 1
-//       ) {
-//         throw new Error(
-//           "Cada criterio de evaluación debe tener un nombre, opciones válidas y ponderación numérica entre 0 y 1"
-//         );
-//       }
-//     }
-//   };
+
 
 // Función para validar una rubrica --------------------------------------------------------------------------------
 const validarRubrica = (rubrica) => {

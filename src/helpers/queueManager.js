@@ -39,3 +39,12 @@ export const fileCv = new Queue("fileCv", {
       db: process.env.REDIS_DB,
     },
   });
+
+
+export const feriaCola = new Queue("feria", {
+  redis: {
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT,
+    db: process.env.REDIS_DB,
+  },
+})

@@ -3,6 +3,7 @@ import {Feria, estadoFeria} from '../models/Feria.js';
 import { EstablecimientoEducativo} from '../models/EstablecimientoEducativo.js'
 import { Usuario } from '../models/Usuario.js';
 import { estado } from '../models/Proyecto.js';
+import { generarJobsAsincronicos } from '../services/drive/feriaJobs.js';
 
 // Funcion para visualizar un listado de ferias --------------------------
 export const getFerias = async(req = request, res = response) => {
@@ -10,7 +11,7 @@ export const getFerias = async(req = request, res = response) => {
   const {
     nombre,
     descripcion,
-    logo,
+    //logo,
     fechaInicioFeria,
     fechaFinFeria,
     fechaInicioPostulacionEvaluadores,
@@ -72,12 +73,12 @@ export const getFeriaActivaFuncion = async() => {
     const feriaActiva = await Feria.findOne({ estado: { $ne: estadoFeria.finalizada }})
 
     if(!feriaActiva)
-      return res.status(401).json({ error: "No existe una feria activa en este momento" });
+      return null;
 
     return feriaActiva
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ error: "Error de servidor" });
+    return null
   }
 }
 
@@ -94,7 +95,6 @@ export const crearFeria = async (req, res) => {
     const {
       nombre,
       descripcion,
-      logo,
       fechaInicioFeria,
       fechaFinFeria,
       instancias,
@@ -125,7 +125,6 @@ export const crearFeria = async (req, res) => {
       const feria = new Feria({
         nombre,
         descripcion,
-        logo,
         fechaInicioFeria,
         fechaFinFeria,
         instancias,
@@ -151,6 +150,8 @@ export const crearFeria = async (req, res) => {
           { _id: { $in: sedesActualizar } },
           { $addToSet: { ferias: feriaBD._id } }
       );
+
+      await generarJobsAsincronicos(feriaBD._id, null, req.body)
   
       return res.json({ ok: true });
     } catch (error) {
@@ -159,12 +160,15 @@ export const crearFeria = async (req, res) => {
     }
   };
 
+
+
 // Funcion para modificar una feria --------------------------
 export const modificarFeria = async (req, res) => {
   
   const { id } = req.params;
 
   let feria = await Feria.findById(id);
+  const feriaOriginal = JSON.parse(JSON.stringify(feria));
 
   if (!feria)
     return res.status(404).json({ error: "No existe la Feria" });
@@ -177,7 +181,6 @@ export const modificarFeria = async (req, res) => {
   const {
     nombre,
     descripcion,
-    logo,
     fechaInicioFeria,
     fechaFinFeria,
     instancias,
@@ -203,7 +206,6 @@ export const modificarFeria = async (req, res) => {
 
     feria.nombre = nombre ?? feria.nombre;
     feria.descripcion = descripcion ?? feria.descripcion;
-    feria.logo = logo ?? feria.logo;
     feria.fechaInicioFeria = fechaInicioFeria ?? feria.fechaInicioFeria;
     feria.fechaFinFeria = fechaFinFeria ?? feria.fechaFinFeria;
 
@@ -214,13 +216,15 @@ export const modificarFeria = async (req, res) => {
     feria.instancias.instanciaRegional.fechaFinEvaluacionTeorica = instancias.instanciaRegional.fechaFinEvaluacionTeorica ?? feria.instancias.instanciaRegional.fechaFinEvaluacionTeorica;
     feria.instancias.instanciaRegional.fechaInicioEvaluacionPresencial = instancias.instanciaRegional.fechaInicioEvaluacionPresencial ?? feria.instancias.instanciaRegional.fechaInicioEvaluacionPresencial;
     feria.instancias.instanciaRegional.fechaFinEvaluacionPresencial = instancias.instanciaRegional.fechaFinEvaluacionPresencial ?? feria.instancias.instanciaRegional.fechaFinEvaluacionPresencial;
+    feria.instancias.instanciaRegional.fechaPromocionAProvincial = instancias.instanciaRegional.fechaPromocionAProvincial ?? feria.instancias.instanciaRegional.fechaPromocionAProvincial;
     feria.instancias.instanciaRegional.cupos = instancias.instanciaRegional.cupos ?? feria.instancias.instanciaRegional.cupos;
     feria.instancias.instanciaRegional.sedes = instancias.instanciaRegional.sedes ?? feria.instancias.instanciaRegional.sedes;
 
     feria.instancias.instanciaProvincial.fechaInicioEvaluacionPresencial = instancias.instanciaProvincial.fechaInicioEvaluacionPresencial ?? feria.instancias.instanciaProvincial.fechaInicioEvaluacionPresencial;
     feria.instancias.instanciaProvincial.fechaFinEvaluacionPresencial = instancias.instanciaProvincial.fechaFinEvaluacionPresencial ?? feria.instancias.instanciaProvincial.fechaFinEvaluacionPresencial;
+    feria.instancias.instanciaProvincial.fechaPromocionANacional = instancias.instanciaProvincial.fechaPromocionANacional ?? feria.instancias.instanciaProvincial.fechaPromocionANacional;
     feria.instancias.instanciaProvincial.cupos = instancias.instanciaProvincial.cupos ?? feria.instancias.instanciaProvincial.cupos;
-    feria.instancias.instanciaProvincial.sede = instancias.instanciaProvincial.sede ?? feria.instancias.instanciaProvincial.sede;
+    //feria.instancias.instanciaProvincial.sede = instancias.instanciaProvincial.sede ?? feria.instancias.instanciaProvincial.sede;
 
     feria.fechaInicioPostulacionEvaluadores = fechaInicioPostulacionEvaluadores ?? feria.fechaInicioPostulacionEvaluadores;
     feria.fechaFinPostulacionEvaluadores = fechaFinPostulacionEvaluadores ?? feria.fechaFinPostulacionEvaluadores;
@@ -230,26 +234,28 @@ export const modificarFeria = async (req, res) => {
 
     await feria.save();
 
-     // Obtén las ferias nuevas
-     const feriasNuevas = [...instancias.instanciaRegional.sedes, instancias.instanciaProvincial.sede];
+    // Obtén las ferias nuevas
+    const feriasNuevas = [...instancias.instanciaRegional.sedes, instancias.instanciaProvincial.sede];
 
-     // Calcula las ferias eliminadas (presentes en feriasAnteriores pero no en feriasNuevas)
-     const feriasEliminadas = feriasAnteriores.filter(feriaAnterior => !feriasNuevas.includes(feriaAnterior));
+    // Calcula las ferias eliminadas (presentes en feriasAnteriores pero no en feriasNuevas)
+    const feriasEliminadas = feriasAnteriores.filter(feriaAnterior => !feriasNuevas.includes(feriaAnterior));
 
-     // Calcula las ferias agregadas (presentes en feriasNuevas pero no en feriasAnteriores)
-     const feriasAgregadas = feriasNuevas.filter(feriaNueva => !feriasAnteriores.includes(feriaNueva));
+    // Calcula las ferias agregadas (presentes en feriasNuevas pero no en feriasAnteriores)
+    const feriasAgregadas = feriasNuevas.filter(feriaNueva => !feriasAnteriores.includes(feriaNueva));
 
-     // Elimina el ID de la feria actual de las ferias eliminadas
-     await EstablecimientoEducativo.updateMany(
-         { _id: { $in: feriasEliminadas } },
-         { $pull: { ferias: feria._id } }
-     );
+    // Elimina el ID de la feria actual de las ferias eliminadas
+    await EstablecimientoEducativo.updateMany(
+        { _id: { $in: feriasEliminadas } },
+        { $pull: { ferias: feria._id } }
+    );
 
-     // Agrega el ID de la feria actual a las ferias agregadas
-     await EstablecimientoEducativo.updateMany(
-         { _id: { $in: feriasAgregadas } },
-         { $addToSet: { ferias: feria._id } }
-     );
+    // Agrega el ID de la feria actual a las ferias agregadas
+    await EstablecimientoEducativo.updateMany(
+        { _id: { $in: feriasAgregadas } },
+        { $addToSet: { ferias: feria._id } }
+    );
+
+    await generarJobsAsincronicos(feria._id, feriaOriginal, req.body)
 
     return res.json({ feria });
   } catch (error) {

@@ -1,4 +1,5 @@
 import { generateToken } from "../helpers/generateToken.js";
+import { infoFeria } from "../helpers/infoFeria.js";
 import { Usuario } from "../models/Usuario.js";
 
 // Permite volver a obtener el Token a partir del Refresh Token ya verificado
@@ -11,7 +12,9 @@ export const refreshToken = async (req, res) => {
 
     const { token, expiresIn } = generateToken(id); //el req viene del middleware requireRefreshToken
 
-    return res.json({ token, expiresIn, id, cuil, roles});
+    const feria = await infoFeria()
+
+    return res.json({ token, expiresIn, id, cuil, roles, feria});
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Error de servidor" });

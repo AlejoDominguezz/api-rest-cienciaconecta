@@ -5,13 +5,10 @@ import {
 } from "../helpers/generateToken.js";
 import { existeCuil, existeEmail } from "../helpers/db-validar.js";
 import { Docente } from "../models/Docente.js";
-import { transporter } from "../helpers/mailer.js";
 import { nanoid } from 'nanoid';
-import { confirmationMailHtml } from "../helpers/confirmationMail.js";
-import { recoveryMailHtml } from "../helpers/recoveryMail.js";
 import { estadoUsuario } from "../models/Usuario.js";
-import { altaMailHtml } from "../helpers/altaMail.js";
 import { emailCola } from "../helpers/queueManager.js";
+import { infoFeria } from "../helpers/infoFeria.js";
 
 // Función de Login
 export const login = async (req, res) => {
@@ -43,8 +40,10 @@ export const login = async (req, res) => {
 
     // Genero Refresh Token
     const refreshExpiresIn = generateRefreshToken(id, res);
+
+    const feria = await infoFeria()
     
-    return res.json({ token, expiresIn, id, userCuil, roles, refreshExpiresIn});
+    return res.json({ token, expiresIn, id, userCuil, roles, refreshExpiresIn, feria});
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Error de servidor" });

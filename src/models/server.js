@@ -21,6 +21,7 @@ import routerEvaluacion from '../routes/evaluacion.route.js';
 import routerReferente from '../routes/referente.route.js';
 import routerExposicion from '../routes/exposicion.route.js';
 import routerPromocion from '../routes/promocion.route.js';
+import routerExposicion_Provincial from '../routes/exposicion_provincial.route.js';
 
 
 
@@ -35,21 +36,22 @@ class Server {
 
         this.paths = {
     
-            feria:          '/api/v1/feria',
-            usuario:        '/api/v1/usuario',
-            auth:           '/api/v1/auth',
-            proyecto:       '/api/v1/proyecto',
-            sede:           '/api/v1/sede', 
-            categoria:      '/api/v1/categoria',
-            nivel:          '/api/v1/nivel',
-            departamento:   '/api/v1/departamento',
-            localidad:      '/api/v1/localidad',
-            establecimiento:'/api/v1/establecimiento',
-            evaluador:      '/api/v1/evaluador',
-            evaluacion:     '/api/v1/evaluacion',
-            exposicion:     '/api/v1/exposicion',
-            referente:      '/api/v1/referente',
-            promocion:      '/api/v1/promocion',
+            feria:                  '/api/v1/feria',
+            usuario:                '/api/v1/usuario',
+            auth:                   '/api/v1/auth',
+            proyecto:               '/api/v1/proyecto',
+            sede:                   '/api/v1/sede', 
+            categoria:              '/api/v1/categoria',
+            nivel:                  '/api/v1/nivel',
+            departamento:           '/api/v1/departamento',
+            localidad:              '/api/v1/localidad',
+            establecimiento:        '/api/v1/establecimiento',
+            evaluador:              '/api/v1/evaluador',
+            evaluacion:             '/api/v1/evaluacion',
+            exposicion:             '/api/v1/exposicion',
+            referente:              '/api/v1/referente',
+            promocion:              '/api/v1/promocion',
+            exposicion_provincial:  '/api/v1/exposicion-provincial',
         }
 
         
@@ -151,6 +153,9 @@ class Server {
 
          //path de promoción de proyectos
          this.app.use(this.paths.promocion, routerPromocion);
+
+         //path de exposiciones
+        this.app.use(this.paths.exposicion_provincial, routerExposicion_Provincial);
     }
 
 

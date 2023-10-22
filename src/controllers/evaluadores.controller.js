@@ -3,8 +3,6 @@ import { Usuario } from "../models/Usuario.js";
 import { Docente } from "../models/Docente.js";
 import { Feria, estadoFeria } from "../models/Feria.js";
 import { roles } from "../helpers/roles.js";
-import { seleccionMailHtml } from "../helpers/seleccionMail.js";
-import { transporter } from "../helpers/mailer.js";
 import formidable from "formidable";
 import { drive } from "../services/drive/drive.js";
 import {

@@ -53,6 +53,10 @@ export const obtenerProyectosProvincial = async (req, res) => {
       (proyecto.exposicion?.estado == estadoEvaluacionExposicion.cerrada) &&
       (proyecto.evaluacion?.estado == estadoEvaluacion.cerrada));
 
+  if (proyectosFiltrados.length == 0) {
+      return res.status(204).json({ error: "No existen proyectos que cumplan las condiciones para ser promovidos" });
+  }
+
   const proyectosSorted = proyectosFiltrados.sort((a, b) => b.exposicion.puntajeFinal - a.exposicion.puntajeFinal);
 
   return res.json({ proyectos: proyectosSorted, cupos: cantidadCupos });
@@ -101,6 +105,10 @@ export const obtenerProyectosNacional = async (req, res) => {
 
   const proyectosFiltrados = proyectosInfoEvaluacion.filter((proyecto) => 
       (proyecto.exposicion?.estado == estadoEvaluacionExposicionProvincial.cerrada))
+  
+  if (proyectosFiltrados.length == 0) {
+      return res.status(204).json({ error: "No existen proyectos que cumplan las condiciones para ser promovidos" });
+  }
 
   const proyectosSorted = proyectosFiltrados.sort((a, b) => b.exposicion.puntajeExposicion - a.exposicion.puntajeExposicion);
   
@@ -124,23 +132,32 @@ const agregarInformacionEvaluacion = async (proyectos) => {
           .lean()
           .exec();
 
-          if(!evaluacion_exposicion){
+          if(!evaluacion_teorica){
 
-              return {
-                ...proyecto,
-                nombreEstado: nombreEstado[proyecto.estado],
-              }
-  
-            } else {
-  
-              evaluacion_exposicion.nombreEstado = nombreEstadoExposicionProvincial[evaluacion_exposicion.estado];
-              return {
-                ...proyecto,
-                nombreEstado: nombreEstado[proyecto.estado],
-                exposicion: evaluacion_exposicion,
-              };
-  
-            } 
+            return {
+              ...proyecto,
+              nombreEstado: nombreEstado[proyecto.estado],
+            }
+
+          } else if(!evaluacion_exposicion) {
+
+            evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+            return {
+              ...proyecto,
+              nombreEstado: nombreEstado[proyecto.estado],
+              evaluacion: evaluacion_teorica,
+            };
+
+          } 
+
+          evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+          evaluacion_exposicion.nombreEstado = nombreEstadoExposicion[evaluacion_exposicion.estado];
+          return {
+            ...proyecto,
+            nombreEstado: nombreEstado[proyecto.estado],
+            evaluacion: evaluacion_teorica,
+            exposicion: evaluacion_exposicion,
+          };
   
       })
   )
@@ -200,23 +217,32 @@ export const agregarInformacionEvaluacionProyecto = async (proyecto) => {
   .lean()
   .exec();
 
-  if(!evaluacion_exposicion){
+  if(!evaluacion_teorica ){
 
-      return {
-        ...proyecto,
-        nombreEstado: nombreEstado[proyecto.estado],
-      }
+    return {
+      ...proyecto,
+      nombreEstado: nombreEstado[proyecto.estado],
+    }
 
-    } else {
+  } else if(!evaluacion_exposicion) {
 
-      evaluacion_exposicion.nombreEstado = nombreEstadoExposicionProvincial[evaluacion_exposicion.estado];
-      return {
-        ...proyecto,
-        nombreEstado: nombreEstado[proyecto.estado],
-        exposicion: evaluacion_exposicion,
-      };
+    evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+    return {
+      ...proyecto,
+      nombreEstado: nombreEstado[proyecto.estado],
+      evaluacion: evaluacion_teorica,
+    };
 
-    } 
+  } 
+
+  evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+  evaluacion_exposicion.nombreEstado = nombreEstadoExposicion[evaluacion_exposicion.estado];
+  return {
+    ...proyecto,
+    nombreEstado: nombreEstado[proyecto.estado],
+    evaluacion: evaluacion_teorica,
+    exposicion: evaluacion_exposicion,
+  };
 
 }
 

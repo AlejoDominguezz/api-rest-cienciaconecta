@@ -142,29 +142,19 @@ export async function solicitarRecuperacionContrasena(req, res) {
     const { token, expiresIn } = generateToken(cuil);
 
     // Actualizar el usuario en la base de datos con el token de recuperación
-    const usuario = await Usuario.findOneAndUpdate(
-      { cuil },
-      { tokenRecuperacion: token },
-      { new: true }
-    );
+    const usuario = await Usuario.findOne({ cuil });
 
     if (!usuario) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
+    usuario.tokenRecuperacion = token;
+    await usuario.save()
+
     await emailCola.add("email:recuperacionContrasena", { 
       token, 
       usuario})
 
-    // // Lógica de envío de correo de recuperación
-    // const recoveryMail = recoveryMailHtml(token); 
-
-    // await transporter.sendMail({
-    //   from: 'Ciencia Conecta',
-    //   to: usuario.email,
-    //   subject: "Recuperación de contraseña",
-    //   html: recoveryMail
-    // });
 
     const maskedEmail = usuario.email.replace(/^(.{4})(.*)(@.+)/, (_, p1, p2, p3) => `${p1}${'*'.repeat(p2.length)}${p3}`);
     const responseMessage = `Correo de recuperación enviado al mail ${maskedEmail}`;

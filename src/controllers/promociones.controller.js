@@ -9,41 +9,92 @@ import { getFeriaActivaFuncion } from "./ferias.controller.js"
 
 // Función para obtener todos los proyectos regionales que están en condiciones de ser promovidos a instancia provincial --------------------------------------
 export const obtenerProyectosProvincial = async (req, res) => {
-    const id_nivel = req.body.nivel;
-    const id_sede = req.body.sede;
+  const id_nivel = req.body.nivel;
+  const id_sede = req.body.sede;
+  const feriaActiva = await getFeriaActivaFuncion();
+  const promocionExistente = await Promocion.findOne({ nivel: id_nivel, sede: id_sede, feria: feriaActiva._id, promocionAInstancia: promocionA.instanciaProvincial });
+  const cuposNivelSede = feriaActiva.instancias.instanciaRegional.cupos.find(cupo => (cupo.nivel?.toString() === id_nivel.toString()) && (cupo.sede?.toString() === id_sede.toString()));
+  const cantidadCupos = cuposNivelSede ? cuposNivelSede.cantidad : 0;
 
-    const proyectos = await Proyecto.find({nivel: id_nivel, sede: id_sede})
-    .select('-__v -QR -id_carpeta_drive')
-            .lean()
-            .exec();
 
-    if(proyectos.length == 0){
-        return res.status(204).json({ error: "No existen proyectos que cumplan las condiciones para ser promovidos" });
-    }
-    
-    const proyectosInfoEvaluacion = await agregarInformacionEvaluacion(proyectos)
+  let proyectos = await Proyecto.find({ nivel: id_nivel, sede: id_sede, feria: feriaActiva._id })
+      .select('-__v -QR -id_carpeta_drive')
+      .lean()
+      .exec();
 
-    const proyectosFiltrados = proyectosInfoEvaluacion.filter((proyecto) => 
-        (proyecto.exposicion?.estado == estadoEvaluacionExposicion.cerrada) &&
-        (proyecto.evaluacion?.estado == estadoEvaluacion.cerrada))
+  if (proyectos.length == 0) {
+      return res.status(204).json({ error: "No existen proyectos que cumplan las condiciones para ser promovidos" });
+  }
 
-    const proyectosSorted = proyectosFiltrados.sort((a, b) => b.exposicion.puntajeFinal - a.exposicion.puntajeFinal);
-    
-    return res.json({proyectos: proyectosSorted});
-}
+  if (promocionExistente) {
+      proyectos = proyectos.map((proyecto) => {
+          if (promocionExistente.proyectos.includes(proyecto._id)) {
+              return {
+                  ...proyecto,
+                  promovido: true
+              };
+          } else {
+              return {
+                  ...proyecto,
+                  promovido: false
+              };
+          }
+      });
+  } else {
+      proyectos = proyectos.map((proyecto) => ({
+          ...proyecto,
+          promovido: false
+      }));
+  }
+
+  const proyectosInfoEvaluacion = await agregarInformacionEvaluacion(proyectos);
+
+  const proyectosFiltrados = proyectosInfoEvaluacion.filter((proyecto) =>
+      (proyecto.exposicion?.estado == estadoEvaluacionExposicion.cerrada) &&
+      (proyecto.evaluacion?.estado == estadoEvaluacion.cerrada));
+
+  const proyectosSorted = proyectosFiltrados.sort((a, b) => b.exposicion.puntajeFinal - a.exposicion.puntajeFinal);
+
+  return res.json({ proyectos: proyectosSorted, cupos: cantidadCupos });
+};
 
 
 // Función para obtener todos los proyectos provinciales que están en condiciones de ser promovidos a instancia nacionales --------------------------------------
 export const obtenerProyectosNacional = async (req, res) => {
   const id_nivel = req.body.nivel;
+  const feriaActiva = await getFeriaActivaFuncion();
+  const promocionExistente = await Promocion.findOne({ nivel: id_nivel, feria: feriaActiva._id, promocionAInstancia: promocionA.instanciaNacional });
+  const cuposNivel = feriaActiva.instancias.instanciaProvincial.cupos.find(cupo => cupo.nivel?.toString() === id_nivel.toString());
+  const cantidadCupos = cuposNivel ? cuposNivel.cantidad : 0;
 
-  const proyectos = await Proyecto.find({nivel: id_nivel})
+  let proyectos = await Proyecto.find({nivel: id_nivel, feria: feriaActiva._id})
   .select('-__v -QR -id_carpeta_drive')
           .lean()
           .exec();
 
   if(proyectos.length == 0){
       return res.status(204).json({ error: "No existen proyectos que cumplan las condiciones para ser promovidos" });
+  }
+
+  if (promocionExistente) {
+    proyectos = proyectos.map((proyecto) => {
+        if (promocionExistente.proyectos.includes(proyecto._id)) {
+            return {
+                ...proyecto,
+                promovido: true
+            };
+        } else {
+            return {
+                ...proyecto,
+                promovido: false
+            };
+        }
+    });
+  } else {
+      proyectos = proyectos.map((proyecto) => ({
+          ...proyecto,
+          promovido: false
+      }));
   }
   
   const proyectosInfoEvaluacion = await agregarInformacionEvaluacion_Provincial(proyectos)
@@ -53,66 +104,22 @@ export const obtenerProyectosNacional = async (req, res) => {
 
   const proyectosSorted = proyectosFiltrados.sort((a, b) => b.exposicion.puntajeExposicion - a.exposicion.puntajeExposicion);
   
-  return res.json({proyectos: proyectosSorted});
+  return res.json({proyectos: proyectosSorted, cupos: cantidadCupos});
 }
-
 
 
 // Función para agregar información sobre la Evaluación Teórica y de Exposición Regional a un proyecto -----------------------------------------------------
 const agregarInformacionEvaluacion = async (proyectos) => {
-    const proyectosInfoEvaluacion = await Promise.all(
-        proyectos.map(async (proyecto) => {
-            const evaluacion_teorica = await Evaluacion.findOne({proyectoId: proyecto._id})
-            .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
-            .lean()
-            .exec();
-
-            const evaluacion_exposicion = await EvaluacionExposicion.findOne({proyectoId: proyecto._id})
-            .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
-            .lean()
-            .exec();
-
-            if(!evaluacion_teorica ){
-
-                return {
-                  ...proyecto,
-                  nombreEstado: nombreEstado[proyecto.estado],
-                }
-    
-              } else if(!evaluacion_exposicion) {
-    
-                evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
-                return {
-                  ...proyecto,
-                  nombreEstado: nombreEstado[proyecto.estado],
-                  evaluacion: evaluacion_teorica,
-                };
-    
-              } 
-    
-              evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
-              evaluacion_exposicion.nombreEstado = nombreEstadoExposicion[evaluacion_exposicion.estado];
-              return {
-                ...proyecto,
-                nombreEstado: nombreEstado[proyecto.estado],
-                evaluacion: evaluacion_teorica,
-                exposicion: evaluacion_exposicion,
-              };
-
-        })
-    )
-
-    return proyectosInfoEvaluacion
-}
-
-
-
-// Función para agregar información sobre la Evaluación Teórica y de Exposición Provincial a un proyecto -----------------------------------------------------
-const agregarInformacionEvaluacion_Provincial = async (proyectos) => {
   const proyectosInfoEvaluacion = await Promise.all(
       proyectos.map(async (proyecto) => {
+        
+          const evaluacion_teorica = await Evaluacion.findOne({proyectoId: proyecto._id})
+          .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+          .lean()
+          .exec();
 
-          const evaluacion_exposicion = await EvaluacionExposicionProvincial.findOne({proyectoId: proyecto._id})
+
+          const evaluacion_exposicion = await EvaluacionExposicion.findOne({proyectoId: proyecto._id})
           .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
           .lean()
           .exec();
@@ -143,54 +150,52 @@ const agregarInformacionEvaluacion_Provincial = async (proyectos) => {
 
 
 
+// Función para agregar información sobre la Evaluación Teórica y de Exposición Provincial a un proyecto -----------------------------------------------------
+const agregarInformacionEvaluacion_Provincial = async (proyectos) => {
+const proyectosInfoEvaluacion = await Promise.all(
+    proyectos.map(async (proyecto) => {
 
-// Función para agregar información sobre la Evaluación Teórica y de Exposición Regional a un proyecto -----------------------------------------------------
-export const agregarInformacionEvaluacionProyecto = async (proyecto) => {
-    
-            const evaluacion_teorica = await Evaluacion.findOne({proyectoId: proyecto._id})
-            .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
-            .lean()
-            .exec();
+        const evaluacion_exposicion = await EvaluacionExposicionProvincial.findOne({proyectoId: proyecto._id})
+        .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+        .lean()
+        .exec();
 
-            const evaluacion_exposicion = await EvaluacionExposicion.findOne({proyectoId: proyecto._id})
-            .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
-            .lean()
-            .exec();
+        if(!evaluacion_exposicion){
 
-            if(!evaluacion_teorica ){
+            return {
+              ...proyecto,
+              nombreEstado: nombreEstado[proyecto.estado],
+            }
 
-                return {
-                  ...proyecto,
-                  nombreEstado: nombreEstado[proyecto.estado],
-                }
-    
-              } else if(!evaluacion_exposicion) {
-    
-                evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
-                return {
-                  ...proyecto,
-                  nombreEstado: nombreEstado[proyecto.estado],
-                  evaluacion: evaluacion_teorica,
-                };
-    
-              } 
-    
-              evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
-              evaluacion_exposicion.nombreEstado = nombreEstadoExposicion[evaluacion_exposicion.estado];
-              return {
-                ...proyecto,
-                nombreEstado: nombreEstado[proyecto.estado],
-                evaluacion: evaluacion_teorica,
-                exposicion: evaluacion_exposicion,
-              };
+        } else {
 
+          evaluacion_exposicion.nombreEstado = nombreEstadoExposicionProvincial[evaluacion_exposicion.estado];
+          return {
+            ...proyecto,
+            nombreEstado: nombreEstado[proyecto.estado],
+            exposicion: evaluacion_exposicion,
+          };
+
+        } 
+
+    })
+)
+
+return proyectosInfoEvaluacion
 }
 
 
-// Función para agregar información sobre la Evaluación Teórica y de Exposición Provincial a un proyecto -----------------------------------------------------
-export const agregarInformacionEvaluacionProyecto_Provincial = async (proyecto) => {
 
-  const evaluacion_exposicion = await EvaluacionExposicionProvincial.findOne({proyectoId: proyecto._id})
+
+// Función para agregar información sobre la Evaluación Teórica y de Exposición Regional a un proyecto -----------------------------------------------------
+export const agregarInformacionEvaluacionProyecto = async (proyecto) => {
+  
+  const evaluacion_teorica = await Evaluacion.findOne({proyectoId: proyecto._id})
+  .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+  .lean()
+  .exec();
+
+  const evaluacion_exposicion = await EvaluacionExposicion.findOne({proyectoId: proyecto._id})
   .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
   .lean()
   .exec();
@@ -216,60 +221,49 @@ export const agregarInformacionEvaluacionProyecto_Provincial = async (proyecto) 
 }
 
 
-// Funcion para promover proyectos a la instancia Nacional ---------------------------------------------------------------------------------------------------
-export const promoverProyectos_Nacional = async (req, res) => {
-    try {
-        const id_proyectos = req.body.proyectos
-        const id_nivel = req.body.nivel;
-        const feriaActiva = await getFeriaActivaFuncion()
-        const cuposNivel = feriaActiva.instancias.instanciaProvincial.cupos.find(cupo => cupo.nivel?.toString() === id_nivel.toString());
-        const cantidadCupos = cuposNivel ? cuposNivel.cantidad : 0;
+// Función para agregar información sobre la Evaluación Teórica y de Exposición Provincial a un proyecto -----------------------------------------------------
+export const agregarInformacionEvaluacionProyecto_Provincial = async (proyecto) => {
 
-        if(id_proyectos.length > cantidadCupos) {
-            return res.status(401).json({ error: `No es posible promover ${id_proyectos.length} proyectos. El límite de cupos en esta instancia para el nivel ingresado es ${cantidadCupos}` });
-        }
+  const evaluacion_exposicion = await EvaluacionExposicionProvincial.findOne({proyectoId: proyecto._id})
+  .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+  .lean()
+  .exec();
 
-        let promocion = await Promocion.findOne({nivel: id_nivel, sede: null, feria: feriaActiva._id, promocionAInstancia: promocionA.instanciaNacional})
-        
-        if(promocion) {
-            promocion.proyectos = id_proyectos
-        } else {
-            promocion = new Promocion({
-                proyectos: id_proyectos,
-                feria: feriaActiva._id,
-                promocionAInstancia: promocionA.instanciaNacional,
-                nivel: id_nivel,
-                sede: null,
-            })
-        }
+  if(!evaluacion_exposicion){
 
-        promocion.save()
-        return res.json({msg: "Todos los proyectos han sido agregado a la lista de proyectos por promover al final de la instancia"});
+      return {
+        ...proyecto,
+        nombreEstado: nombreEstado[proyecto.estado],
+      }
 
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({ error: "Error de servidor" });
-    }
+  } else {
+
+    evaluacion_exposicion.nombreEstado = nombreEstadoExposicionProvincial[evaluacion_exposicion.estado];
+    return {
+      ...proyecto,
+      nombreEstado: nombreEstado[proyecto.estado],
+      exposicion: evaluacion_exposicion,
+    };
+
+  } 
+
 }
 
 
-
-
-// Funcion para promover proyectos a la instancia Provincial ---------------------------------------------------------------------------------------------------
-export const promoverProyectos_Provincial = async (req, res) => {
+// Funcion para promover proyectos a la instancia Nacional ---------------------------------------------------------------------------------------------------
+export const promoverProyectos_Nacional = async (req, res) => {
   try {
       const id_proyectos = req.body.proyectos
       const id_nivel = req.body.nivel;
-      const id_sede = req.body.sede;
       const feriaActiva = await getFeriaActivaFuncion()
-      const cuposNivelSede = feriaActiva.instancias.instanciaRegional.cupos.find(cupo => (cupo.nivel?.toString() === id_nivel.toString()) && (cupo.sede?.toString() === id_sede.toString()));
-      const cantidadCupos = cuposNivelSede ? cuposNivelSede.cantidad : 0;
+      const cuposNivel = feriaActiva.instancias.instanciaProvincial.cupos.find(cupo => cupo.nivel?.toString() === id_nivel.toString());
+      const cantidadCupos = cuposNivel ? cuposNivel.cantidad : 0;
 
       if(id_proyectos.length > cantidadCupos) {
           return res.status(401).json({ error: `No es posible promover ${id_proyectos.length} proyectos. El límite de cupos en esta instancia para el nivel ingresado es ${cantidadCupos}` });
       }
 
-      let promocion = await Promocion.findOne({nivel: id_nivel, sede: id_sede, feria: feriaActiva._id, promocionAInstancia: promocionA.instanciaProvincial})
+      let promocion = await Promocion.findOne({nivel: id_nivel, sede: null, feria: feriaActiva._id, promocionAInstancia: promocionA.instanciaNacional})
       
       if(promocion) {
           promocion.proyectos = id_proyectos
@@ -277,9 +271,9 @@ export const promoverProyectos_Provincial = async (req, res) => {
           promocion = new Promocion({
               proyectos: id_proyectos,
               feria: feriaActiva._id,
-              promocionAInstancia: promocionA.instanciaProvincial,
+              promocionAInstancia: promocionA.instanciaNacional,
               nivel: id_nivel,
-              sede: id_sede,
+              sede: null,
           })
       }
 
@@ -290,4 +284,44 @@ export const promoverProyectos_Provincial = async (req, res) => {
       console.log(error)
       return res.status(500).json({ error: "Error de servidor" });
   }
+}
+
+
+
+
+// Funcion para promover proyectos a la instancia Provincial ---------------------------------------------------------------------------------------------------
+export const promoverProyectos_Provincial = async (req, res) => {
+try {
+    const id_proyectos = req.body.proyectos
+    const id_nivel = req.body.nivel;
+    const id_sede = req.body.sede;
+    const feriaActiva = await getFeriaActivaFuncion()
+    const cuposNivelSede = feriaActiva.instancias.instanciaRegional.cupos.find(cupo => (cupo.nivel?.toString() === id_nivel.toString()) && (cupo.sede?.toString() === id_sede.toString()));
+    const cantidadCupos = cuposNivelSede ? cuposNivelSede.cantidad : 0;
+
+    if(id_proyectos.length > cantidadCupos) {
+        return res.status(401).json({ error: `No es posible promover ${id_proyectos.length} proyectos. El límite de cupos en esta instancia para el nivel ingresado es ${cantidadCupos}` });
+    }
+
+    let promocion = await Promocion.findOne({nivel: id_nivel, sede: id_sede, feria: feriaActiva._id, promocionAInstancia: promocionA.instanciaProvincial})
+    
+    if(promocion) {
+        promocion.proyectos = id_proyectos
+    } else {
+        promocion = new Promocion({
+            proyectos: id_proyectos,
+            feria: feriaActiva._id,
+            promocionAInstancia: promocionA.instanciaProvincial,
+            nivel: id_nivel,
+            sede: id_sede,
+        })
+    }
+
+    promocion.save()
+    return res.json({msg: "Todos los proyectos han sido agregado a la lista de proyectos por promover al final de la instancia"});
+
+} catch (error) {
+    console.log(error)
+    return res.status(500).json({ error: "Error de servidor" });
+}
 }

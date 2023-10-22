@@ -169,7 +169,7 @@ export async function solicitarRecuperacionContrasena(req, res) {
     const maskedEmail = usuario.email.replace(/^(.{4})(.*)(@.+)/, (_, p1, p2, p3) => `${p1}${'*'.repeat(p2.length)}${p3}`);
     const responseMessage = `Correo de recuperación enviado al mail ${maskedEmail}`;
     
-    res.json({ message: responseMessage, token, expiresIn });
+    res.json({ message: responseMessage });
 
   } catch (error) {
     console.error(error);

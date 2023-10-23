@@ -16,7 +16,8 @@ import {
 import { getFeriaActivaFuncion } from "../controllers/ferias.controller.js"
 import { emailCola, fileCv } from "../helpers/queueManager.js";
 import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js";
-
+import { Evaluacion } from "../models/Evaluacion.js";
+import { Proyecto } from "../models/Proyecto.js";
 
 export const postularEvaluador = async (req, res) => {
     try {
@@ -316,5 +317,28 @@ export const getCv_ = async(req, res) => {
     res.status(500).json({
       message: "ERROR AL DESCARGAR EL CV - ERROR DEL SERVIDOR",
     });
+  }
+}
+
+
+export const obtenerInfoResumidaEvaluador = async (req, res) => {
+  try {
+    const uid = req.uid;
+    const docente = await Docente.findOne({usuario: uid})
+    if(!docente){
+      return res.status(404).json({ error: "No existe el docente asociado al usuario" });
+    }
+
+    const evaluador = await Evaluador.findOne({idDocente: docente._id})
+    if(!evaluador){
+      return res.status(404).json({ error: "No existe el evaluador asociado al usuario" });
+    }
+
+    const proyectos_a_evaluar = await Proyecto.find({evaluadoresRegionales: {$in: [docente._id]}})
+
+    // COMPLETAR
+
+  } catch (error) {
+    return res.status(500).json({ error: "Error de servidor" });
   }
 }

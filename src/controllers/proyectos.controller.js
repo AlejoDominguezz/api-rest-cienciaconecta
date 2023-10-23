@@ -27,6 +27,8 @@ import { fileURLToPath } from 'url';
 import jpeg  from 'jpeg-js';
 import sharp from 'sharp';
 import {filesCola} from "../helpers/queueManager.js";
+import { Nivel } from "../models/Nivel.js";
+import { Categoria } from "../models/Categoria.js";
 
 
 // Configurar multer para manejar la subida de archivos
@@ -1003,3 +1005,42 @@ export const generarPDFconQR = async (req, res) => {
     res.status(500).json({ error: 'Error al generar el PDF' });
   }
 };
+
+
+
+export const obtenerInfoResumidaProyecto = async (req, res) => {
+  try {
+    const {id} = req.params;
+    const proyecto = await Proyecto.findById(id)
+      .select('-__v -emailEscuela -idResponsable -fechaInscripcion -feria -estado -sede -autorizacionImagen -id_carpeta_drive -evaluadoresRegionales -QR -_id -grupoProyecto._id -grupoProyecto.dni')
+      .lean()
+      .exec()    
+
+    if(!proyecto){
+      return res.status(404).json({error: "No existe el proyecto con el ID ingresado"})
+    }
+
+    const nivel = await Nivel.findById(proyecto.nivel)
+    if(!nivel) {
+      return res.status(404).json({error: "No existe el nivel del proyecto ingresado"})
+    }
+    proyecto.nivel = nivel.nombre;
+
+    const categoria = await Categoria.findById(proyecto.categoria)
+    if(!categoria) {
+      return res.status(404).json({error: "No existe la categoria del proyecto ingresado"})
+    }
+    proyecto.categoria = categoria.nombre;
+
+    const establecimiento = await EstablecimientoEducativo.findById(proyecto.establecimientoEducativo)
+    if(!establecimiento) {
+      return res.status(404).json({error: "No existe el establecimiento del proyecto ingresado"})
+    }
+    proyecto.establecimientoEducativo = establecimiento.nombre;
+
+    return res.json({proyecto})
+
+  } catch (error) {
+    return res.status(500).json({error: "Error de servidor"})
+  }
+}

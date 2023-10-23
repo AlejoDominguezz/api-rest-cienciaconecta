@@ -20,14 +20,15 @@ import {
  // actualizarArchivosRegional,
   downloadDocuments,
   downloadDocumentEspecific,
-  generarPDFconQR
+  generarPDFconQR,
+  obtenerInfoResumidaProyecto
 } from "../controllers/proyectos.controller.js";
 import {
   bodyInscribirProyectoValidator,
   bodyActualizarProyectoRegionalValidator,
 } from "../middlewares/validationManager.js";
 import { checkRolAuth, esPropietario, esReferenteDelProyecto } from "../middlewares/validar-roles.js";
-import { roles } from "../helpers/roles.js";
+import { allRoles, roles } from "../helpers/roles.js";
 import { BodyValidationDrive , validarArchivosPDF  } from "../middlewares/validationDrive.js";
 import { estado, fecha } from "../middlewares/validar-fechas.js";
 import { estadoFeria, fechasFeria } from "../models/Feria.js";
@@ -143,6 +144,11 @@ routerProyectos.get(
   checkRolAuth([roles.admin, roles.responsableProyecto]),
   esPropietario,
   generarPDFconQR
+)
+
+routerProyectos.get(
+  "/info/:id",
+  obtenerInfoResumidaProyecto
 )
 
 

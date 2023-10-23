@@ -1012,7 +1012,7 @@ export const obtenerInfoResumidaProyecto = async (req, res) => {
   try {
     const {id} = req.params;
     const proyecto = await Proyecto.findById(id)
-      .select('-__v -emailEscuela -idResponsable -fechaInscripcion -feria -estado -sede -autorizacionImagen -id_carpeta_drive -evaluadoresRegionales -QR -_id -grupoProyecto._id -grupoProyecto.dni')
+      .select('-__v -emailEscuela -idResponsable -fechaInscripcion -feria -estado -sede -autorizacionImagen -id_carpeta_drive -evaluadoresRegionales -QR -_id -grupoProyecto._id -grupoProyecto.dni -carpetaCampo -informeTrabajo -registroPedagogico')
       .lean()
       .exec()    
 

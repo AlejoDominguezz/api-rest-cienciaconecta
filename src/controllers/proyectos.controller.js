@@ -624,8 +624,14 @@ export const cargarArchivosRegional = async (req, res) => {
         name_files.push({ file: 'autorizacionImagen', name: files.autorizacionImagen.originalFilename });
       }
 
+      proyecto.nameCarpetaCampo = "Cargando...";
+      proyecto.nameAutorizacionImagen = "Cargando...";
+      proyecto.nameRegistroPedagogicopdf = "Cargando...";
+      proyecto.nameInformeTrabajo = "Cargando...";
+
+      await proyecto.save();
       const cola = await filesCola.add("files_:upload", { 
-        id_proyecto: id_proyecto, 
+        id: id_proyecto, 
         files: files,
         name_files: name_files});
 
@@ -665,22 +671,22 @@ export const cargarArchivosRegional = async (req, res) => {
       const name_files = [];
 
       if (files.carpetaCampo) {
-        name_files.push({ file: 'carpetaCampo', name: files.carpetaCampo.originalFilename });
+        proyecto.nameCarpetaCampo = "Cargando...";
       }
       
       if (files.informeTrabajo) {
-        name_files.push({ file: 'informeTrabajo', name: files.informeTrabajo.originalFilename });
+        proyecto.nameInformeTrabajo = "Cargando...";
       }
       
       if (files.registroPedagogicopdf) {
-        name_files.push({ file: 'registroPedagogicopdf', name: files.registroPedagogicopdf.originalFilename });
+        proyecto.nameRegistroPedagogicopdf = "Cargando...";
       }
       
       if (files.autorizacionImagen) {
-        name_files.push({ file: 'autorizacionImagen', name: files.autorizacionImagen.originalFilename });
+        proyecto.nameAutorizacionImagen = "Cargando...";
       }
       
-
+      await proyecto.save();
       const cola = await filesCola.add("files_:update", { 
         id: id, 
         files: files,
@@ -704,53 +710,6 @@ export const cargarArchivosRegional = async (req, res) => {
     });
   }
 };
-
-// export const actualizarArchivosRegional = async (req, res) => {
-//   try {
-//     const id = req.params.id;
-//     const proyecto = await Proyecto.findById(id);
-
-//     if (!proyecto.id_carpeta_drive) {
-//       return res.status(400).json({
-//         msg: `El proyecto ${proyecto.titulo} no tiene carpeta de drive asociada`,
-//       });
-//     }
-
-//     const form = formidable({ multiples: false });
-//     form.parse(req, async (err, fields, files) => {
-//       if (err) {
-//         console.error("Error al form-data", err.message);
-//         res.status(500).send("Error al procesar el form-data");
-//         return;
-//       }
-//       if (!files || Object.keys(files).length === 0) {
-//         return res.status(400).json({
-//           msg: "Error, debe ingresar los archivos pdfs! no ha ingresado nada!",
-//         });
-//       }
-
-//       const extensionValida = "application/pdf";
-//       for (const archivoKey in files) {
-//         if (files.hasOwnProperty(archivoKey)) {
-//           const archivo = files[archivoKey];
-//           if(archivo.mimetype !== extensionValida)
-//           return res.status(400).json({message: "ERROR, DEBE INGRESAR ARCHIVOS EN FORMATO PDF!"})
-//         }
-//       }
-//       const cola = await fileUpdateCola.add({id , files});
-//       if(cola){
-//         res.status(200).json({message:"ARCHIVOS ACTUALIZANDOSE, VERIFIQUE LA CARGA."});
-//       }else{
-//         res.status(400).json({message:"ERROR AL INTENTAR ACTUALIZAR LOS ARCHIVOS."});
-//       }
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({
-//       msg: "Error del servidor",
-//     });
-//   }
-// };
 
 export const downloadDocuments = async(req , res) => {
   try {
@@ -1001,5 +960,49 @@ export const generarPDFconQR = async (req, res) => {
   } catch (error) {
     console.error('Error al generar el PDF', error);
     res.status(500).json({ error: 'Error al generar el PDF' });
+  }
+};
+
+
+export const consultarDocuments = async (req, res) => {
+  try {
+    const id_proy = req.params.id;
+
+    const enCola = await filesCola.getJobs(['waiting', 'active'], 0, -1, 'desc');
+    const completados = await filesCola.getJobs(['completed'], 0, -1, 'desc');
+    const fallidos = await filesCola.getFailed();
+
+    // Combinar todos los trabajos en un solo array
+    const todosLosTrabajos = enCola.concat(completados, fallidos);
+
+    // Filtrar los trabajos cuyo ID coincida con el ID del proyecto
+    const trabajosFiltrados = todosLosTrabajos.filter((trabajo) => trabajo.data.id === id_proy);
+
+    // Comprobar si hay trabajos en progreso
+    const enProgreso = trabajosFiltrados.some((trabajo) => trabajo.state === 'active');
+
+    if (enProgreso) {
+      // Si hay trabajos en progreso, devolver "in_progress"
+      return res.json("in_progress");
+    }
+
+    // Comprobar si hay trabajos fallidos
+    const hayFallas = fallidos.some((trabajo) => trabajo.data.id === id_proy);
+
+    if (hayFallas) {
+      // Si hay trabajos fallidos, devolver "falled"
+      return res.json("falled");
+    }
+
+    // Ordenar los trabajos filtrados por timestamp en orden descendente
+    trabajosFiltrados.sort((a, b) => b.timestamp - a.timestamp);
+
+    // Obtener el último trabajo filtrado
+    const ultimoTrabajo = trabajosFiltrados[0];
+
+    return res.json(ultimoTrabajo.data.name_files || {});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'ERROR AL PROCESAR LA CONSULTA.' });
   }
 };

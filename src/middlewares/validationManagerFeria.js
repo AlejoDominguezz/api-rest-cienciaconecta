@@ -2,7 +2,6 @@ import { body, param } from "express-validator";
 import { validarCampos } from "./validar-campos.js";
 import { fechaAnteriorA, fechaPosteriorA } from "../helpers/db-validar.js";
 import { check } from "express-validator";
-import { Sede } from "../models/Sede.js";
 import { Nivel } from "../models/Nivel.js";
 import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js";
 

@@ -6,3 +6,6 @@ export const roles = {
     comAsesora: '5',
     docente: '6',
   };
+
+
+export const allRoles = ['1', '2', '3', '4', '5', '6']

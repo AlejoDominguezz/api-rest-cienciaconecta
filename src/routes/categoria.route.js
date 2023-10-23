@@ -2,33 +2,71 @@
  * @swagger
  * tags:
  *   name: Categorias
- *   description: Operaciones relacionadas con las categorías
+ *   description: Operaciones relacionadas con las categorías. Con validaciones de estados de Feria.
  */
 
-import { Router } from 'express';
-import { check } from 'express-validator';
-import { crearCategoria, eliminarCategoria, getCategorias } from '../controllers/categorias.controller.js';
-import { requireToken } from '../middlewares/requireToken.js';
+import { Router } from "express";
+import { check } from "express-validator";
+import {
+  crearCategoria,
+  eliminarCategoria,
+  getCategorias,
+} from "../controllers/categorias.controller.js";
+import { requireToken } from "../middlewares/requireToken.js";
 import { checkRolAuth } from "../middlewares/validar-roles.js";
-import { roles } from "../helpers/roles.js";
-import { crearCategoriaValidator, eliminarCategoriaValidator } from '../middlewares/validationManagerCategoria.js';
+import { allRoles, roles } from "../helpers/roles.js";
+import {
+  crearCategoriaValidator,
+  eliminarCategoriaValidator,
+} from "../middlewares/validationManagerCategoria.js";
+import { estado } from "../middlewares/validar-fechas.js";
+import { estadoFeria } from "../models/Feria.js";
 
 const routerCategorias = Router();
 
-//obtener todas las categorias 
-routerCategorias.get('/',  requireToken, checkRolAuth([roles.admin, roles.comAsesora, roles.docente, roles.refEvaluador, roles.evaluador, roles.responsableProyecto]) , getCategorias)
-routerCategorias.post('/',  requireToken, checkRolAuth([roles.admin, roles.comAsesora]) , crearCategoriaValidator, crearCategoria)
-routerCategorias.delete('/:id',  requireToken, checkRolAuth([roles.admin, roles.comAsesora]) , eliminarCategoriaValidator, eliminarCategoria)
+//obtener todas las categorias
+routerCategorias.get(
+  "/",
+  requireToken,
+  checkRolAuth(allRoles),
+  getCategorias
+);
+
+
+routerCategorias.post(
+  "/",
+  estado([
+    estadoFeria.creada,
+    estadoFeria.iniciada,
+    estadoFeria.instanciaEscolar,
+  ]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.comAsesora]),
+  crearCategoriaValidator,
+  crearCategoria
+);
+
+
+routerCategorias.delete(
+  "/:id",
+  estado([
+    estadoFeria.creada,
+    estadoFeria.iniciada,
+    estadoFeria.instanciaEscolar,
+  ]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.comAsesora]),
+  eliminarCategoriaValidator,
+  eliminarCategoria
+);
 
 export default routerCategorias;
-
-
 
 /**
  * @swagger
  * /api/v1/categoria:
  *   get:
- *     summary: Obtener todas las categorías
+ *     summary: Obtener todas las categorías. Sin validación de estados de feria.
  *     tags: [Categorias]
  *     responses:
  *       '200':
@@ -54,6 +92,11 @@ export default routerCategorias;
  *   post:
  *     summary: Crear una nueva categoría
  *     tags: [Categorias]
+ *     description: |
+ *            Estados: 
+ *              - Creada (0)
+ *              - Iniciada (1)
+ *              - Instancia escolar (2)
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -86,14 +129,17 @@ export default routerCategorias;
  *         description: Error de servidor
  */
 
-
-
 /**
  * @swagger
  * /api/v1/categoria/:id:
  *   delete:
  *     summary: Eliminar una categoría por su ID
  *     tags: [Categorias]
+ *     description: |
+ *            Estados: 
+ *              - Creada (0)
+ *              - Iniciada (1)
+ *              - Instancia escolar (2)
  *     parameters:
  *       - in: path
  *         name: id

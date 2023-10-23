@@ -32,7 +32,7 @@ export default routerAuth;
  * @swagger
  * tags:
  *   name: Auth
- *   description: Autenticación y autorización de usuarios
+ *   description: Autenticación y autorización de usuarios. Sin validaciones de estados de Feria.
  */
 
 /**

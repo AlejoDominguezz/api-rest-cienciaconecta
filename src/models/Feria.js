@@ -200,8 +200,10 @@ export const estadoFeria = {
     instanciaProvincial_EnExposicion: '9',
     instanciaProvincial_ExposicionFinalizada: '10',
     proyectosPromovidosA_instanciaNacional: '11',
-    finalizada: '12',
+    finalizada: '12'
 };
+
+export const feriaExistente = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '8', '9', '10', '11']
 
 
 export const fechasFeria = {

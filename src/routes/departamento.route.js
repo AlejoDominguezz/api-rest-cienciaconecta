@@ -2,18 +2,23 @@
  * @swagger
  * tags:
  *   name: Departamentos
- *   description: Operaciones relacionadas con los departamentos
+ *   description: Operaciones relacionadas con los departamentos. Sin validaciones de estados de Feria.
  */
 
 import { Router } from "express";
-import { requireToken } from '../middlewares/requireToken.js';
+import { requireToken } from "../middlewares/requireToken.js";
 import { checkRolAuth } from "../middlewares/validar-roles.js";
-import { roles } from "../helpers/roles.js";
+import { allRoles, roles } from "../helpers/roles.js";
 import { getDepartamentos } from "../controllers/departamentos.controller.js";
 
 const routerDepartamentos = Router();
 
-routerDepartamentos.get("/", requireToken, checkRolAuth([roles.admin, roles.comAsesora, roles.docente, roles.responsableProyecto, roles.evaluador, roles.refEvaluador]), getDepartamentos);
+routerDepartamentos.get(
+  "/",
+  requireToken,
+  checkRolAuth(allRoles),
+  getDepartamentos
+);
 
 export default routerDepartamentos;
 

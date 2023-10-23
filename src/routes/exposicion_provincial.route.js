@@ -6,22 +6,72 @@
  */
 
 import { Router } from "express";
-import { requireToken } from '../middlewares/requireToken.js';
-import { checkRolAuth, esEvaluadorDelProyecto  } from "../middlewares/validar-roles.js";
+import { requireToken } from "../middlewares/requireToken.js";
+import {
+  checkRolAuth,
+  esEvaluadorDelProyecto,
+} from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
-import { cancelarEvaluacionExposicion, confirmarEvaluacionExposicion, evaluarExposicionProyecto, iniciarEvaluacionExposicion, visualizarEvaluacionExposicion } from "../controllers/exposiciones_provinciales.controller.js";
+import {
+  cancelarEvaluacionExposicion,
+  confirmarEvaluacionExposicion,
+  evaluarExposicionProyecto,
+  iniciarEvaluacionExposicion,
+  visualizarEvaluacionExposicion,
+} from "../controllers/exposiciones_provinciales.controller.js";
 import { exposicionValidator } from "../middlewares/validationManagerEvaluacion.js";
+import { estado } from "../middlewares/validar-fechas.js";
+import { estadoFeria } from "../models/Feria.js";
 
 const routerExposicion_Provincial = Router();
 
-routerExposicion_Provincial.post("/:id", requireToken, checkRolAuth([roles.admin, roles.evaluador]), esEvaluadorDelProyecto, exposicionValidator, evaluarExposicionProyecto);
-routerExposicion_Provincial.get("/:id", requireToken, checkRolAuth([roles.admin, roles.evaluador]), esEvaluadorDelProyecto, iniciarEvaluacionExposicion);
-routerExposicion_Provincial.get("/confirmar/:id", requireToken, checkRolAuth([roles.admin, roles.evaluador]), esEvaluadorDelProyecto, confirmarEvaluacionExposicion);
-routerExposicion_Provincial.get('/consultar/:id', requireToken, checkRolAuth([roles.admin, roles.evaluador, roles.comAsesora, roles.refEvaluador]), esEvaluadorDelProyecto, visualizarEvaluacionExposicion)
-routerExposicion_Provincial.delete('/:id', requireToken, checkRolAuth([roles.admin, roles.evaluador]), esEvaluadorDelProyecto, cancelarEvaluacionExposicion)
+routerExposicion_Provincial.post(
+  "/:id",
+  estado([estadoFeria.instanciaProvincial_EnExposicion]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.evaluador]),
+  esEvaluadorDelProyecto,
+  exposicionValidator,
+  evaluarExposicionProyecto
+);
+routerExposicion_Provincial.get(
+  "/:id",
+  estado([estadoFeria.instanciaProvincial_EnExposicion]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.evaluador]),
+  esEvaluadorDelProyecto,
+  iniciarEvaluacionExposicion
+);
+routerExposicion_Provincial.get(
+  "/confirmar/:id",
+  estado([estadoFeria.instanciaProvincial_EnExposicion]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.evaluador]),
+  esEvaluadorDelProyecto,
+  confirmarEvaluacionExposicion
+);
+routerExposicion_Provincial.get(
+  "/consultar/:id",
+  requireToken,
+  checkRolAuth([
+    roles.admin,
+    roles.evaluador,
+    roles.comAsesora,
+    roles.refEvaluador,
+  ]),
+  esEvaluadorDelProyecto,
+  visualizarEvaluacionExposicion
+);
+routerExposicion_Provincial.delete(
+  "/:id",
+  estado([estadoFeria.instanciaProvincial_EnExposicion]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.evaluador]),
+  esEvaluadorDelProyecto,
+  cancelarEvaluacionExposicion
+);
 
 export default routerExposicion_Provincial;
-
 
 // DOCUMENTACIÓN SWAGGER ------------------------------------------------------------------------------------------------------------------------
 
@@ -33,7 +83,11 @@ export default routerExposicion_Provincial;
  *       summary: Realizar evaluación de exposición provincial de un proyecto
  *       tags:
  *         - Exposicion Provincial
- *       description: Evalúa la exposición provincial un proyecto asignado por su ID.
+ *       description: |
+ *            Estados: 
+ *              - Instancia Provincial - En Exposicion (9)
+ *       
+ *            Evalúa la exposición provincial un proyecto asignado por su ID.
  *       parameters:
  *         - in: path
  *           name: id
@@ -42,7 +96,7 @@ export default routerExposicion_Provincial;
  *           required: true
  *           description: ID del proyecto a evaluar.
  *       security:
- *         - bearerAuth: [] 
+ *         - bearerAuth: []
  *       requestBody:
  *         required: true
  *         content:
@@ -100,7 +154,6 @@ export default routerExposicion_Provincial;
  *           description: No se encontró el proyecto o recursos relacionados.
  */
 
-
 /**
  * @swagger
  * paths:
@@ -109,7 +162,11 @@ export default routerExposicion_Provincial;
  *       summary: Iniciar evaluación de exposición provincial de un proyecto
  *       tags:
  *         - Exposicion Provincial
- *       description: Inicia la evaluación de exposición provincial de un proyecto asignado por su ID. Obtiene la estructura de rubricas de la feria y la estructura de evaluación de exposición asociada al proyecto, ya sea que exista una evaluación previa o no.
+ *       description: |
+ *            Estados: 
+ *              - Instancia Provincial - En Exposicion (9)
+ *       
+ *            Inicia la evaluación de exposición provincial de un proyecto asignado por su ID. Obtiene la estructura de rubricas de la feria y la estructura de evaluación de exposición asociada al proyecto, ya sea que exista una evaluación previa o no.
  *       parameters:
  *         - in: path
  *           name: id
@@ -118,7 +175,7 @@ export default routerExposicion_Provincial;
  *           required: true
  *           description: ID del proyecto a evaluar.
  *       security:
- *         - bearerAuth: [] 
+ *         - bearerAuth: []
  *       responses:
  *         '200':
  *           description: Inicio de evaluación exitoso. Devuelve la estructura de evaluación de exposición.
@@ -211,7 +268,6 @@ export default routerExposicion_Provincial;
  *                     type: string
  */
 
-
 /**
  * @swagger
  * paths:
@@ -220,7 +276,11 @@ export default routerExposicion_Provincial;
  *       summary: Confirmar evaluación de exposición provincial de un proyecto
  *       tags:
  *         - Exposicion Provincial
- *       description: Confirma la evaluación de exposición provincial de un proyecto una vez que todos los evaluadores asignados han evaluado el proyecto. Solo los usuarios con roles de administrador o evaluador pueden confirmar la evaluación.
+ *       description: |
+ *            Estados: 
+ *              - Instancia Provincial - En Exposicion (9)
+ *       
+ *            Confirma la evaluación de exposición provincial de un proyecto una vez que todos los evaluadores asignados han evaluado el proyecto. Solo los usuarios con roles de administrador o evaluador pueden confirmar la evaluación.
  *       parameters:
  *         - in: path
  *           name: id
@@ -229,7 +289,7 @@ export default routerExposicion_Provincial;
  *           required: true
  *           description: ID del proyecto a evaluar.
  *       security:
- *         - bearerAuth: [] 
+ *         - bearerAuth: []
  *       responses:
  *         '200':
  *           description: Confirmación de evaluación exitosa.
@@ -273,14 +333,12 @@ export default routerExposicion_Provincial;
  *                     type: string
  */
 
-
-
 /**
  * @swagger
  * paths:
  *   /api/v1/exposicion-provincial/consultar/:id:
  *     get:
- *       summary: Consultar evaluación de exposición provincial de un proyecto
+ *       summary: Consultar evaluación de exposición provincial de un proyecto. Sin validación de estados de Feria.
  *       tags:
  *         - Exposicion Provincial
  *       description: Consulta la evaluación de un proyecto y devuelve la estructura de rubricas y los datos de evaluación asociados, si existen. Solo los usuarios con roles de administrador, evaluador, comAsesora o refEvaluador pueden acceder a esta información.
@@ -292,7 +350,7 @@ export default routerExposicion_Provincial;
  *           required: true
  *           description: ID del proyecto para el cual se desea consultar la evaluación de exposición provincial.
  *       security:
- *         - bearerAuth: [] 
+ *         - bearerAuth: []
  *       responses:
  *         '200':
  *           description: Consulta de evaluación exitosa.
@@ -386,8 +444,6 @@ export default routerExposicion_Provincial;
  *                     type: string
  */
 
-
-
 /**
  * @swagger
  * paths:
@@ -396,7 +452,11 @@ export default routerExposicion_Provincial;
  *       summary: Cancelar evaluación de exposición provincial de un proyecto
  *       tags:
  *         - Exposicion Provincial
- *       description: Permite al usuario evaluador cancelar la evaluación de exposición provincial de un proyecto si está en curso. Sólo el evaluador que se encuentra evaluando el proyecto en este momento puede acceder a esta función.
+ *       description: |
+ *            Estados: 
+ *              - Instancia Provincial - En Exposicion (9)
+ *       
+ *            Permite al usuario evaluador cancelar la evaluación de exposición provincial de un proyecto si está en curso. Sólo el evaluador que se encuentra evaluando el proyecto en este momento puede acceder a esta función.
  *       parameters:
  *         - in: path
  *           name: id
@@ -405,7 +465,7 @@ export default routerExposicion_Provincial;
  *           required: true
  *           description: ID del proyecto para el cual se desea cancelar la evaluación de exposición provincial.
  *       security:
- *         - bearerAuth: [] 
+ *         - bearerAuth: []
  *       responses:
  *         '200':
  *           description: Evaluación cancelada con éxito.
@@ -445,5 +505,3 @@ export default routerExposicion_Provincial;
  *                   error:
  *                     type: string
  */
-
-

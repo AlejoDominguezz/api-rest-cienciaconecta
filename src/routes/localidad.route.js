@@ -2,19 +2,23 @@
  * @swagger
  * tags:
  *   name: Localidades
- *   description: Operaciones relacionadas con las localidades
+ *   description: Operaciones relacionadas con las localidades. Sin validaciones de estados de Feria.
  */
 
-
 import { Router } from "express";
-import { requireToken } from '../middlewares/requireToken.js';
+import { requireToken } from "../middlewares/requireToken.js";
 import { checkRolAuth } from "../middlewares/validar-roles.js";
-import { roles } from "../helpers/roles.js";
+import { allRoles, roles } from "../helpers/roles.js";
 import { getLocalidades } from "../controllers/localidades.controller.js";
 
 const routerLocalidades = Router();
 
-routerLocalidades.get("/:departamento", requireToken, checkRolAuth([roles.admin, roles.comAsesora, roles.docente, roles.responsableProyecto, roles.evaluador, roles.refEvaluador]), getLocalidades);
+routerLocalidades.get(
+  "/:departamento",
+  requireToken,
+  checkRolAuth(allRoles),
+  getLocalidades
+);
 
 export default routerLocalidades;
 

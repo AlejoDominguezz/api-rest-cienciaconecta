@@ -2,26 +2,65 @@
  * @swagger
  * tags:
  *   name: Promocion de Proyectos
- *   description: Operaciones relacionadas con la promoción de proyectos a la siguiente instancia de Feria
+ *   description: Operaciones relacionadas con la promoción de proyectos a la siguiente instancia de Feria. Con validaciones de estados de Feria.
  */
 
 import { Router } from "express";
-import { requireToken } from '../middlewares/requireToken.js';
+import { requireToken } from "../middlewares/requireToken.js";
 import { checkRolAuth } from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
-import { obtenerProyectosNacional, obtenerProyectosProvincial, promoverProyectos_Nacional, promoverProyectos_Provincial } from "../controllers/promociones.controller.js";
-import { obtenerNacionalValidator, obtenerProvincialValidator, promoverNacionalValidator, promoverProvincialValidator } from "../middlewares/validationManagerPromocion.js";
+import {
+  obtenerProyectosNacional,
+  obtenerProyectosProvincial,
+  promoverProyectos_Nacional,
+  promoverProyectos_Provincial,
+} from "../controllers/promociones.controller.js";
+import {
+  obtenerNacionalValidator,
+  obtenerProvincialValidator,
+  promoverNacionalValidator,
+  promoverProvincialValidator,
+} from "../middlewares/validationManagerPromocion.js";
+import { estado } from "../middlewares/validar-fechas.js";
+import { estadoFeria } from "../models/Feria.js";
 
 const routerPromocion = Router();
 
-routerPromocion.post("/provincial/proyectos", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), obtenerProvincialValidator, obtenerProyectosProvincial);
-routerPromocion.post("/nacional/proyectos", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), obtenerNacionalValidator, obtenerProyectosNacional);
+routerPromocion.post(
+  "/provincial/proyectos",
+  estado([estadoFeria.instanciaRegional_ExposicionFinalizada]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.comAsesora]),
+  obtenerProvincialValidator,
+  obtenerProyectosProvincial
+);
+routerPromocion.post(
+  "/nacional/proyectos",
+  estado([estadoFeria.instanciaProvincial_ExposicionFinalizada]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.comAsesora]),
+  obtenerNacionalValidator,
+  obtenerProyectosNacional
+);
 //routerPromocion.post("/regional", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), promoverProyectosPorNivel_Regional);
-routerPromocion.post("/provincial", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), promoverProvincialValidator, promoverProyectos_Provincial);
-routerPromocion.post("/nacional", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), promoverNacionalValidator, promoverProyectos_Nacional);
+routerPromocion.post(
+  "/provincial",
+  estado([estadoFeria.instanciaRegional_ExposicionFinalizada]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.comAsesora]),
+  promoverProvincialValidator,
+  promoverProyectos_Provincial
+);
+routerPromocion.post(
+  "/nacional",
+  estado([estadoFeria.instanciaProvincial_ExposicionFinalizada]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.comAsesora]),
+  promoverNacionalValidator,
+  promoverProyectos_Nacional
+);
 
 export default routerPromocion;
-
 
 // DOCUMENTACION SWAGGER -------------------------------------------------------------------------------
 
@@ -30,8 +69,11 @@ export default routerPromocion;
  * /api/v1/promocion/provincial/proyectos:
  *   post:
  *     summary: "Obtiene proyectos regionales para promoción a instancia provincial"
- *     tags: 
+ *     tags:
  *       - "Promocion de Proyectos"
+ *     description: |
+ *            Estados: 
+ *              - Instancia Regional - Exposicion Finalizada (7)
  *     requestBody:
  *       required: true
  *       content:
@@ -63,14 +105,16 @@ export default routerPromocion;
  *         description: "No Content. No se encontraron proyectos que cumplan los criterios para ser promovidos."
  */
 
-
 /**
  * @swagger
  * /api/v1/promocion/nacional/proyectos:
  *   post:
  *     summary: "Obtiene proyectos provinciales para promoción a instancia nacional"
- *     tags: 
+ *     tags:
  *       - "Promocion de Proyectos"
+ *     description: |
+ *            Estados: 
+ *              - Instancia Provincial - Exposicion Finalizada (10)
  *     requestBody:
  *       required: true
  *       content:
@@ -99,15 +143,16 @@ export default routerPromocion;
  *         description: "No Content. No se encontraron proyectos que cumplan los criterios para ser promovidos."
  */
 
-
-
 /**
  * @swagger
  * /api/v1/promocion/provincial:
  *   post:
  *     summary: "Promueve proyectos a la instancia Provincial"
- *     tags: 
+ *     tags:
  *       - "Promocion de Proyectos"
+ *     description: |
+ *            Estados: 
+ *              - Instancia Regional - Exposicion Finalizada (7)
  *     requestBody:
  *       required: true
  *       content:
@@ -165,16 +210,16 @@ export default routerPromocion;
  *                   type: string
  */
 
-
-
-
 /**
  * @swagger
  * /api/v1/promocion/nacional:
  *   post:
  *     summary: "Promueve proyectos a la instancia Nacional"
- *     tags: 
+ *     tags:
  *       - "Promocion de Proyectos"
+ *     description: |
+ *            Estados: 
+ *              - Instancia Provincial - Exposicion Finalizada (10)
  *     requestBody:
  *       required: true
  *       content:

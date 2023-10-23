@@ -6,25 +6,90 @@
  */
 
 import { Router } from "express";
-import { requireToken } from '../middlewares/requireToken.js';
-import { checkRolAuth, esEvaluadorDelProyecto, esReferenteDelProyecto } from "../middlewares/validar-roles.js";
+import { requireToken } from "../middlewares/requireToken.js";
+import {
+  checkRolAuth,
+  esEvaluadorDelProyecto,
+  esReferenteDelProyecto,
+} from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
-import { cancelarEvaluacion, confirmarEvaluacion, evaluarProyecto, iniciarEvaluacion, visualizarEvaluacion, obtenerEvaluacionesPendientes, obtenerEvaluacionPendienteById } from "../controllers/evaluaciones.controller.js";
+import {
+  cancelarEvaluacion,
+  confirmarEvaluacion,
+  evaluarProyecto,
+  iniciarEvaluacion,
+  visualizarEvaluacion,
+  obtenerEvaluacionesPendientes,
+  obtenerEvaluacionPendienteById,
+} from "../controllers/evaluaciones.controller.js";
 import { evaluacionValidator } from "../middlewares/validationManagerEvaluacion.js";
+import { estado } from "../middlewares/validar-fechas.js";
+import { estadoFeria } from "../models/Feria.js";
 
 const routerEvaluacion = Router();
 
-routerEvaluacion.post("/:id", requireToken, checkRolAuth([roles.admin, roles.evaluador]), esEvaluadorDelProyecto, evaluacionValidator, evaluarProyecto);
-routerEvaluacion.get('/pendientes', requireToken, checkRolAuth([roles.admin, roles.evaluador, roles.refEvaluador]), obtenerEvaluacionesPendientes)
-routerEvaluacion.get('/pendientes/:id', requireToken, checkRolAuth([roles.admin, roles.evaluador, roles.refEvaluador]), obtenerEvaluacionPendienteById)
-routerEvaluacion.get("/:id", requireToken, checkRolAuth([roles.admin, roles.evaluador]), esEvaluadorDelProyecto, iniciarEvaluacion);
-routerEvaluacion.get("/confirmar/:id", requireToken, checkRolAuth([roles.admin, roles.evaluador]), esEvaluadorDelProyecto, confirmarEvaluacion);
-routerEvaluacion.get('/consultar/:id', requireToken, checkRolAuth([roles.admin, roles.evaluador, roles.comAsesora, roles.refEvaluador]), esEvaluadorDelProyecto, esReferenteDelProyecto, visualizarEvaluacion)
-routerEvaluacion.delete('/:id', requireToken, checkRolAuth([roles.admin, roles.evaluador]), esEvaluadorDelProyecto, cancelarEvaluacion)
+routerEvaluacion.post(
+  "/:id",
+  estado([estadoFeria.instanciaRegional_EnEvaluacion]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.evaluador]),
+  esEvaluadorDelProyecto,
+  evaluacionValidator,
+  evaluarProyecto
+);
+routerEvaluacion.get(
+  "/pendientes",
+  estado([estadoFeria.instanciaRegional_EnEvaluacion, estadoFeria.instanciaRegional_EnExposicion]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.evaluador, roles.refEvaluador]),
+  obtenerEvaluacionesPendientes
+);
+routerEvaluacion.get(
+  "/pendientes/:id",
+  estado([estadoFeria.instanciaRegional_EnEvaluacion, estadoFeria.instanciaRegional_EnExposicion]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.evaluador, roles.refEvaluador]),
+  obtenerEvaluacionPendienteById
+);
+routerEvaluacion.get(
+  "/:id",
+  estado([estadoFeria.instanciaRegional_EnEvaluacion]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.evaluador]),
+  esEvaluadorDelProyecto,
+  iniciarEvaluacion
+);
+routerEvaluacion.get(
+  "/confirmar/:id",
+  estado([estadoFeria.instanciaRegional_EnEvaluacion]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.evaluador]),
+  esEvaluadorDelProyecto,
+  confirmarEvaluacion
+);
+routerEvaluacion.get(
+  "/consultar/:id",
+  requireToken,
+  checkRolAuth([
+    roles.admin,
+    roles.evaluador,
+    roles.comAsesora,
+    roles.refEvaluador,
+  ]),
+  esEvaluadorDelProyecto,
+  esReferenteDelProyecto,
+  visualizarEvaluacion
+);
+routerEvaluacion.delete(
+  "/:id",
+  estado([estadoFeria.instanciaRegional_EnEvaluacion]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.evaluador]),
+  esEvaluadorDelProyecto,
+  cancelarEvaluacion
+);
 
 export default routerEvaluacion;
-
-
 
 // DOCUMENTACIÓN SWAGGER ------------------------------------------------------------------------------------------------------------------------
 
@@ -33,10 +98,12 @@ export default routerEvaluacion;
  * paths:
  *   /api/v1/evaluacion/:id:
  *     post:
- *       summary: Evaluar un proyecto
+ *       summary: Evaluar un proyecto asignado por su ID.
  *       tags:
  *         - Evaluacion
- *       description: Evalúa un proyecto asignado por su ID.
+ *       description: |
+ *            Estados: 
+ *              - Instancia Regional - En Evaluación (4)
  *       parameters:
  *         - in: path
  *           name: id
@@ -45,7 +112,7 @@ export default routerEvaluacion;
  *           required: true
  *           description: ID del proyecto a evaluar.
  *       security:
- *         - bearerAuth: [] 
+ *         - bearerAuth: []
  *       requestBody:
  *         required: true
  *         content:
@@ -100,16 +167,19 @@ export default routerEvaluacion;
  *           description: No se encontró el proyecto o recursos relacionados.
  */
 
-
 /**
  * @swagger
  * paths:
  *   /api/v1/evaluacion/:id:
  *     get:
- *       summary: Iniciar evaluación de un proyecto
+ *       summary: Iniciar la evaluación de un proyecto asignado por su ID.
  *       tags:
  *         - Evaluacion
- *       description: Inicia la evaluación de un proyecto asignado por su ID. Obtiene la estructura de rubricas de la feria y la estructura de evaluación teórica asociada al proyecto, ya sea que exista una evaluación previa o no.
+ *       description: |
+ *            Estados: 
+ *              - Instancia Regional - En Evaluación (4)
+ * 
+ *            Obtiene la estructura de rubricas de la feria y la estructura de evaluación teórica asociada al proyecto, ya sea que exista una evaluación previa o no.
  *       parameters:
  *         - in: path
  *           name: id
@@ -118,7 +188,7 @@ export default routerEvaluacion;
  *           required: true
  *           description: ID del proyecto a evaluar.
  *       security:
- *         - bearerAuth: [] 
+ *         - bearerAuth: []
  *       responses:
  *         '200':
  *           description: Inicio de evaluación exitoso. Devuelve la estructura de evaluación teórica.
@@ -211,7 +281,6 @@ export default routerEvaluacion;
  *                     type: string
  */
 
-
 /**
  * @swagger
  * paths:
@@ -220,7 +289,11 @@ export default routerEvaluacion;
  *       summary: Confirmar evaluación de un proyecto
  *       tags:
  *         - Evaluacion
- *       description: Confirma la evaluación de un proyecto una vez que todos los evaluadores asignados han evaluado el proyecto. Solo los usuarios con roles de administrador o evaluador pueden confirmar la evaluación.
+ *       description: |
+ *            Estados: 
+ *              - Instancia Regional - En Evaluación (4)
+ *          
+ *            Confirma la evaluación de un proyecto una vez que todos los evaluadores asignados han evaluado el proyecto. Solo los usuarios con roles de administrador o evaluador pueden confirmar la evaluación.
  *       parameters:
  *         - in: path
  *           name: id
@@ -229,7 +302,7 @@ export default routerEvaluacion;
  *           required: true
  *           description: ID del proyecto a evaluar.
  *       security:
- *         - bearerAuth: [] 
+ *         - bearerAuth: []
  *       responses:
  *         '200':
  *           description: Confirmación de evaluación exitosa.
@@ -273,14 +346,12 @@ export default routerEvaluacion;
  *                     type: string
  */
 
-
-
 /**
  * @swagger
  * paths:
  *   /api/v1/evaluacion/consultar/:id:
  *     get:
- *       summary: Consultar evaluación de un proyecto
+ *       summary: Consultar evaluación de un proyecto. Sin validación de estados de Feria.
  *       tags:
  *         - Evaluacion
  *       description: Consulta la evaluación de un proyecto y devuelve la estructura de rubricas y los datos de evaluación asociados, si existen. Solo los usuarios con roles de administrador, evaluador, comAsesora o refEvaluador pueden acceder a esta información.
@@ -292,7 +363,7 @@ export default routerEvaluacion;
  *           required: true
  *           description: ID del proyecto para el cual se desea consultar la evaluación.
  *       security:
- *         - bearerAuth: [] 
+ *         - bearerAuth: []
  *       responses:
  *         '200':
  *           description: Consulta de evaluación exitosa.
@@ -386,8 +457,6 @@ export default routerEvaluacion;
  *                     type: string
  */
 
-
-
 /**
  * @swagger
  * paths:
@@ -396,7 +465,11 @@ export default routerEvaluacion;
  *       summary: Cancelar evaluación de un proyecto
  *       tags:
  *         - Evaluacion
- *       description: Permite al usuario evaluador cancelar la evaluación de un proyecto si está en curso. Sólo el evaluador que se encuentra evaluando el proyecto en este momento puede acceder a esta función.
+ *       description: |
+ *            Estados: 
+ *              - Instancia Regional - En Evaluación (4)
+ * 
+ *            Permite al usuario evaluador cancelar la evaluación de un proyecto si está en curso. Sólo el evaluador que se encuentra evaluando el proyecto en este momento puede acceder a esta función.
  *       parameters:
  *         - in: path
  *           name: id
@@ -405,7 +478,7 @@ export default routerEvaluacion;
  *           required: true
  *           description: ID del proyecto para el cual se desea cancelar la evaluación.
  *       security:
- *         - bearerAuth: [] 
+ *         - bearerAuth: []
  *       responses:
  *         '200':
  *           description: Evaluación cancelada con éxito.
@@ -446,17 +519,20 @@ export default routerEvaluacion;
  *                     type: string
  */
 
-
-
 /**
  * @swagger
  * /api/v1/evaluacion/pendientes:
  *   get:
  *     summary: Obtener evaluaciones pendientes.
- *     tags: 
+ *     tags:
  *       - Evaluacion
- *       - Exposicion 
- *     description: Obtiene una lista de evaluaciones pendientes para el usuario actual.
+ *       - Exposicion
+ *     description: |
+ *          Estados: 
+ *            - Instancia Regional - En Evaluación (4)
+ *            - Instancia Regional - En Exposicion (6)
+ * 
+ *          Obtiene una lista de evaluaciones pendientes para el usuario actual.
  *     parameters:
  *       - in: query
  *         name: titulo
@@ -464,7 +540,7 @@ export default routerEvaluacion;
  *           type: string
  *         description: Título para filtrar proyectos (búsqueda por patrón similar).
  *     security:
- *       - bearerAuth: [] 
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Éxito. Devuelve una lista de evaluaciones pendientes.
@@ -672,16 +748,20 @@ export default routerEvaluacion;
  *         description: Error del servidor.
  */
 
-
 /**
  * @swagger
  * /api/v1/evaluacion/pendientes/:id:
  *   get:
  *     summary: Obtener evaluación pendiente por ID
- *     description: Obtiene una evaluación pendiente por su ID.
  *     tags:
  *       - Evaluacion
  *       - Exposicion
+ *     description: |
+ *          Estados: 
+ *            - Instancia Regional - En Evaluación (4)
+ *            - Instancia Regional - En Exposicion (6)
+ * 
+ *          Obtiene una evaluación pendiente por su ID.
  *     parameters:
  *       - in: path
  *         name: id

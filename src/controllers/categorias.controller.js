@@ -31,9 +31,9 @@ export const crearCategoria = async(req = request, res = response) => {
             color
         })
 
-        await categoria.save()
+        const cat = await categoria.save()
 
-        return res.json({msg: `La categoria '${nombre}' se ha creado con éxito`})
+        return res.json({msg: `La categoria '${nombre}' se ha creado con éxito`, id: cat._id})
     } catch (error) {
         return res.status(500).json({error: "Error de servidor"})
     }

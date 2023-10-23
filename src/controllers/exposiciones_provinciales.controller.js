@@ -1,6 +1,9 @@
 import { arraysComentariosIguales, arraysEvaluacionIguales } from "../helpers/arrayComparation.js";
-import { EvaluacionExposicionProvincial, estadoEvaluacionExposicionProvincial } from "../models/EvaluacionExposicion_Provincial.js";
-import { estado } from "../models/Proyecto.js";
+import { roles } from "../helpers/roles.js";
+import { Docente } from "../models/Docente.js";
+import { EvaluacionExposicionProvincial, estadoEvaluacionExposicionProvincial, nombreEstadoExposicionProvincial } from "../models/EvaluacionExposicion_Provincial.js";
+import { Evaluador } from "../models/Evaluador.js";
+import { Proyecto, estado, nombreEstado } from "../models/Proyecto.js";
 import { obtenerPuntaje } from "./evaluaciones.controller.js";
 
 // Obtener estructura de evaluacion de exposicion para iniciar la evaluación, exista o no una evaluacion previa -------------------------------
@@ -25,7 +28,7 @@ export const iniciarEvaluacionExposicion = async (req, res) => {
           return res.status(401).json({ error: "Este proyecto no puede ser evaluado porque no se encuentra en instancia provincial" });
         }
         proyecto.estado = estado.enEvaluacionProvincial;
-        proyecto.save()
+        await proyecto.save()
       }
 
       // Obtengo la estructura de rubricas sólo para la evaluación de exposición
@@ -391,5 +394,148 @@ export const confirmarEvaluacionExposicion = async (req, res) => {
   evaluacion_anterior.save()
 
   return res.json({ ok: true , responseMessage });
+
+}
+
+
+
+
+
+export const obtenerExposicionesPendientes = async (req, res) => {
+  
+  if(req.roles.includes(roles.evaluador)){
+    try {
+      const uid = req.uid;
+      const {titulo} = req.query;
+      
+      const docente = await Docente.findOne({usuario: uid})
+      if(!docente){
+          return res.status(404).json({ error: "No existe el docente asociado al usuario" });
+      }
+  
+      const evaluador = await Evaluador.findOne({idDocente: docente.id})
+      if(!evaluador){
+          return res.status(404).json({ error: "No existe el evaluador asociado al docente" });
+      }
+  
+      // Construir la consulta principal
+      const consulta = { 
+        evaluadoresRegionales: { $in: [evaluador.id.toString()] },  
+        estado: { $in: [estado.promovidoProvincial, estado.enEvaluacionProvincial, estado.evaluadoProvincial]}
+      };
+  
+      // Agregar el filtro de título si existe
+      if (titulo) {
+        consulta.titulo = { $regex: titulo, $options: 'i' };;
+      }
+  
+      const proyectos_evaluacion_pendiente = await Proyecto.find(consulta)
+      .select('-__v')
+      .lean()
+      .exec();
+  
+      if(proyectos_evaluacion_pendiente.length === 0){
+        return res.status(204).json({ error: "No existen evaluaciones pendientes" });
+      }
+  
+  
+      const proyecto_detalle = await Promise.all(
+        proyectos_evaluacion_pendiente.map(async (proyecto) => {
+
+          const evaluacion_exposicion = await EvaluacionExposicionProvincial.findOne({proyectoId: proyecto._id})
+          .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+          .lean()
+          .exec();
+  
+          if(!evaluacion_exposicion){
+
+            return {
+              ...proyecto,
+              nombreEstado: nombreEstado[proyecto.estado],
+            }
+
+          } else {
+
+            evaluacion_exposicion.nombreEstado = nombreEstadoExposicionProvincial[evaluacion_exposicion.estado];
+            return {
+              ...proyecto,
+              nombreEstado: nombreEstado[proyecto.estado],
+              exposicion: evaluacion_exposicion,
+            };
+
+          } 
+        })
+      );
+  
+      return res.json({proyectos: proyecto_detalle})
+
+    } catch (error) {
+      return res.status(500).json({ error: "Error de servidor" });
+    }
+  }
+}
+
+
+export const obtenerExposicionPendienteById = async (req, res) => {
+  
+  if(req.roles.includes(roles.evaluador)){
+
+    try {
+      const uid = req.uid;
+      const {id} = req.params;
+      
+      const docente = await Docente.findOne({usuario: uid})
+      if(!docente){
+          return res.status(404).json({ error: "No existe el docente asociado al usuario" });
+      }
+  
+      const evaluador = await Evaluador.findOne({idDocente: docente.id})
+      if(!evaluador){
+          return res.status(404).json({ error: "No existe el evaluador asociado al docente" });
+      }
+  
+      const proyecto = await Proyecto.findOne(
+        {
+          evaluadoresRegionales: { $in: [evaluador.id.toString()]},
+          _id: id.toString(), 
+          estado: { $in: [estado.promovidoProvincial, estado.enEvaluacionProvincial, estado.evaluadoProvincial]}
+        })
+      .select('-__v')
+      .lean()
+      .exec();
+  
+      if(!proyecto){
+        return res.status(404).json({ error: "No existe un proyecto promovido a instancia provincial asignado al evaluador con el ID ingresado" });
+      }
+  
+
+      const evaluacion_exposicion = await EvaluacionExposicionProvincial.findOne({proyectoId: proyecto._id})
+      .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+      .lean()
+      .exec();
+
+      if(!evaluacion_exposicion){
+
+        return res.json({
+          proyecto, 
+          nombreEstado: nombreEstado[proyecto.estado],
+        })
+
+      } else  {
+
+        evaluacion_exposicion.nombreEstado = nombreEstadoExposicionProvincial[evaluacion_exposicion.estado];
+        return res.json({
+          proyecto, 
+          nombreEstado: nombreEstado[proyecto.estado],
+          exposicion: evaluacion_exposicion,
+        })
+
+      }
+
+    } catch (error) {
+      return res.status(500).json({ error: "Error de servidor" });
+    }
+
+  } 
 
 }

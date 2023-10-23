@@ -17,6 +17,8 @@ import {
   confirmarEvaluacionExposicion,
   evaluarExposicionProyecto,
   iniciarEvaluacionExposicion,
+  obtenerExposicionPendienteById,
+  obtenerExposicionesPendientes,
   visualizarEvaluacionExposicion,
 } from "../controllers/exposiciones_provinciales.controller.js";
 import { exposicionValidator } from "../middlewares/validationManagerEvaluacion.js";
@@ -34,6 +36,15 @@ routerExposicion_Provincial.post(
   exposicionValidator,
   evaluarExposicionProyecto
 );
+
+routerExposicion_Provincial.get(
+  "/pendientes",
+  estado([estadoFeria.instanciaProvincial_EnExposicion]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.evaluador]),
+  obtenerExposicionesPendientes
+);
+
 routerExposicion_Provincial.get(
   "/:id",
   estado([estadoFeria.instanciaProvincial_EnExposicion]),
@@ -69,6 +80,14 @@ routerExposicion_Provincial.delete(
   checkRolAuth([roles.admin, roles.evaluador]),
   esEvaluadorDelProyecto,
   cancelarEvaluacionExposicion
+);
+
+routerExposicion_Provincial.get(
+  "/pendientes/:id",
+  estado([estadoFeria.instanciaProvincial_EnExposicion]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.evaluador]),
+  obtenerExposicionPendienteById
 );
 
 export default routerExposicion_Provincial;

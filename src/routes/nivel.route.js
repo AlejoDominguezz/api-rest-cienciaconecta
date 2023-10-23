@@ -2,7 +2,7 @@
  * @swagger
  * tags:
  *   name: Niveles
- *   description: Operaciones relacionadas con los niveles educativos
+ *   description: Operaciones relacionadas con los niveles educativos. Sin validaciones de estados de feria.
  */
 
 import { Router } from 'express';

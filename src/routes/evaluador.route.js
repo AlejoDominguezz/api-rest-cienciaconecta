@@ -30,41 +30,41 @@ const routerEvaluadores = Router();
 
 routerEvaluadores.post(
   "/postular",
+  fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaFinPostulacion),
   requireToken,
   checkRolAuth([roles.admin, roles.docente]),
-  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaFinPostulacion),
   bodyPostularEvaluadorValidator,
   postularEvaluador
 );
 routerEvaluadores.post(
   "/seleccionar",
+  fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaFinAsignacion),
   requireToken,
   checkRolAuth([roles.admin, roles.comAsesora]),
-  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
   bodySeleccionarEvaluadorValidator,
   seleccionarEvaluadores
 );
 routerEvaluadores.get(
   "/postulaciones",
+  fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaFinAsignacion),
   requireToken,
   checkRolAuth([roles.admin, roles.comAsesora, roles.refEvaluador]),
-  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
   getPostulaciones
 );
 
 routerEvaluadores.get(
   '/postulaciones/:id',
+  fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaFinAsignacion),
   requireToken,
   checkRolAuth([roles.admin, roles.comAsesora, roles.refEvaluador]),
-  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
   getPostulacionById
 )
 
 routerEvaluadores.post(
   "/upload/cv",
+  fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaFinPostulacion),
   requireToken,
   checkRolAuth([roles.admin, roles.docente]),
-  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
   cargarCv
 );
 
@@ -72,7 +72,6 @@ routerEvaluadores.get(
   "/download/v1/cv/:id",
   requireToken,
   checkRolAuth([roles.admin, roles.comAsesora, roles.refEvaluador]),
-  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
   getCv
 );
 
@@ -80,14 +79,12 @@ routerEvaluadores.get(
   "/download/v2/cv/:id",
   requireToken,
   checkRolAuth([roles.admin, roles.comAsesora, roles.refEvaluador]),
-  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
   getCvV2
 );
 routerEvaluadores.get(
   "/download/v3/cv/:id",
   requireToken,
   checkRolAuth([roles.admin, roles.comAsesora, roles.refEvaluador]),
-  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaInicioAsignacion),
   getCv_
 );
 export default routerEvaluadores;
@@ -101,6 +98,10 @@ export default routerEvaluadores;
  *     summary: Postular un evaluador
  *     tags:
  *       - Evaluadores
+ *     description: |
+ *          Fechas Límite: 
+ *            - Fecha Inicio: Inicio de postulacion
+ *            - Fecha Fin: Fin de postulación
  *     requestBody:
  *       required: true
  *       content:
@@ -177,6 +178,10 @@ export default routerEvaluadores;
  *     summary: Obtener postulaciones pendientes con datos de docente y postulación
  *     tags:
  *       - Evaluadores
+ *     description: |
+ *          Fechas Límite: 
+ *            - Fecha Inicio: Inicio de postulacion
+ *            - Fecha Fin: Fin de asignación
  *     security:
  *       - bearerAuth: [] 
  *     responses:
@@ -269,6 +274,10 @@ export default routerEvaluadores;
  *     summary: Seleccionar evaluadores
  *     tags:
  *       - Evaluadores
+ *     description: |
+ *          Fechas Límite: 
+ *            - Fecha Inicio: Inicio de postulacion
+ *            - Fecha Fin: Fin de asignación
  *     requestBody:
  *       required: true
  *       content:

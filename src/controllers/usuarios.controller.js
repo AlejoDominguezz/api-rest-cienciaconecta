@@ -44,7 +44,7 @@ export const getUsers = async (req, res) => {
   }
 };
 
-//obtener todos los usuarios
+//obtener información del propio usuario
 export const getOwnUser = async (req, res) => {
   try {
     const id = req.uid;

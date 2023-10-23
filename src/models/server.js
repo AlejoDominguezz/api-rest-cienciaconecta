@@ -7,8 +7,6 @@ import routerFerias from '../routes/feria.route.js';
 import routerUsuarios from '../routes/usuario.route.js';
 import routerAuth from '../routes/auth.route.js'
 import routerProyectos from '../routes/proyecto.route.js';
-import routerSedes from '../routes/sede.route.js';
-
 import dbConnection from '../database/config.js';
 import { crearCategorias, crearEstablecimientosEducativos, crearNiveles } from '../helpers/initialSetup.js';
 import routerCategorias from '../routes/categoria.route.js';
@@ -40,7 +38,6 @@ class Server {
             usuario:                '/api/v1/usuario',
             auth:                   '/api/v1/auth',
             proyecto:               '/api/v1/proyecto',
-            sede:                   '/api/v1/sede', 
             categoria:              '/api/v1/categoria',
             nivel:                  '/api/v1/nivel',
             departamento:           '/api/v1/departamento',
@@ -121,9 +118,6 @@ class Server {
         //path de gestion de proyectos
         this.app.use(this.paths.proyecto, routerProyectos);
 
-        //path de gestion de sedes
-        this.app.use(this.paths.sede, routerSedes);
-
         //path de categorias de proyectos
         this.app.use(this.paths.categoria, routerCategorias);
 
@@ -151,8 +145,8 @@ class Server {
         //path de referentes
         this.app.use(this.paths.referente, routerReferente);
 
-         //path de promoción de proyectos
-         this.app.use(this.paths.promocion, routerPromocion);
+        //path de promoción de proyectos
+        this.app.use(this.paths.promocion, routerPromocion);
 
          //path de exposiciones
         this.app.use(this.paths.exposicion_provincial, routerExposicion_Provincial);

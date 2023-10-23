@@ -6,23 +6,74 @@
  */
 
 import { Router } from "express";
-import { requireToken } from '../middlewares/requireToken.js';
-import { checkRolAuth, esEvaluadorDelProyecto, esReferenteDelProyecto } from "../middlewares/validar-roles.js";
+import { requireToken } from "../middlewares/requireToken.js";
+import {
+  checkRolAuth,
+  esEvaluadorDelProyecto,
+  esReferenteDelProyecto,
+} from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
-import { cancelarEvaluacionExposicion, confirmarEvaluacionExposicion, evaluarExposicionProyecto, iniciarEvaluacionExposicion, visualizarEvaluacionExposicion } from "../controllers/exposiciones.controller.js";
+import {
+  cancelarEvaluacionExposicion,
+  confirmarEvaluacionExposicion,
+  evaluarExposicionProyecto,
+  iniciarEvaluacionExposicion,
+  visualizarEvaluacionExposicion,
+} from "../controllers/exposiciones.controller.js";
 import { exposicionValidator } from "../middlewares/validationManagerEvaluacion.js";
+import { estado } from "../middlewares/validar-fechas.js";
+import { estadoFeria } from "../models/Feria.js";
 
 const routerExposicion = Router();
 
-routerExposicion.post("/:id", requireToken, checkRolAuth([roles.admin, roles.evaluador]), esEvaluadorDelProyecto, exposicionValidator, evaluarExposicionProyecto);
-routerExposicion.get("/:id", requireToken, checkRolAuth([roles.admin, roles.evaluador]), esEvaluadorDelProyecto, iniciarEvaluacionExposicion);
-routerExposicion.get("/confirmar/:id", requireToken, checkRolAuth([roles.admin, roles.evaluador]), esEvaluadorDelProyecto, confirmarEvaluacionExposicion);
-routerExposicion.get('/consultar/:id', requireToken, checkRolAuth([roles.admin, roles.evaluador, roles.comAsesora, roles.refEvaluador]), esEvaluadorDelProyecto, esReferenteDelProyecto, visualizarEvaluacionExposicion)
-routerExposicion.delete('/:id', requireToken, checkRolAuth([roles.admin, roles.evaluador]), esEvaluadorDelProyecto, cancelarEvaluacionExposicion)
+routerExposicion.post(
+  "/:id",
+  estado([estadoFeria.instanciaRegional_EnExposicion]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.evaluador]),
+  esEvaluadorDelProyecto,
+  exposicionValidator,
+  evaluarExposicionProyecto
+);
+routerExposicion.get(
+  "/:id",
+  estado([estadoFeria.instanciaRegional_EnExposicion]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.evaluador]),
+  esEvaluadorDelProyecto,
+  iniciarEvaluacionExposicion
+);
+routerExposicion.get(
+  "/confirmar/:id",
+  estado([estadoFeria.instanciaRegional_EnExposicion]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.evaluador]),
+  esEvaluadorDelProyecto,
+  confirmarEvaluacionExposicion
+);
+routerExposicion.get(
+  "/consultar/:id",
+  requireToken,
+  checkRolAuth([
+    roles.admin,
+    roles.evaluador,
+    roles.comAsesora,
+    roles.refEvaluador,
+  ]),
+  esEvaluadorDelProyecto,
+  esReferenteDelProyecto,
+  visualizarEvaluacionExposicion
+);
+routerExposicion.delete(
+  "/:id",
+  estado([estadoFeria.instanciaRegional_EnExposicion]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.evaluador]),
+  esEvaluadorDelProyecto,
+  cancelarEvaluacionExposicion
+);
 
 export default routerExposicion;
-
-
 
 // DOCUMENTACIÓN SWAGGER ------------------------------------------------------------------------------------------------------------------------
 
@@ -34,7 +85,11 @@ export default routerExposicion;
  *       summary: Realizar evaluación de exposición de un proyecto
  *       tags:
  *         - Exposicion
- *       description: Evalúa la exposición un proyecto asignado por su ID.
+ *       description: |
+ *            Estados: 
+ *              - Instancia Regional - En Exposicion (6)
+ *       
+ *            Evalúa la exposición un proyecto asignado por su ID.
  *       parameters:
  *         - in: path
  *           name: id
@@ -43,7 +98,7 @@ export default routerExposicion;
  *           required: true
  *           description: ID del proyecto a evaluar.
  *       security:
- *         - bearerAuth: [] 
+ *         - bearerAuth: []
  *       requestBody:
  *         required: true
  *         content:
@@ -101,7 +156,6 @@ export default routerExposicion;
  *           description: No se encontró el proyecto o recursos relacionados.
  */
 
-
 /**
  * @swagger
  * paths:
@@ -109,8 +163,12 @@ export default routerExposicion;
  *     get:
  *       summary: Iniciar evaluación de exposición de un proyecto
  *       tags:
- *         - Evaluacion
- *       description: Inicia la evaluación de exposición de un proyecto asignado por su ID. Obtiene la estructura de rubricas de la feria y la estructura de evaluación de exposición asociada al proyecto, ya sea que exista una evaluación previa o no.
+ *         - Exposicion
+ *       description: |
+ *            Estados: 
+ *              - Instancia Regional - En Exposicion (6)
+ *       
+ *            Inicia la evaluación de exposición de un proyecto asignado por su ID. Obtiene la estructura de rubricas de la feria y la estructura de evaluación de exposición asociada al proyecto, ya sea que exista una evaluación previa o no.
  *       parameters:
  *         - in: path
  *           name: id
@@ -119,7 +177,7 @@ export default routerExposicion;
  *           required: true
  *           description: ID del proyecto a evaluar.
  *       security:
- *         - bearerAuth: [] 
+ *         - bearerAuth: []
  *       responses:
  *         '200':
  *           description: Inicio de evaluación exitoso. Devuelve la estructura de evaluación de exposición.
@@ -212,7 +270,6 @@ export default routerExposicion;
  *                     type: string
  */
 
-
 /**
  * @swagger
  * paths:
@@ -221,7 +278,11 @@ export default routerExposicion;
  *       summary: Confirmar evaluación de exposición de un proyecto
  *       tags:
  *         - Exposicion
- *       description: Confirma la evaluación de exposición de un proyecto una vez que todos los evaluadores asignados han evaluado el proyecto. Solo los usuarios con roles de administrador o evaluador pueden confirmar la evaluación.
+ *       description: |
+ *            Estados: 
+ *              - Instancia Regional - En Exposicion (6)
+ *       
+ *            Confirma la evaluación de exposición de un proyecto una vez que todos los evaluadores asignados han evaluado el proyecto. Solo los usuarios con roles de administrador o evaluador pueden confirmar la evaluación.
  *       parameters:
  *         - in: path
  *           name: id
@@ -230,7 +291,7 @@ export default routerExposicion;
  *           required: true
  *           description: ID del proyecto a evaluar.
  *       security:
- *         - bearerAuth: [] 
+ *         - bearerAuth: []
  *       responses:
  *         '200':
  *           description: Confirmación de evaluación exitosa.
@@ -274,14 +335,12 @@ export default routerExposicion;
  *                     type: string
  */
 
-
-
 /**
  * @swagger
  * paths:
  *   /api/v1/exposicion/consultar/:id:
  *     get:
- *       summary: Consultar evaluación de exposición de un proyecto
+ *       summary: Consultar evaluación de exposición de un proyecto. Sin validación de estados de Feria.
  *       tags:
  *         - Exposicion
  *       description: Consulta la evaluación de un proyecto y devuelve la estructura de rubricas y los datos de evaluación asociados, si existen. Solo los usuarios con roles de administrador, evaluador, comAsesora o refEvaluador pueden acceder a esta información.
@@ -293,7 +352,7 @@ export default routerExposicion;
  *           required: true
  *           description: ID del proyecto para el cual se desea consultar la evaluación de exposición.
  *       security:
- *         - bearerAuth: [] 
+ *         - bearerAuth: []
  *       responses:
  *         '200':
  *           description: Consulta de evaluación exitosa.
@@ -387,8 +446,6 @@ export default routerExposicion;
  *                     type: string
  */
 
-
-
 /**
  * @swagger
  * paths:
@@ -397,7 +454,11 @@ export default routerExposicion;
  *       summary: Cancelar evaluación de exposición de un proyecto
  *       tags:
  *         - Exposicion
- *       description: Permite al usuario evaluador cancelar la evaluación de exposición de un proyecto si está en curso. Sólo el evaluador que se encuentra evaluando el proyecto en este momento puede acceder a esta función.
+ *       description: |
+ *            Estados: 
+ *              - Instancia Regional - En Exposicion (6)
+ *       
+ *            Permite al usuario evaluador cancelar la evaluación de exposición de un proyecto si está en curso. Sólo el evaluador que se encuentra evaluando el proyecto en este momento puede acceder a esta función.
  *       parameters:
  *         - in: path
  *           name: id
@@ -406,7 +467,7 @@ export default routerExposicion;
  *           required: true
  *           description: ID del proyecto para el cual se desea cancelar la evaluación de exposición.
  *       security:
- *         - bearerAuth: [] 
+ *         - bearerAuth: []
  *       responses:
  *         '200':
  *           description: Evaluación cancelada con éxito.
@@ -446,5 +507,3 @@ export default routerExposicion;
  *                   error:
  *                     type: string
  */
-
-

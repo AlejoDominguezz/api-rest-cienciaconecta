@@ -2,22 +2,42 @@
  * @swagger
  * tags:
  *   name: Establecimientos Educativos
- *   description: Operaciones relacionadas con los establecimientos educativos
+ *   description: Operaciones relacionadas con los establecimientos educativos. Sin validaciones de estados de Feria.
  */
 
 import { Router } from "express";
-import { requireToken } from '../middlewares/requireToken.js';
+import { requireToken } from "../middlewares/requireToken.js";
 import { checkRolAuth } from "../middlewares/validar-roles.js";
-import { roles } from "../helpers/roles.js";
-import { crearEstablecimientoEducativo, getEstablecimientosEducativos, getSedesRegionalesActuales, getEstablecimientoById } from "../controllers/establecimientos.controller.js";
+import { allRoles, roles } from "../helpers/roles.js";
+import {
+  crearEstablecimientoEducativo,
+  getEstablecimientosEducativos,
+  getSedesRegionalesActuales,
+  getEstablecimientoById,
+} from "../controllers/establecimientos.controller.js";
 import { bodyCrearEstablecimientoValidator } from "../middlewares/validationManagerEstablecimiento.js";
 
 const routerEstablecimiento = Router();
 
-routerEstablecimiento.get("/sedes/regional", requireToken, checkRolAuth([roles.admin, roles.comAsesora, roles.docente, roles.responsableProyecto, roles.evaluador]), getSedesRegionalesActuales);
+routerEstablecimiento.get(
+  "/sedes/regional",
+  requireToken,
+  checkRolAuth(allRoles),
+  getSedesRegionalesActuales
+);
 //routerEstablecimiento.get("/sedes/provincial", requireToken, checkRolAuth([roles.admin, roles.comAsesora, roles.docente, roles.responsableProyecto, roles.evaluador]), getSedeProvincialActual);
-routerEstablecimiento.get("/id/:id", requireToken, checkRolAuth([roles.admin, roles.comAsesora, roles.docente, roles.responsableProyecto, roles.evaluador]), getEstablecimientoById);
-routerEstablecimiento.get("/:localidad", requireToken, checkRolAuth([roles.admin, roles.comAsesora, roles.docente, roles.responsableProyecto, roles.evaluador]), getEstablecimientosEducativos);
+routerEstablecimiento.get(
+  "/id/:id",
+  requireToken,
+  checkRolAuth(allRoles),
+  getEstablecimientoById
+);
+routerEstablecimiento.get(
+  "/:localidad",
+  requireToken,
+  checkRolAuth(allRoles),
+  getEstablecimientosEducativos
+);
 
 //routerEstablecimiento.post("/", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), bodyCrearEstablecimientoValidator, crearEstablecimientoEducativo)
 
@@ -81,7 +101,6 @@ export default routerEstablecimiento;
  *       - bearerAuth: []
  *       - roles: [admin, comAsesora]
  */
-
 
 /**
  * @swagger

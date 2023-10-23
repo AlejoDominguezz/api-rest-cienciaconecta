@@ -2,7 +2,7 @@
  * @swagger
  * tags:
  *   name: Ferias
- *   description: Operaciones relacionadas con la Feria
+ *   description: Operaciones relacionadas con la Feria. Sin validaciones de estados de Feria.
  */
 
 import { Router } from 'express';
@@ -170,7 +170,7 @@ export default routerFerias;
  * @swagger
  * /api/v1/feria:
  *   post:
- *     summary: Crear una feria
+ *     summary: Crear una feria. Sólo es posible crear una Feria si no existe una Feria Activa en este momento.
  *     tags: [Ferias]
  *     requestBody:
  *       required: true
@@ -442,7 +442,7 @@ export default routerFerias;
  * @swagger
  * /api/v1/feria/:id:
  *   delete:
- *     summary: Dar de baja una feria
+ *     summary: Dar de baja una feria. Sólo es posible eliminar una Feria si se encuentra en estado Creada.
  *     tags: [Ferias]
  *     parameters:
  *       - in: path

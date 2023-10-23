@@ -29,16 +29,16 @@ import {
 import { checkRolAuth, esPropietario, esReferenteDelProyecto } from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
 import { BodyValidationDrive , validarArchivosPDF  } from "../middlewares/validationDrive.js";
-import { fecha } from "../middlewares/validar-fechas.js";
-import { fechasFeria } from "../models/Feria.js";
+import { estado, fecha } from "../middlewares/validar-fechas.js";
+import { estadoFeria, fechasFeria } from "../models/Feria.js";
 
 const routerProyectos = Router();
 
 routerProyectos.post(
   "/",
+  estado([estadoFeria.instanciaEscolar]),
   requireToken,
   checkRolAuth([roles.admin, roles.docente]),
-  //fecha(fechasFeria.fechaInicio, fechasFeria.fechaFinEscolar),
   bodyInscribirProyectoValidator,
   inscribirProyectoEscolar
 );
@@ -64,18 +64,18 @@ routerProyectos.get(
 );
 routerProyectos.patch(
   "/:id",
+  estado([estadoFeria.instanciaEscolar]),
   requireToken,
   checkRolAuth([roles.admin, roles.responsableProyecto]),
-  //fecha(fechasFeria.fechaInicio, fechasFeria.fechaFinEscolar),
   esPropietario,
   bodyInscribirProyectoValidator,
   modificarProyectoEscolar
 );
 routerProyectos.patch(
   "/regional/:id",
+  estado([estadoFeria.instanciaEscolar_Finalizada]),
   requireToken,
   checkRolAuth([roles.admin, roles.responsableProyecto]),
-  //fecha(fechasFeria.fechaFinEscolar, fechasFeria.fechaInicioEvaluacionRegional),
   esPropietario,
   bodyInscribirProyectoValidator,
   bodyActualizarProyectoRegionalValidator,
@@ -90,9 +90,9 @@ routerProyectos.delete(
 );
 routerProyectos.delete(
   "/:id",
+  estado([estadoFeria.instanciaEscolar]),
   requireToken,
   checkRolAuth([roles.admin, roles.comAsesora, roles.responsableProyecto]),
-  //fecha(fechasFeria.fechaInicio, fechasFeria.fechaFinEscolar),
   esPropietario,
   bajaProyecto
 );
@@ -100,12 +100,12 @@ routerProyectos.delete(
 //recibo por parametro el id del proyecto y los archivos por form-data
 routerProyectos.post(
   "/regional/upload/:id",
-    requireToken,
-    BodyValidationDrive,
-    checkRolAuth([roles.admin, roles.responsableProyecto]),
-    //fecha(fechasFeria.fechaFinEscolar, fechasFeria.fechaInicioEvaluacionRegional),
-    esPropietario,
-    //validarArchivosPDF,
+  estado([estadoFeria.instanciaEscolar_Finalizada, estadoFeria.proyectosPromovidosA_instanciaProvincial]),
+  requireToken,
+  BodyValidationDrive,
+  checkRolAuth([roles.admin, roles.responsableProyecto]),
+  esPropietario,
+  //validarArchivosPDF,
   cargarArchivosRegional
 );
 
@@ -124,7 +124,6 @@ routerProyectos.get(
     requireToken,
     BodyValidationDrive,
     checkRolAuth([roles.admin, roles.responsableProyecto]),
-    //fecha(fechasFeria.fechaFinEscolar, fechasFeria.fechaInicioEvaluacionRegional),
     esPropietario,
     downloadDocuments
 );
@@ -134,7 +133,6 @@ routerProyectos.get(
     requireToken,
     BodyValidationDrive,
     checkRolAuth([roles.admin, roles.responsableProyecto]),
-    //fecha(fechasFeria.fechaFinEscolar, fechasFeria.fechaInicioEvaluacionRegional),
     downloadDocumentEspecific
 );
 
@@ -161,6 +159,9 @@ export default routerProyectos;
  *   post:
  *     summary: Inscribir un proyecto escolar
  *     tags: [Proyectos]
+ *     description: |
+ *          Estados: 
+ *            - Instancia Escolar (2)
  *     requestBody:
  *       required: true
  *       content:
@@ -237,7 +238,7 @@ export default routerProyectos;
  * @swagger
  * /api/v1/proyecto/misProyectos:
  *   get:
- *     summary: Consultar mis proyectos
+ *     summary: Consultar mis proyectos. Sin validación de estados de Feria.
  *     tags: [Proyectos]
  *     parameters:
  *       - name: titulo
@@ -373,7 +374,7 @@ export default routerProyectos;
  * @swagger
  * /api/v1/proyecto/:id:
  *   get:
- *     summary: Consultar proyecto por ID
+ *     summary: Consultar proyecto por ID. Sin validación de estados de Feria
  *     tags: [Proyectos]
  *     parameters:
  *       - name: id
@@ -432,7 +433,7 @@ export default routerProyectos;
  * @swagger
  * /api/v1/proyecto:
  *   get:
- *     summary: Consultar proyectos
+ *     summary: Consultar proyectos. Sin validación de estados de Feria.
  *     tags: [Proyectos]
  *     parameters:
  *       - name: titulo
@@ -559,6 +560,9 @@ export default routerProyectos;
  *   patch:
  *     summary: Modificar proyecto escolar por ID
  *     tags: [Proyectos]
+ *     description: |
+ *          Estados: 
+ *            - Instancia Escolar (2)
  *     parameters:
  *       - name: id
  *         in: path
@@ -653,6 +657,9 @@ export default routerProyectos;
  *   patch:
  *     summary: Modificar proyecto regional por ID
  *     tags: [Proyectos]
+ *     description: |
+ *          Estados: 
+ *            - Instancia Escolar Finalizada (3)
  *     parameters:
  *       - name: id
  *         in: path
@@ -752,7 +759,7 @@ export default routerProyectos;
  * @swagger
  * /api/v1/proyecto/delete/:id:
  *   delete:
- *     summary: Eliminar proyecto por ID
+ *     summary: Eliminar proyecto por ID. Sin validación de estados de Feria.
  *     tags: [Proyectos]
  *     parameters:
  *       - name: id
@@ -813,6 +820,9 @@ export default routerProyectos;
  *   delete:
  *     summary: Dar de baja un proyecto por ID
  *     tags: [Proyectos]
+ *     description: |
+ *          Estados: 
+ *            - Instancia Escolar (2)
  *     parameters:
  *       - name: id
  *         in: path
@@ -870,8 +880,12 @@ export default routerProyectos;
  * @swagger
  * /api/v1/proyecto/regional/upload/:id:
  *   post:
- *     summary: Cargar archivos regionales de un proyecto por ID
+ *     summary: Cargar archivos regionales de un proyecto por ID. 
  *     tags: [Proyectos]
+ *     description: |
+ *          Estados: 
+ *            - Instancia Escolar Finalizada - Inicio de Instancia Regional (3)
+ *            - Instancia Regional Finalizada - Promovido a Instancia Provincial (8)
  *     parameters:
  *       - name: id
  *         in: path
@@ -949,7 +963,7 @@ export default routerProyectos;
  * @swagger
  * /api/v1/proyecto/generarQR/:id:
  *   get:
- *     summary: Genera un PDF con un código QR para un proyecto específico
+ *     summary: Genera un PDF con un código QR para un proyecto específico. Sin validación de estados de Feria.
  *     tags: 
  *       - Proyectos
  *     parameters:

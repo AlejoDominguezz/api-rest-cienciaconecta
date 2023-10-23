@@ -2,33 +2,81 @@
  * @swagger
  * tags:
  *   name: Referente
- *   description: Operaciones relacionadas con los referentes de evaluacion
+ *   description: Operaciones relacionadas con los referentes de evaluacion. Con validacioens de estado de Feria.
  */
 
 import { Router } from "express";
-import { requireToken } from '../middlewares/requireToken.js';
-import { checkRolAuth, esReferenteDelProyecto } from "../middlewares/validar-roles.js";
+import { requireToken } from "../middlewares/requireToken.js";
+import {
+  checkRolAuth,
+  esReferenteDelProyecto,
+} from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
-import { asignarEvaluadoresAProyecto, obtenerEvaluadores, obtenerListadoDocentes, obtenerProyectosAsignadosAReferente, obtenerReferentesSeleccionados, seleccionarReferentes } from "../controllers/referentes.controller.js";
-import { asignarEvaluadorValidator, seleccionarReferentesValidator } from "../middlewares/validationManagerReferente.js";
-
+import {
+  asignarEvaluadoresAProyecto,
+  obtenerEvaluadores,
+  obtenerListadoDocentes,
+  obtenerProyectosAsignadosAReferente,
+  obtenerReferentesSeleccionados,
+  seleccionarReferentes,
+} from "../controllers/referentes.controller.js";
+import {
+  asignarEvaluadorValidator,
+  seleccionarReferentesValidator,
+} from "../middlewares/validationManagerReferente.js";
+import { estado } from "../middlewares/validar-fechas.js";
+import { estadoFeria } from "../models/Feria.js";
 
 const routerReferente = Router();
 
-routerReferente.post("/", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), seleccionarReferentesValidator, seleccionarReferentes);
-routerReferente.get("/", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), obtenerListadoDocentes);
-routerReferente.get("/asignados", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), obtenerReferentesSeleccionados);
-routerReferente.get("/proyectos", requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), obtenerProyectosAsignadosAReferente);
-routerReferente.post('/asignar/:id', requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), asignarEvaluadorValidator, esReferenteDelProyecto, asignarEvaluadoresAProyecto)
+routerReferente.post(
+  "/",
+  estado([estadoFeria.creada, estadoFeria.iniciada, estadoFeria.instanciaEscolar, estadoFeria.instanciaEscolar_Finalizada]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.comAsesora]),
+  seleccionarReferentesValidator,
+  seleccionarReferentes
+);
+
+routerReferente.get(
+  "/",
+  requireToken,
+  checkRolAuth([roles.admin, roles.comAsesora]),
+  obtenerListadoDocentes
+);
+
+routerReferente.get(
+  "/asignados",
+  requireToken,
+  checkRolAuth([roles.admin, roles.comAsesora]),
+  obtenerReferentesSeleccionados
+);
+routerReferente.get(
+  "/proyectos",
+  requireToken,
+  checkRolAuth([roles.admin, roles.refEvaluador]),
+  obtenerProyectosAsignadosAReferente
+);
+routerReferente.post(
+  "/asignar/:id",
+  estado([estadoFeria.instanciaEscolar, estadoFeria.instanciaEscolar_Finalizada]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.refEvaluador]),
+  asignarEvaluadorValidator,
+  esReferenteDelProyecto,
+  asignarEvaluadoresAProyecto
+);
 //routerReferente.post('/desasignar/:id', requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), desasignarEvaluadorValidator, esReferenteDelProyecto, eliminarAsignaciónEvaluadorAProyecto)
-routerReferente.get('/evaluadores/:id', requireToken, checkRolAuth([roles.admin, roles.refEvaluador]), esReferenteDelProyecto, obtenerEvaluadores)
-
-
-
+routerReferente.get(
+  "/evaluadores/:id",
+  estado([estadoFeria.instanciaEscolar, estadoFeria.instanciaEscolar_Finalizada]),
+  requireToken,
+  checkRolAuth([roles.admin, roles.refEvaluador]),
+  esReferenteDelProyecto,
+  obtenerEvaluadores
+);
 
 export default routerReferente;
-
-
 
 // DOCUMENTACION SWAGGER ----------------------------------------------------------------------------------------------------------------------------
 
@@ -36,10 +84,15 @@ export default routerReferente;
  * @swagger
  * /api/v1/referente:
  *   post:
- *     summary: Seleccionar referentes
- *     description: Selección/Modificación de selección de referentes a sedes.
+ *     summary: Selección/Modificación de selección de referentes a sedes.
  *     tags:
  *       - Referente
+ *     description: |
+ *            Estados: 
+ *              - Creada (0)
+ *              - Iniciada (1)
+ *              - Instancia escolar (2)
+ *              - Instancia escolar finalizada (3)
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -72,12 +125,11 @@ export default routerReferente;
  *         description: Error de servidor.
  */
 
-
 /**
  * @swagger
  * /api/v1/referente:
  *   get:
- *     summary: Obtener listado de docentes
+ *     summary: Obtener listado de docentes. Sin validación de estados de Feria.
  *     description: Obtiene una lista de docentes que cumplen con ciertas condiciones.
  *     tags:
  *       - Referente
@@ -116,12 +168,11 @@ export default routerReferente;
  *         description: Error de servidor.
  */
 
-
 /**
  * @swagger
  * /api/v1/referente/asignados:
  *   get:
- *     summary: Obtener referentes seleccionados
+ *     summary: Obtener referentes seleccionados. Sin validación de estados de Feria.
  *     description: Obtiene una lista de referentes seleccionados para la feria activa, incluyendo los datos del docente asociado.
  *     tags:
  *       - Referente
@@ -166,7 +217,7 @@ export default routerReferente;
  * @swagger
  * /api/v1/referente/proyectos:
  *   get:
- *     summary: Obtener proyectos asignados a un referente de evaluador.
+ *     summary: Obtener proyectos asignados a un referente de evaluador. Sin validación de estados de Feria.
  *     description: Obtiene una lista de proyectos asignados a un referente de evaluador.
  *     tags:
  *       - Referente
@@ -208,10 +259,13 @@ export default routerReferente;
  * @swagger
  * /api/v1/referente/asignar/:id:
  *   post:
- *     summary: Asignar evaluadores a un proyecto.
- *     description: Asigna evaluadores a un proyecto específico. Se eliminan todos los evaluadores anteriores asignados al proyecto (se pisa).
+ *     summary: Asigna evaluadores a un proyecto específico. Se eliminan todos los evaluadores anteriores asignados al proyecto (se pisa).
  *     tags:
  *       - Referente
+ *     description: |
+ *            Estados: 
+ *              - Instancia escolar (2)
+ *              - Instancia escolar finalizada (3)
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -265,16 +319,16 @@ export default routerReferente;
  *               error: "Error de servidor"
  */
 
-
-
 /**
  * @swagger
  * /api/v1/referente/evaluadores/:id:
  *   get:
- *     summary: Obtener evaluadores para un proyecto.
- *     description: Obtiene una lista de evaluadores disponibles para un proyecto específico.
- *     tags:
- *       - Referente
+ *     summary: Obtiene una lista de evaluadores disponibles para un proyecto específico.
+ *     tags: [Referente]
+ *     description: |
+ *            Estados: 
+ *              - Instancia escolar (2)
+ *              - Instancia escolar finalizada (3)
  *     security:
  *       - BearerAuth: []
  *     parameters:

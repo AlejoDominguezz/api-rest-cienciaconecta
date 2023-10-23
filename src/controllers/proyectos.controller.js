@@ -1,5 +1,4 @@
 import { Proyecto, estado, nombreEstado } from "../models/Proyecto.js";
-import { Sede } from "../models/Sede.js";
 import { Docente } from "../models/Docente.js";
 import { Usuario } from "../models/Usuario.js";
 import { drive } from "../services/drive/drive.js";

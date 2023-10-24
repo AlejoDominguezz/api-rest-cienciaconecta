@@ -2,7 +2,7 @@ import { roles } from "../helpers/roles.js";
 import { Docente } from "../models/Docente.js";
 import { Evaluador } from "../models/Evaluador.js";
 import { estadoFeria, fechasFeria } from "../models/Feria.js";
-import { Proyecto } from "../models/Proyecto.js";
+import { Proyecto, estado } from "../models/Proyecto.js";
 import { Referente } from "../models/Referente.js";
 import { Usuario, estadoUsuario } from "../models/Usuario.js";
 import { getFeriaActivaFuncion } from "./ferias.controller.js";
@@ -464,6 +464,11 @@ export const obtenerInfoReferente = async (req, res) => {
 
         const cant_proyectos_sede = await Proyecto.countDocuments({sede: ref.sede, feria: feriaActiva._id})
         const cant_proyectos_pendientes_asignacion = await Proyecto.countDocuments({sede: ref.sede, feria: feriaActiva._id, evaluadoresRegionales: {$exists: false, $eq: []}});
+        const cant_proyectos_por_evaluar_regional = await Proyecto.countDocuments({sede: ref.sede, feria: feriaActiva._id, estado: estado.instanciaRegional});
+        const cant_proyectos_por_evaluar_provincial = await Proyecto.countDocuments({sede: ref.sede, feria: feriaActiva._id, estado: estado.promovidoProvincial});
+        const cant_proyectos_por_confirmar_regional = await Proyecto.countDocuments({sede: ref.sede, feria: feriaActiva._id, estado: estado.enEvaluacionRegional});
+        const cant_proyectos_por_confirmar_provincial = await Proyecto.countDocuments({sede: ref.sede, feria: feriaActiva._id, estado: estado.enEvaluacionProvincial});
+
 
         let evaluadores_asignados = await Evaluador.find({pendiente: false, sede: ref.sede, feria: feriaActiva._id})
             .select('-__v -docente -sede -antecedentes -feria -fechaPostulacion -pendiente -id_carpeta_cv -CV')
@@ -488,13 +493,33 @@ export const obtenerInfoReferente = async (req, res) => {
         const prox_instancia = obtenerFaseFeria(parseInt(feriaActiva.estado))
         const prox_fecha = convertirFecha(eval(`feriaActiva.${obtenerProximaFecha(parseInt(feriaActiva.estado))}`))
 
-        const referente = {
-            cant_proyectos_sede,
-            cant_proyectos_pendientes_asignacion,
-            evaluadores: evaluadores_asignados,
-            prox_instancia,
-            prox_fecha,
+        let referente;
+        if(parseInt(feriaActiva.estado) <= parseInt(estadoFeria.instanciaEscolar_Finalizada)) {
+            referente = {
+                cant_proyectos_sede,
+                cant_proyectos_pendientes_asignacion,
+                evaluadores: evaluadores_asignados,
+                prox_instancia,
+                prox_fecha,
+            }
+        } else if (parseInt(feriaActiva.estado) <= parseInt(estadoFeria.instanciaRegional_ExposicionFinalizada)) {
+            referente = {
+                cant_proyectos_por_evaluar_regional,
+                cant_proyectos_por_confirmar_regional,
+                evaluadores: evaluadores_asignados,
+                prox_instancia,
+                prox_fecha,
+            }
+        } else {
+            referente = {
+                cant_proyectos_por_evaluar_provincial,
+                cant_proyectos_por_confirmar_provincial,
+                evaluadores: evaluadores_asignados,
+                prox_instancia,
+                prox_fecha,
+            }
         }
+
 
         return res.json({referente})
 

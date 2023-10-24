@@ -1,6 +1,7 @@
 import { roles } from "../helpers/roles.js";
 import { Docente } from "../models/Docente.js";
 import { Evaluador } from "../models/Evaluador.js";
+import { estadoFeria, fechasFeria } from "../models/Feria.js";
 import { Proyecto } from "../models/Proyecto.js";
 import { Referente } from "../models/Referente.js";
 import { Usuario, estadoUsuario } from "../models/Usuario.js";
@@ -284,7 +285,10 @@ export const asignarEvaluadoresAProyecto = async (req, res) => {
                             errores.push(`Evaluador con ID ${evaluadorID} ya está asignado a 5 proyectos`);
                         } else if(evaluador.sede.toString() != proyecto.sede.toString()) {
                             errores.push(`Evaluador con ID ${evaluadorID} no pertenece a la sede del proyecto`);
-                        } else {
+                        } else if(evaluador.pendiente == true) {
+                            errores.push(`Evaluador con ID ${evaluadorID} no se encuentra activo`);
+                        }
+                         else {
                             proyecto.evaluadoresRegionales.push(evaluadorID);
                         }
                     }
@@ -334,7 +338,7 @@ export const obtenerEvaluadores = async (req, res) => {
             return res.status(401).json({ error: "No existe un referente seleccionado asociado al docente" });
         }
 
-        const evaluadores = await Evaluador.find({feria: feriaActiva._id, sede: referente.sede})
+        const evaluadores = await Evaluador.find({feria: feriaActiva._id, sede: referente.sede, pendiente: false})
         .select('-__v -id_carpeta_cv -feria -pendiente')
         .lean()
         .exec()
@@ -440,3 +444,103 @@ const calcularCoincidencia = (evaluador, proyecto) => {
     return parseFloat(puntuacionTotal.toFixed(2));
 }
 
+
+
+export const obtenerInfoReferente = async (req, res) => {
+    try {
+
+        const uid = req.uid;
+        const feriaActiva = await getFeriaActivaFuncion()
+
+        const docente = await Docente.findOne({usuario: uid})
+        if(!docente){
+            return res.status(401).json({ error: "No existe un docente asociado a la sesión actual" });
+        }
+
+        const ref = await Referente.findOne({idDocente: docente._id})
+        if(!ref){
+            return res.status(401).json({ error: "No existe un referente asociado a la sesión actual" });
+        }
+
+        const cant_proyectos_sede = await Proyecto.countDocuments({sede: ref.sede, feria: feriaActiva._id})
+        const cant_proyectos_pendientes_asignacion = await Proyecto.countDocuments({sede: ref.sede, feria: feriaActiva._id, evaluadoresRegionales: {$exists: false, $eq: []}});
+
+        let evaluadores_asignados = await Evaluador.find({pendiente: false, sede: ref.sede, feria: feriaActiva._id})
+            .select('-__v -docente -sede -antecedentes -feria -fechaPostulacion -pendiente -id_carpeta_cv -CV')
+            .lean()
+            .exec()
+
+        evaluadores_asignados = await Promise.all(evaluadores_asignados.map(async (evaluador) => {
+            const docente = await Docente.findById(evaluador.idDocente)
+                .select('-__v -_id -telefono -cargo -usuario -feria -fechaPostulacion -pendiente -id_carpeta_cv -CV')
+                .lean()
+                .exec()
+            if(docente){
+                return {
+                    ...evaluador,
+                    datos_docente: docente
+                }
+            }
+            return evaluador;
+        }))
+
+
+        const prox_instancia = obtenerFaseFeria(parseInt(feriaActiva.estado))
+        const prox_fecha = convertirFecha(eval(`feriaActiva.${obtenerProximaFecha(parseInt(feriaActiva.estado))}`))
+
+        const referente = {
+            cant_proyectos_sede,
+            cant_proyectos_pendientes_asignacion,
+            evaluadores: evaluadores_asignados,
+            prox_instancia,
+            prox_fecha,
+        }
+
+        return res.json({referente})
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({error: "Error de servidor"})
+    }
+}
+
+const obtenerFaseFeria = (estado) => {
+    if (estado >= estadoFeria.creada && estado <= estadoFeria.iniciada) {
+        return "Escolar";
+    } else if (estado === estadoFeria.instanciaEscolar) {
+        return "Regional";
+    } else if (estado >= estadoFeria.instanciaEscolar_Finalizada && estado <= estadoFeria.instanciaRegional_ExposicionFinalizada) {
+        return "Provincial";
+    } else if (estado >= estadoFeria.proyectosPromovidosA_instanciaProvincial && estado <= estadoFeria.instanciaProvincial_ExposicionFinalizada) {
+        return "Nacional";
+    } else if (estado >= estadoFeria.proyectosPromovidosA_instanciaNacional && estado <= estadoFeria.finalizada) {
+        return "Nacional";
+    } else {
+        return " - ";
+    }
+};
+
+const obtenerProximaFecha = (estado) => {
+    if (estado >= estadoFeria.creada && estado <= estadoFeria.iniciada) {
+        return fechasFeria.fechaInicioEscolar;
+    } else if (estado === estadoFeria.instanciaEscolar) {
+        return fechasFeria.fechaFinEscolar;
+    } else if (estado >= estadoFeria.instanciaEscolar_Finalizada && estado <= estadoFeria.instanciaRegional_ExposicionFinalizada) {
+        return fechasFeria.fechaPromocionAProvincial;
+    } else if (estado >= estadoFeria.proyectosPromovidosA_instanciaProvincial && estado <= estadoFeria.instanciaProvincial_ExposicionFinalizada) {
+        return fechasFeria.fechaPromocionANacional;
+    } else if (estado >= estadoFeria.proyectosPromovidosA_instanciaNacional && estado <= estadoFeria.finalizada) {
+        return fechasFeria.fechaFin;
+    } else {
+        return " - ";
+    }
+};
+
+
+const convertirFecha = (fecha) => {
+    const fechaObjeto = new Date(fecha);
+    const dia = String(fechaObjeto.getDate()).padStart(2, '0');
+    const mes = String(fechaObjeto.getMonth() + 1).padStart(2, '0');
+    const anio = fechaObjeto.getFullYear().toString().slice(2);
+    return `${dia}/${mes}/${anio}`;
+};

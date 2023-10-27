@@ -21,7 +21,8 @@ import {
   downloadDocuments,
   downloadDocumentEspecific,
   generarPDFconQR,
-  obtenerInfoResumidaProyecto
+  obtenerInfoResumidaProyecto,
+  consultarDocuments,
 } from "../controllers/proyectos.controller.js";
 import {
   bodyInscribirProyectoValidator,
@@ -151,6 +152,13 @@ routerProyectos.get(
   obtenerInfoResumidaProyecto
 )
 
+routerProyectos.get(
+  "/documents/:id",
+  requireToken,
+  checkRolAuth([roles.admin, roles.responsableProyecto]),
+  esPropietario,
+  consultarDocuments
+);
 
 // requireToken , checkRolAuth([roles.admin, roles.responsableProyecto]), esPropietario,
 export default routerProyectos;

@@ -425,3 +425,88 @@ export default routerReferente;
  *             example:
  *               error: "Error de servidor"
  */
+
+
+
+/**
+ * @swagger
+ * /api/v1/referente/info:
+ *   get:
+ *     summary: Obtener información resumida del referente.
+ *     tags: [Referente]
+ *     description: Devuelve información resumida del referente asociada a la feria activa, incluyendo detalles de proyectos, evaluadores y fases de la feria.
+ *     security:
+ *       - bearerAuth: []
+ *       - roles: [refEvaluador]
+ *     responses:
+ *       '200':
+ *         description: Información resumida del referente encontrada.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 referente:
+ *                   type: object
+ *                   properties:
+ *                     cant_proyectos_sede:
+ *                       type: number
+ *                       description: Número de proyectos asociados a la sede del referente.
+ *                     cant_proyectos_pendientes_asignacion:
+ *                       type: number
+ *                       description: Número de proyectos pendientes de asignación en la sede del referente.
+ *                     cant_proyectos_por_evaluar_regional:
+ *                       type: number
+ *                       description: Número de proyectos por evaluar en la instancia regional.
+ *                     cant_proyectos_por_evaluar_provincial:
+ *                       type: number
+ *                       description: Número de proyectos por evaluar en la instancia provincial.
+ *                     cant_proyectos_por_confirmar_regional:
+ *                       type: number
+ *                       description: Número de proyectos por confirmar en la instancia regional.
+ *                     cant_proyectos_por_confirmar_provincial:
+ *                       type: number
+ *                       description: Número de proyectos por confirmar en la instancia provincial.
+ *                     evaluadores:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             description: ID del evaluador.
+ *                           idDocente:
+ *                             type: string
+ *                             description: ID del docente asociado al evaluador.
+ *                           datos_docente:
+ *                             type: object
+ *                             properties:
+ *                               nombre:
+ *                                 type: string
+ *                                 description: Nombre del docente evaluador.
+ *                               apellido:
+ *                                 type: string
+ *                                 description: Apellido del docente evaluador.
+ *                               cuil:
+ *                                 type: string
+ *                                 description: CUIL del docente evaluador.
+ *                     instancia_actual:
+ *                       type: string
+ *                       description: Fase actual de la feria.
+ *                     prox_instancia:
+ *                       type: string
+ *                       description: Próxima instancia de la feria.
+ *                     prox_fecha:
+ *                       type: string
+ *                       description: Fecha próxima importante de la feria.
+ *       '204':
+ *         description: No se ha encontrado información del referente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Mensaje de error.
+ */

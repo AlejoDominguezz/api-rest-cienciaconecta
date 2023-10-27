@@ -493,3 +493,77 @@ export default routerFerias;
  *       - bearerAuth: []
  *       - roles: [admin, comAsesora]
  */
+
+
+
+
+/**
+ * @swagger
+ * /api/v1/feria/info:
+ *   get:
+ *     summary: Obtener información resumida de la feria.
+ *     tags: [Ferias]
+ *     description: Devuelve información resumida de la feria activa, incluidas las sedes y detalles específicos de la instancia y próximas fechas importantes.
+ *     security:
+ *       - bearerAuth: []
+ *       - roles: [admin, comAsesora]
+ *     responses:
+ *       '200':
+ *         description: Información resumida de la feria encontrada.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 feria:
+ *                   type: object
+ *                   properties:
+ *                     sedes:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             description: ID de la sede.
+ *                           nombre:
+ *                             type: string
+ *                             description: Nombre de la sede.
+ *                           cantidadProyectosPresentados:
+ *                             type: number
+ *                             description: Número de proyectos presentados en la sede.
+ *                           cantidadEvaluadores:
+ *                             type: number
+ *                             description: Número de evaluadores en la sede.
+ *                           cantidadProyectosEvaluados:
+ *                             type: number
+ *                             description: Número de proyectos evaluados en la sede.
+ *                     instancia_actual:
+ *                       type: string
+ *                       description: Fase actual de la feria.
+ *                     prox_fecha:
+ *                       type: string
+ *                       description: Fecha próxima importante de la feria.
+ *                     prox_instancia:
+ *                       type: string
+ *                       description: Próxima instancia de la feria.
+ *                     total_proyectosPresentados:
+ *                       type: number
+ *                       description: Número total de proyectos presentados en la feria.
+ *                     total_evaluadores:
+ *                       type: number
+ *                       description: Número total de evaluadores en la feria.
+ *                     total_proyectosEvaluados:
+ *                       type: number
+ *                       description: Número total de proyectos evaluados en la feria.
+ *       '204':
+ *         description: No se ha encontrado información de la feria.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Mensaje de error.
+ */

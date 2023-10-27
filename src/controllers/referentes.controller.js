@@ -490,7 +490,7 @@ export const obtenerInfoReferente = async (req, res) => {
         }))
 
 
-        const prox_instancia = obtenerFaseFeria(parseInt(feriaActiva.estado))
+        const {instancia_actual, prox_instancia} = obtenerFaseFeria(parseInt(feriaActiva.estado));
         const prox_fecha = convertirFecha(eval(`feriaActiva.${obtenerProximaFecha(parseInt(feriaActiva.estado))}`))
 
         let referente;
@@ -500,6 +500,7 @@ export const obtenerInfoReferente = async (req, res) => {
                 cant_proyectos_pendientes_asignacion,
                 evaluadores: evaluadores_asignados,
                 prox_instancia,
+                instancia_actual,
                 prox_fecha,
             }
         } else if (parseInt(feriaActiva.estado) <= parseInt(estadoFeria.instanciaRegional_ExposicionFinalizada)) {
@@ -508,6 +509,7 @@ export const obtenerInfoReferente = async (req, res) => {
                 cant_proyectos_por_confirmar_regional,
                 evaluadores: evaluadores_asignados,
                 prox_instancia,
+                instancia_actual,
                 prox_fecha,
             }
         } else {
@@ -516,6 +518,7 @@ export const obtenerInfoReferente = async (req, res) => {
                 cant_proyectos_por_confirmar_provincial,
                 evaluadores: evaluadores_asignados,
                 prox_instancia,
+                instancia_actual,
                 prox_fecha,
             }
         }
@@ -531,19 +534,19 @@ export const obtenerInfoReferente = async (req, res) => {
 
 const obtenerFaseFeria = (estado) => {
     if (estado >= estadoFeria.creada && estado <= estadoFeria.iniciada) {
-        return "Escolar";
+        return { instancia_actual: "Escolar", prox_instancia: "Regional" };
     } else if (estado === estadoFeria.instanciaEscolar) {
-        return "Regional";
+        return { instancia_actual: "Escolar", prox_instancia: "Regional" };
     } else if (estado >= estadoFeria.instanciaEscolar_Finalizada && estado <= estadoFeria.instanciaRegional_ExposicionFinalizada) {
-        return "Provincial";
+        return { instancia_actual: "Regional", prox_instancia: "Provincial" };
     } else if (estado >= estadoFeria.proyectosPromovidosA_instanciaProvincial && estado <= estadoFeria.instanciaProvincial_ExposicionFinalizada) {
-        return "Nacional";
+        return { instancia_actual: "Provincial", prox_instancia: "Nacional" };
     } else if (estado >= estadoFeria.proyectosPromovidosA_instanciaNacional && estado <= estadoFeria.finalizada) {
-        return "Nacional";
+        return { instancia_actual: "Nacional", prox_instancia: " - " };
     } else {
-        return " - ";
+        return { instancia_actual: " - ", prox_instancia: " - " };
     }
-};
+  };
 
 const obtenerProximaFecha = (estado) => {
     if (estado >= estadoFeria.creada && estado <= estadoFeria.iniciada) {

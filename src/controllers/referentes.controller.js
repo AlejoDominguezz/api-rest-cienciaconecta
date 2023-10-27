@@ -471,7 +471,7 @@ export const obtenerInfoReferente = async (req, res) => {
 
 
         let evaluadores_asignados = await Evaluador.find({pendiente: false, sede: ref.sede, feria: feriaActiva._id})
-            .select('-__v -docente -sede -antecedentes -feria -fechaPostulacion -pendiente -id_carpeta_cv -CV')
+            .select('-__v -docente -sede -antecedentes -feria -fechaPostulacion -pendiente -id_carpeta_cv -CV -categorias -niveles')
             .lean()
             .exec()
 

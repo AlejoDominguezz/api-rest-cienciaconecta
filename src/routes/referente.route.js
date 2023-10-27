@@ -15,6 +15,7 @@ import { roles } from "../helpers/roles.js";
 import {
   asignarEvaluadoresAProyecto,
   obtenerEvaluadores,
+  obtenerInfoReferente,
   obtenerListadoDocentes,
   obtenerProyectosAsignadosAReferente,
   obtenerReferentesSeleccionados,
@@ -75,6 +76,13 @@ routerReferente.get(
   esReferenteDelProyecto,
   obtenerEvaluadores
 );
+
+routerReferente.get(
+  "/info",
+  requireToken,
+  checkRolAuth([roles.refEvaluador]),
+  obtenerInfoReferente
+)
 
 export default routerReferente;
 

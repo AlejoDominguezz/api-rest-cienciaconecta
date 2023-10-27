@@ -17,7 +17,8 @@ import {
   getCv,
   getCvV2,
   getCv_,
-  getPostulacionById
+  getPostulacionById,
+  obtenerInfoResumidaEvaluador
 } from "../controllers/evaluadores.controller.js";
 import {
   bodyPostularEvaluadorValidator,
@@ -87,6 +88,14 @@ routerEvaluadores.get(
   checkRolAuth([roles.admin, roles.comAsesora, roles.refEvaluador]),
   getCv_
 );
+
+// routerEvaluadores.get(
+//   "/info",
+//   requireToken,
+//   checkRolAuth([roles.evaluador]),
+//   obtenerInfoResumidaEvaluador
+// );
+
 export default routerEvaluadores;
 
 // DOCUMENTACION SWAGGER --------------------------------------------------------------------------------------

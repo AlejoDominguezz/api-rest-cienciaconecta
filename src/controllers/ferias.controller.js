@@ -1,9 +1,11 @@
 import { response , request } from 'express';
-import {Feria, estadoFeria} from '../models/Feria.js';
+import {Feria, estadoFeria, fechasFeria} from '../models/Feria.js';
 import { EstablecimientoEducativo} from '../models/EstablecimientoEducativo.js'
 import { Usuario } from '../models/Usuario.js';
-import { estado } from '../models/Proyecto.js';
+import { Proyecto, estado } from '../models/Proyecto.js';
 import { generarJobsAsincronicos } from '../services/drive/feriaJobs.js';
+import { getSedesRegionalesActualesFunction } from './establecimientos.controller.js';
+import { Evaluador } from '../models/Evaluador.js';
 
 // Funcion para visualizar un listado de ferias --------------------------
 export const getFerias = async(req = request, res = response) => {
@@ -298,3 +300,129 @@ export const eliminarFeria = async (req, res) => {
 };
 
 
+export const obtenerInfoResumidaFeria = async (req, res) => {
+  const feriaActiva = await getFeriaActivaFuncion();
+  
+  const {instancia_actual, prox_instancia} = obtenerFaseFeria(parseInt(feriaActiva.estado));
+  const prox_fecha = convertirFecha(eval(`feriaActiva.${obtenerProximaFecha(parseInt(feriaActiva.estado))}`))
+  const sedes = await getSedesRegionalesActualesFunction()
+  let feria = {
+    sedes: []
+  };
+
+  // Recorrer cada sede para obtener información específica
+  let total_proyectosPresentados = 0;
+  let total_evaluadores = 0;
+  let total_proyectosEvaluados_Regional = 0;
+  let total_proyectosEvaluados_Provincial = 0;
+
+  for (let i = 0; i < sedes.sedes.length; i++) {
+    const sede = sedes.sedes[i];
+
+    const proyectos = await Proyecto.find({feria: feriaActiva._id, sede: sede._id})
+    const cantidadProyectosPresentados = proyectos.length
+    total_proyectosPresentados += cantidadProyectosPresentados;
+
+    const cantidadEvaluadores = await Evaluador.countDocuments({feria: feriaActiva._id, pendiente: false, sede: sede._id})
+    total_evaluadores += cantidadEvaluadores;
+
+    if(parseInt(feriaActiva.estado) <= parseInt(estadoFeria.fechaFinExposicionRegional)) {
+      const cantidadProyectosEvaluados_Regional = proyectos.filter((proyecto) => proyecto.estado === estado.evaluadoRegional).length;
+      total_proyectosEvaluados_Regional += cantidadProyectosEvaluados_Regional;
+      sede.cantidadProyectosEvaluados = cantidadProyectosEvaluados_Regional;
+    } else {
+      const cantidadProyectosEvaluados_Provincial = proyectos.filter((proyecto) =>
+                                                        proyecto.estado === estado.evaluadoProvincial ||
+                                                        proyecto.estado === estado.promovidoNacional
+                                                        ).length;
+      total_proyectosEvaluados_Provincial += cantidadProyectosEvaluados_Provincial;  
+      sede.cantidadProyectosEvaluados = cantidadProyectosEvaluados_Provincial;
+    }
+    
+    // Modificar la estructura de datos de la sede
+    sede.cantidadProyectosPresentados = cantidadProyectosPresentados;
+    sede.cantidadEvaluadores = cantidadEvaluadores;
+
+    // Eliminar otros atributos innecesarios en 'sede' si es necesario
+    delete sede.niveles;
+    delete sede.provincia;
+    delete sede.departamento;
+    delete sede.localidad;
+    delete sede.domicilio;
+    delete sede.CP;
+    delete sede.telefono;
+    delete sede.email;
+    delete sede.ferias;
+    delete sede.__v;
+
+    const modifiedSede = {
+      _id: sede._id,
+      nombre: sede.nombre,
+      cantidadProyectosPresentados,
+      cantidadEvaluadores,
+      cantidadProyectosEvaluados: sede.cantidadProyectosEvaluados
+    };
+
+    // Agregar la sede modificada a la matriz de sedes de feria
+    feria.sedes.push(modifiedSede);
+  }
+
+
+  feria.instancia_actual = instancia_actual;
+  feria.prox_fecha = prox_fecha;
+  feria.prox_instancia = prox_instancia;
+  feria.total_proyectosPresentados = total_proyectosPresentados;
+  feria.total_evaluadores = total_evaluadores;
+
+  if(parseInt(feriaActiva.estado) <= parseInt(estadoFeria.fechaFinExposicionRegional)) {
+    feria.total_proyectosEvaluados = total_proyectosEvaluados_Regional;
+  } else {
+    feria.total_proyectosEvaluados = total_proyectosEvaluados_Provincial;
+  }
+  
+
+  return res.json({feria})
+}
+
+
+const obtenerFaseFeria = (estado) => {
+  if (estado >= estadoFeria.creada && estado <= estadoFeria.iniciada) {
+      return { instancia_actual: "Escolar", prox_instancia: "Regional" };
+  } else if (estado === estadoFeria.instanciaEscolar) {
+      return { instancia_actual: "Escolar", prox_instancia: "Regional" };
+  } else if (estado >= estadoFeria.instanciaEscolar_Finalizada && estado <= estadoFeria.instanciaRegional_ExposicionFinalizada) {
+      return { instancia_actual: "Regional", prox_instancia: "Provincial" };
+  } else if (estado >= estadoFeria.proyectosPromovidosA_instanciaProvincial && estado <= estadoFeria.instanciaProvincial_ExposicionFinalizada) {
+      return { instancia_actual: "Provincial", prox_instancia: "Nacional" };
+  } else if (estado >= estadoFeria.proyectosPromovidosA_instanciaNacional && estado <= estadoFeria.finalizada) {
+      return { instancia_actual: "Nacional", prox_instancia: " - " };
+  } else {
+      return { instancia_actual: " - ", prox_instancia: " - " };
+  }
+};
+
+const obtenerProximaFecha = (estado) => {
+  if (estado >= estadoFeria.creada && estado <= estadoFeria.iniciada) {
+      return fechasFeria.fechaInicioEscolar;
+  } else if (estado === estadoFeria.instanciaEscolar) {
+      return fechasFeria.fechaFinEscolar;
+  } else if (estado >= estadoFeria.instanciaEscolar_Finalizada && estado <= estadoFeria.instanciaRegional_ExposicionFinalizada) {
+      return fechasFeria.fechaPromocionAProvincial;
+  } else if (estado >= estadoFeria.proyectosPromovidosA_instanciaProvincial && estado <= estadoFeria.instanciaProvincial_ExposicionFinalizada) {
+      return fechasFeria.fechaPromocionANacional;
+  } else if (estado >= estadoFeria.proyectosPromovidosA_instanciaNacional && estado <= estadoFeria.finalizada) {
+      return fechasFeria.fechaFin;
+  } else {
+      return " - ";
+  }
+};
+
+
+
+const convertirFecha = (fecha) => {
+  const fechaObjeto = new Date(fecha);
+  const dia = String(fechaObjeto.getDate()).padStart(2, '0');
+  const mes = String(fechaObjeto.getMonth() + 1).padStart(2, '0');
+  const anio = fechaObjeto.getFullYear().toString().slice(2);
+  return `${dia}/${mes}/${anio}`;
+};

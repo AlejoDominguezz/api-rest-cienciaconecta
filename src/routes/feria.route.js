@@ -7,7 +7,7 @@
 
 import { Router } from 'express';
 import { check } from 'express-validator';
-import { crearFeria, eliminarFeria, getFerias, modificarFeria, getFeriaActiva } from '../controllers/ferias.controller.js';
+import { crearFeria, eliminarFeria, getFerias, modificarFeria, getFeriaActiva, obtenerInfoResumidaFeria } from '../controllers/ferias.controller.js';
 import { requireToken } from '../middlewares/requireToken.js';
 import { checkRolAuth } from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
@@ -21,6 +21,7 @@ routerFerias.get('/activa', requireToken, checkRolAuth([roles.admin, roles.comAs
 routerFerias.post('/', requireToken, checkRolAuth([roles.admin, roles.comAsesora]), bodyCrearFeriaValidator, crearFeria)
 routerFerias.patch('/:id', requireToken, checkRolAuth([roles.admin, roles.comAsesora]), bodyModificarFeriaValidator, modificarFeria)
 routerFerias.delete('/:id', requireToken, checkRolAuth([roles.admin, roles.comAsesora]), eliminarFeria)
+routerFerias.get('/info', requireToken, checkRolAuth([roles.admin, roles.comAsesora]), obtenerInfoResumidaFeria)
 
 export default routerFerias;
 

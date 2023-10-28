@@ -25,8 +25,8 @@ import {
   asignarEvaluadorValidator,
   seleccionarReferentesValidator,
 } from "../middlewares/validationManagerReferente.js";
-import { estado } from "../middlewares/validar-fechas.js";
-import { estadoFeria } from "../models/Feria.js";
+import { estado, fecha } from "../middlewares/validar-fechas.js";
+import { estadoFeria, fechasFeria } from "../models/Feria.js";
 
 const routerReferente = Router();
 
@@ -60,7 +60,8 @@ routerReferente.get(
 );
 routerReferente.post(
   "/asignar/:id",
-  estado([estadoFeria.instanciaEscolar, estadoFeria.instanciaEscolar_Finalizada]),
+  //estado([estadoFeria.instanciaEscolar, estadoFeria.instanciaEscolar_Finalizada]),
+  fecha(fechasFeria.fechaInicioAsignacion, fechasFeria.fechaFinAsignacion),
   requireToken,
   checkRolAuth([roles.admin, roles.refEvaluador]),
   asignarEvaluadorValidator,

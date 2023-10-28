@@ -23,9 +23,6 @@ import routerExposicion_Provincial from '../routes/exposicion_provincial.route.j
 
 
 
-
-
-
 class Server {
 
     constructor(){
@@ -148,7 +145,7 @@ class Server {
         //path de promoción de proyectos
         this.app.use(this.paths.promocion, routerPromocion);
 
-         //path de exposiciones
+        //path de exposiciones
         this.app.use(this.paths.exposicion_provincial, routerExposicion_Provincial);
     }
 

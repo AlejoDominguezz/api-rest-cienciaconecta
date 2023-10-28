@@ -34,6 +34,12 @@ export const infoFeria = async() => {
       nombre_estado: nombre_estado,
       fecha_inicio: fecha_inicio,
       siguiente_fecha: eval(`feriaActiva.${siguiente}`),
+      fechas_evaluador: {
+        fechaInicioPostulacionEvaluadores: feriaActiva.fechaInicioPostulacionEvaluadores,
+        fechaFinPostulacionEvaluadores: feriaActiva.fechaFinPostulacionEvaluadores,
+        fechaInicioAsignacionProyectos: feriaActiva.fechaInicioAsignacionProyectos,
+        fechaFinAsignacionProyectos: feriaActiva.fechaFinAsignacionProyectos,
+      }
     }
 
     return feria;

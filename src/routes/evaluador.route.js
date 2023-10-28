@@ -47,7 +47,7 @@ routerEvaluadores.post(
 );
 routerEvaluadores.get(
   "/postulaciones",
-  fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaFinAsignacion),
+  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaFinAsignacion),
   requireToken,
   checkRolAuth([roles.admin, roles.comAsesora, roles.refEvaluador]),
   getPostulaciones
@@ -55,7 +55,7 @@ routerEvaluadores.get(
 
 routerEvaluadores.get(
   '/postulaciones/:id',
-  fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaFinAsignacion),
+  //fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaFinAsignacion),
   requireToken,
   checkRolAuth([roles.admin, roles.comAsesora, roles.refEvaluador]),
   getPostulacionById

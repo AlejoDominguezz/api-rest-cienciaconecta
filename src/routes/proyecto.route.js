@@ -38,7 +38,7 @@ const routerProyectos = Router();
 
 routerProyectos.post(
   "/",
-  estado([estadoFeria.instanciaEscolar]),
+  estado([estadoFeria.instanciaEscolar, estadoFeria.creada]),
   requireToken,
   checkRolAuth([roles.admin, roles.docente]),
   bodyInscribirProyectoValidator,
@@ -66,7 +66,7 @@ routerProyectos.get(
 );
 routerProyectos.patch(
   "/:id",
-  estado([estadoFeria.instanciaEscolar]),
+  estado([estadoFeria.instanciaEscolar, estadoFeria.creada]),
   requireToken,
   checkRolAuth([roles.admin, roles.responsableProyecto]),
   esPropietario,
@@ -75,7 +75,7 @@ routerProyectos.patch(
 );
 routerProyectos.patch(
   "/regional/:id",
-  estado([estadoFeria.instanciaEscolar_Finalizada]),
+  estado([estadoFeria.instanciaEscolar_Finalizada, estadoFeria.proyectosPromovidosA_instanciaProvincial]),
   requireToken,
   checkRolAuth([roles.admin, roles.responsableProyecto]),
   esPropietario,

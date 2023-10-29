@@ -125,7 +125,7 @@ routerProyectos.get(
   "/download/:id",
     requireToken,
     BodyValidationDrive,
-    checkRolAuth([roles.admin, roles.responsableProyecto]),
+    checkRolAuth([roles.admin, roles.responsableProyecto, roles.comAsesora]),
     esPropietario,
     downloadDocuments
 );
@@ -134,7 +134,7 @@ routerProyectos.get(
   "/download/:id/:name",
     requireToken,
     BodyValidationDrive,
-    checkRolAuth([roles.admin, roles.responsableProyecto]),
+    checkRolAuth([roles.admin, roles.responsableProyecto, roles.comAsesora]),
     downloadDocumentEspecific
 );
 
@@ -155,7 +155,7 @@ routerProyectos.get(
 routerProyectos.get(
   "/documents/:id",
   requireToken,
-  checkRolAuth([roles.admin, roles.responsableProyecto]),
+  checkRolAuth([roles.admin, roles.responsableProyecto, roles.comAsesora]),
   esPropietario,
   consultarDocuments
 );

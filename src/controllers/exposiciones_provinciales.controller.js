@@ -478,12 +478,14 @@ export const obtenerExposicionesPendientes = async (req, res) => {
 
 export const obtenerExposicionPendienteById = async (req, res) => {
   
+  const uid = req.uid;
+  const {id} = req.params;
+  let proyecto = null;
+
   if(req.roles.includes(roles.evaluador)){
 
     try {
-      const uid = req.uid;
-      const {id} = req.params;
-      
+
       const docente = await Docente.findOne({usuario: uid})
       if(!docente){
           return res.status(404).json({ error: "No existe el docente asociado al usuario" });
@@ -494,7 +496,7 @@ export const obtenerExposicionPendienteById = async (req, res) => {
           return res.status(404).json({ error: "No existe el evaluador asociado al docente" });
       }
   
-      const proyecto = await Proyecto.findOne(
+      proyecto = await Proyecto.findOne(
         {
           evaluadoresRegionales: { $in: [evaluador.id.toString()]},
           _id: id.toString(), 
@@ -507,35 +509,55 @@ export const obtenerExposicionPendienteById = async (req, res) => {
       if(!proyecto){
         return res.status(404).json({ error: "No existe un proyecto promovido a instancia provincial asignado al evaluador con el ID ingresado" });
       }
-  
-
-      const evaluacion_exposicion = await EvaluacionExposicionProvincial.findOne({proyectoId: proyecto._id})
-      .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
-      .lean()
-      .exec();
-
-      if(!evaluacion_exposicion){
-
-        return res.json({
-          proyecto, 
-          nombreEstado: nombreEstado[proyecto.estado],
-        })
-
-      } else  {
-
-        evaluacion_exposicion.nombreEstado = nombreEstadoExposicionProvincial[evaluacion_exposicion.estado];
-        return res.json({
-          proyecto, 
-          nombreEstado: nombreEstado[proyecto.estado],
-          exposicion: evaluacion_exposicion,
-        })
-
-      }
 
     } catch (error) {
       return res.status(500).json({ error: "Error de servidor" });
     }
 
-  } 
+  } else {
+    proyecto = await Proyecto.findOne(
+      {
+        _id: id.toString(), 
+        estado: { $in: [estado.promovidoProvincial, estado.enEvaluacionProvincial, estado.evaluadoProvincial]}
+      })
+    .select('-__v')
+    .lean()
+    .exec();
+
+    if(!proyecto){
+      return res.status(404).json({ error: "No existe un proyecto promovido a instancia provincial con el ID ingresado" });
+    }
+  }
+  
+
+  try {
+
+
+    const evaluacion_exposicion = await EvaluacionExposicionProvincial.findOne({proyectoId: proyecto._id})
+    .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+    .lean()
+    .exec();
+
+    if(!evaluacion_exposicion){
+
+      return res.json({
+        proyecto, 
+        nombreEstado: nombreEstado[proyecto.estado],
+      })
+
+    } else  {
+
+      evaluacion_exposicion.nombreEstado = nombreEstadoExposicionProvincial[evaluacion_exposicion.estado];
+      return res.json({
+        proyecto, 
+        nombreEstado: nombreEstado[proyecto.estado],
+        exposicion: evaluacion_exposicion,
+      })
+
+    }
+
+  } catch (error) {
+    return res.status(500).json({ error: "Error de servidor" });
+  }
 
 }

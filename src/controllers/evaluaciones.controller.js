@@ -597,11 +597,13 @@ export const obtenerEvaluacionesPendientes = async (req, res) => {
 
 export const obtenerEvaluacionPendienteById = async (req, res) => {
   
-  if(req.roles.includes(roles.evaluador)){
+  const uid = req.uid;
+  const {id} = req.params;
+  let proyecto = null;
+
+  if(req.roles.includes(roles.evaluador) && !req.roles.includes(roles.refEvaluador)){
 
     try {
-      const uid = req.uid;
-      const {id} = req.params;
       
       const docente = await Docente.findOne({usuario: uid})
       if(!docente){
@@ -613,51 +615,16 @@ export const obtenerEvaluacionPendienteById = async (req, res) => {
           return res.status(404).json({ error: "No existe el evaluador asociado al docente" });
       }
   
-      const proyecto = await Proyecto.findOne({evaluadoresRegionales: { $in: [evaluador.id.toString()]}, _id: id.toString()})
+
+      proyecto = await Proyecto.findOne({evaluadoresRegionales: { $in: [evaluador.id.toString()]}, _id: id.toString()})
       .select('-__v')
       .lean()
       .exec();
-  
+
+
       if(!proyecto){
         return res.status(404).json({ error: "No existe una evaluación asignada al evaluador con el ID ingresado" });
       }
-  
-      const evaluacion_teorica = await Evaluacion.findOne({proyectoId: proyecto._id})
-      .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
-      .lean()
-      .exec();
-
-      const evaluacion_exposicion = await EvaluacionExposicion.findOne({proyectoId: proyecto._id})
-      .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
-      .lean()
-      .exec();
-
-      if(!evaluacion_teorica ){
-
-        return res.json({
-          proyecto, 
-          nombreEstado: nombreEstado[proyecto.estado],
-        })
-
-      } else if(!evaluacion_exposicion) {
-
-        evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
-        return res.json({
-          proyecto, 
-          nombreEstado: nombreEstado[proyecto.estado],
-          evaluacion: evaluacion_teorica,
-        })
-
-      }
-
-      evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
-      evaluacion_exposicion.nombreEstado = nombreEstadoExposicion[evaluacion_exposicion.estado];
-      return res.json({
-        proyecto,
-        nombreEstado: nombreEstado[proyecto.estado],
-        evaluacion: evaluacion_teorica,
-        exposicion: evaluacion_exposicion,
-      })
   
     } catch (error) {
       return res.status(500).json({ error: "Error de servidor" });
@@ -666,9 +633,6 @@ export const obtenerEvaluacionPendienteById = async (req, res) => {
   } else if(req.roles.includes(roles.refEvaluador)){
 
     try {
-      const uid = req.uid;
-      const {id} = req.params;
-      
       const docente = await Docente.findOne({usuario: uid})
       if(!docente){
           return res.status(404).json({ error: "No existe el docente asociado al usuario" });
@@ -679,57 +643,74 @@ export const obtenerEvaluacionPendienteById = async (req, res) => {
           return res.status(404).json({ error: "No existe el referente asociado al docente" });
       }
   
-      const proyecto = await Proyecto.findOne({sede: referente.sede , _id: id.toString()})
+      proyecto = await Proyecto.findOne({sede: referente.sede , _id: id.toString()})
       .select('-__v')
       .lean()
       .exec();
+
+      console.log("1", proyecto)
   
       if(!proyecto){
         return res.status(404).json({ error: "No existe una evaluación asignada al referente con el ID ingresado" });
       }
   
-      const evaluacion_teorica = await Evaluacion.findOne({proyectoId: proyecto._id})
-      .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
-      .lean()
-      .exec();
-
-      const evaluacion_exposicion = await EvaluacionExposicion.findOne({proyectoId: proyecto._id})
-      .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
-      .lean()
-      .exec();
-
-      if(!evaluacion_teorica){
-
-        return res.json({
-          proyecto, 
-          nombreEstado: nombreEstado[proyecto.estado],
-        })
-
-      } else if(!evaluacion_exposicion) {
-
-        evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
-        return res.json({
-          proyecto, 
-          nombreEstado: nombreEstado[proyecto.estado],
-          evaluacion: evaluacion_teorica,
-        })
-
-      }
-
-      evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
-      evaluacion_exposicion.nombreEstado = nombreEstadoExposicion[evaluacion_exposicion.estado];
-      return res.json({
-        proyecto,
-        nombreEstado: nombreEstado[proyecto.estado],
-        evaluacion: evaluacion_teorica,
-        exposicion: evaluacion_exposicion,
-      })
-  
     } catch (error) {
       return res.status(500).json({ error: "Error de servidor" });
     }
 
+  } else {
+    // Comision asesora o admin
+    proyecto = await Proyecto.findOne({_id: id.toString()})
+      .select('-__v')
+      .lean()
+      .exec();
+
+    if(!proyecto){
+      return res.status(404).json({ error: "No existe el proyecto con el ID ingresado" });
+    }
   }
   
+  try {
 
+    const evaluacion_teorica = await Evaluacion.findOne({proyectoId: proyecto._id})
+      .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+      .lean()
+      .exec();
+
+    const evaluacion_exposicion = await EvaluacionExposicion.findOne({proyectoId: proyecto._id})
+      .select('-__v -proyectoId -evaluacion -comentarios -tokenSesion')
+      .lean()
+      .exec();
+
+    if(!evaluacion_teorica){
+
+      return res.json({
+        proyecto, 
+        nombreEstado: nombreEstado[proyecto.estado],
+      })
+
+    } else if(!evaluacion_exposicion) {
+
+      evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+      return res.json({
+        proyecto, 
+        nombreEstado: nombreEstado[proyecto.estado],
+        evaluacion: evaluacion_teorica,
+      })
+
+    }
+
+    evaluacion_teorica.nombreEstado = nombreEstadoEvaluacion[evaluacion_teorica.estado];
+    evaluacion_exposicion.nombreEstado = nombreEstadoExposicion[evaluacion_exposicion.estado];
+    return res.json({
+      proyecto,
+      nombreEstado: nombreEstado[proyecto.estado],
+      evaluacion: evaluacion_teorica,
+      exposicion: evaluacion_exposicion,
+    })
+  
+  } catch (error) {
+    return res.status(500).json({ error: "Error de servidor" });
+  }
+  
 }

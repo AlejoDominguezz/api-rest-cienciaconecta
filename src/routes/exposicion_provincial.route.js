@@ -86,7 +86,7 @@ routerExposicion_Provincial.get(
   "/pendientes/:id",
   estado([estadoFeria.instanciaProvincial_EnExposicion]),
   requireToken,
-  checkRolAuth([roles.admin, roles.evaluador]),
+  checkRolAuth([roles.admin, roles.evaluador, roles.refEvaluador, roles.comAsesora]),
   obtenerExposicionPendienteById
 );
 

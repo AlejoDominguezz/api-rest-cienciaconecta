@@ -48,7 +48,7 @@ routerEvaluacion.get(
   "/pendientes/:id",
   estado([estadoFeria.instanciaRegional_EnEvaluacion, estadoFeria.instanciaRegional_EnExposicion]),
   requireToken,
-  checkRolAuth([roles.admin, roles.evaluador, roles.refEvaluador]),
+  checkRolAuth([roles.admin, roles.evaluador, roles.refEvaluador, roles.comAsesora]),
   obtenerEvaluacionPendienteById
 );
 routerEvaluacion.get(

@@ -73,6 +73,7 @@ export const esPropietario = async (req, res, next) => {
 export const esEvaluadorDelProyecto = async (req, res, next) => {
   
   try {
+
     const { id } =  req.params; // ID Proyecto
     const uid = req.uid;
 
@@ -93,6 +94,10 @@ export const esEvaluadorDelProyecto = async (req, res, next) => {
     const docente = await Docente.findOne({usuario: uid})
     if(!docente){
         return res.status(404).json({ error: "No existe el docente asociado al usuario" });
+    }
+
+    if(!req.roles.includes(roles.evaluador)){
+      return next()
     }
 
     // Si es referente, dejamos pasar al siguiente middleware que valida si es referente del proyecto

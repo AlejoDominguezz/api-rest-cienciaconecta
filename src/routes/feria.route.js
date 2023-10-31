@@ -10,14 +10,14 @@ import { check } from 'express-validator';
 import { crearFeria, eliminarFeria, getFerias, modificarFeria, getFeriaActiva, obtenerInfoResumidaFeria } from '../controllers/ferias.controller.js';
 import { requireToken } from '../middlewares/requireToken.js';
 import { checkRolAuth } from "../middlewares/validar-roles.js";
-import { roles } from "../helpers/roles.js";
+import { allRoles, roles } from "../helpers/roles.js";
 import { bodyCrearFeriaValidator, bodyModificarFeriaValidator } from '../middlewares/validationManagerFeria.js';
 
 const routerFerias = Router();
 
 //obtener todas las ferias 
 routerFerias.get('/', requireToken, checkRolAuth([roles.admin, roles.comAsesora]), getFerias)
-routerFerias.get('/activa', requireToken, checkRolAuth([roles.admin, roles.comAsesora]), getFeriaActiva),
+routerFerias.get('/activa', requireToken, checkRolAuth([allRoles]), getFeriaActiva),
 routerFerias.post('/', requireToken, checkRolAuth([roles.admin, roles.comAsesora]), bodyCrearFeriaValidator, crearFeria)
 routerFerias.patch('/:id', requireToken, checkRolAuth([roles.admin, roles.comAsesora]), bodyModificarFeriaValidator, modificarFeria)
 routerFerias.delete('/:id', requireToken, checkRolAuth([roles.admin, roles.comAsesora]), eliminarFeria)

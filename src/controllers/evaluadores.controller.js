@@ -17,7 +17,8 @@ import { getFeriaActivaFuncion } from "../controllers/ferias.controller.js"
 import { emailCola, fileCv } from "../helpers/queueManager.js";
 import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js";
 import { Evaluacion } from "../models/Evaluacion.js";
-import { Proyecto } from "../models/Proyecto.js";
+import { Proyecto, estado } from "../models/Proyecto.js";
+import { convertirFecha, obtenerFaseFeria, obtenerProximaFecha } from "./referentes.controller.js";
 
 export const postularEvaluador = async (req, res) => {
     try {
@@ -323,22 +324,58 @@ export const getCv_ = async(req, res) => {
 
 export const obtenerInfoResumidaEvaluador = async (req, res) => {
   try {
-    const uid = req.uid;
-    const docente = await Docente.findOne({usuario: uid})
-    if(!docente){
-      return res.status(404).json({ error: "No existe el docente asociado al usuario" });
-    }
 
-    const evaluador = await Evaluador.findOne({idDocente: docente._id})
-    if(!evaluador){
-      return res.status(404).json({ error: "No existe el evaluador asociado al usuario" });
-    }
+      const uid = req.uid;
+      const feriaActiva = await getFeriaActivaFuncion()
 
-    const proyectos_a_evaluar = await Proyecto.find({evaluadoresRegionales: {$in: [docente._id]}})
+      const docente = await Docente.findOne({usuario: uid})
+      if(!docente){
+          return res.status(401).json({ error: "No existe un docente asociado a la sesión actual" });
+      }
 
-    // COMPLETAR
+      const ev = await Evaluador.findOne({idDocente: docente._id})
+      if(!ev){
+          return res.status(401).json({ error: "No existe un evaluador asociado a la sesión actual" });
+      }
+
+      const proyectos_asignados = await Proyecto.find({evaluadoresRegionales: { $in: [ev._id] }, feria: feriaActiva._id, estado: {$nin: [estado.finalizado, estado.inactivo]}})
+          .select('_id titulo estado')
+          .lean()
+          .exec()
+
+      const cant_proyectos_asignados = proyectos_asignados.length;
+      const cant_proyectos_pendientes_regional = proyectos_asignados.filter(proyecto => proyecto.estado == estado.instanciaRegional || proyecto.estado == estado.enEvaluacionRegional).lenght;
+      const cant_proyectos_pendientes_provincial = proyectos_asignados.filter(proyecto => proyecto.estado == estado.promovidoProvincial || proyecto.estado == estado.enEvaluacionProvincial).length;
+
+
+      const {instancia_actual, prox_instancia} = obtenerFaseFeria(parseInt(feriaActiva.estado));
+      const prox_fecha = convertirFecha(eval(`feriaActiva.${obtenerProximaFecha(parseInt(feriaActiva.estado))}`))
+
+      let evaluador;
+      if(parseInt(feriaActiva.estado) <= parseInt(estadoFeria.instanciaRegional_ExposicionFinalizada)) {
+        evaluador = {
+            prox_instancia,
+            instancia_actual,
+            prox_fecha,
+            cant_proyectos_asignados,
+            cant_proyectos_pendientes: cant_proyectos_pendientes_regional,
+            proyectos_asignados
+          }
+      } else {
+        evaluador = {
+            prox_instancia,
+            instancia_actual,
+            prox_fecha,
+            cant_proyectos_asignados,
+            cant_proyectos_pendientes: cant_proyectos_pendientes_provincial,
+            proyectos_asignados
+          }
+      }
+
+      return res.json({evaluador})
 
   } catch (error) {
-    return res.status(500).json({ error: "Error de servidor" });
+      console.log(error)
+      return res.status(500).json({error: "Error de servidor"})
   }
 }

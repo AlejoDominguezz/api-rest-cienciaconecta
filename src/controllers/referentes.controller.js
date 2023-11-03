@@ -532,7 +532,7 @@ export const obtenerInfoReferente = async (req, res) => {
     }
 }
 
-const obtenerFaseFeria = (estado) => {
+export const obtenerFaseFeria = (estado) => {
     if (estado >= estadoFeria.creada && estado <= estadoFeria.iniciada) {
         return { instancia_actual: "Escolar", prox_instancia: "Regional" };
     } else if (estado === estadoFeria.instanciaEscolar) {
@@ -548,7 +548,7 @@ const obtenerFaseFeria = (estado) => {
     }
   };
 
-const obtenerProximaFecha = (estado) => {
+export const obtenerProximaFecha = (estado) => {
     if (estado >= estadoFeria.creada && estado <= estadoFeria.iniciada) {
         return fechasFeria.fechaInicioEscolar;
     } else if (estado === estadoFeria.instanciaEscolar) {
@@ -565,7 +565,7 @@ const obtenerProximaFecha = (estado) => {
 };
 
 
-const convertirFecha = (fecha) => {
+export const convertirFecha = (fecha) => {
     const fechaObjeto = new Date(fecha);
     const dia = String(fechaObjeto.getDate()).padStart(2, '0');
     const mes = String(fechaObjeto.getMonth() + 1).padStart(2, '0');

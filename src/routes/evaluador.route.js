@@ -89,12 +89,12 @@ routerEvaluadores.get(
   getCv_
 );
 
-// routerEvaluadores.get(
-//   "/info",
-//   requireToken,
-//   checkRolAuth([roles.evaluador]),
-//   obtenerInfoResumidaEvaluador
-// );
+routerEvaluadores.get(
+  "/info",
+  requireToken,
+  checkRolAuth([roles.evaluador]),
+  obtenerInfoResumidaEvaluador
+);
 
 export default routerEvaluadores;
 

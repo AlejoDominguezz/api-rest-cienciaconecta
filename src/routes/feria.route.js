@@ -17,7 +17,7 @@ const routerFerias = Router();
 
 //obtener todas las ferias 
 routerFerias.get('/', requireToken, checkRolAuth([roles.admin, roles.comAsesora]), getFerias)
-routerFerias.get('/activa', requireToken, checkRolAuth([allRoles]), getFeriaActiva),
+routerFerias.get('/activa', requireToken, checkRolAuth(allRoles), getFeriaActiva),
 routerFerias.post('/', requireToken, checkRolAuth([roles.admin, roles.comAsesora]), bodyCrearFeriaValidator, crearFeria)
 routerFerias.patch('/:id', requireToken, checkRolAuth([roles.admin, roles.comAsesora]), bodyModificarFeriaValidator, modificarFeria)
 routerFerias.delete('/:id', requireToken, checkRolAuth([roles.admin, roles.comAsesora]), eliminarFeria)

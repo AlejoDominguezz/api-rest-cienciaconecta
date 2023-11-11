@@ -6,6 +6,7 @@ import { Proyecto, estado } from '../models/Proyecto.js';
 import { generarJobsAsincronicos } from '../services/drive/feriaJobs.js';
 import { getSedesRegionalesActualesFunction } from './establecimientos.controller.js';
 import { Evaluador } from '../models/Evaluador.js';
+import { infoFeria } from '../helpers/infoFeria.js';
 
 // Funcion para visualizar un listado de ferias --------------------------
 export const getFerias = async(req = request, res = response) => {
@@ -13,7 +14,6 @@ export const getFerias = async(req = request, res = response) => {
   const {
     nombre,
     descripcion,
-    //logo,
     fechaInicioFeria,
     fechaFinFeria,
     fechaInicioPostulacionEvaluadores,
@@ -30,7 +30,6 @@ export const getFerias = async(req = request, res = response) => {
   const filtro = {
     ...(nombre && { nombre }),
     ...(descripcion && { descripcion }),
-    ...(logo && { logo }),
     ...(fechaInicioFeria && { fechaInicioFeria }),
     ...(fechaFinFeria && { fechaFinFeria }),
     ...(fechaInicioPostulacionEvaluadores && { fechaInicioPostulacionEvaluadores }),
@@ -426,3 +425,10 @@ const convertirFecha = (fecha) => {
   const anio = fechaObjeto.getFullYear().toString().slice(2);
   return `${dia}/${mes}/${anio}`;
 };
+
+
+export const obtenerEstadoFeria = async (req, res) => {
+  
+  const feria = await infoFeria()
+  return res.json(feria)
+}

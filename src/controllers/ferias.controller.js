@@ -428,7 +428,7 @@ const convertirFecha = (fecha) => {
 
 
 export const obtenerEstadoFeria = async (req, res) => {
-  
-  const feria = await infoFeria()
-  return res.json(feria)
+  const feria = await infoFeria();
+  const respuesta = { feria }; 
+  return res.json(respuesta);
 }

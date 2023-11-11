@@ -820,6 +820,7 @@ const generarQR = async (proyecto) => {
         resolve(proyecto);
       } catch (error) {
         reject('Error al generar o guardar el QR');
+        console.log(error)
       }
     });
   });

@@ -24,6 +24,11 @@ export const postularEvaluador = async (req, res) => {
     try {
 
       const uid = req.uid;
+      const user = await Usuario.findById(uid)
+      if (user.roles.includes(roles.refEvaluador)){
+        return res.status(403).json({ error: "Un usuario referente de evaluador no puede postularse como evaluador" });
+      }
+
       const _docente = await Docente.findOne({usuario: uid})
       if(!_docente)  
           return res.status(401).json({ error: "No existe el docente" });

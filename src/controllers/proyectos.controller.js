@@ -52,12 +52,19 @@ export const inscribirProyectoEscolar = async (req, res) => {
     }
 
     const uid = req.uid;
-    const responsable = await Docente.findOne({ usuario: uid });
+    
+    
     const usuario = await Usuario.findById(uid);
-    if (!responsable)
+    if (usuario.roles.includes(roles.refEvaluador)){
+      return res.status(403).json({ error: "Un usuario referente de evaluador no puede inscribir proyectos" });
+    }
+
+    const responsable = await Docente.findOne({ usuario: uid });
+    if (!responsable){
       return res
         .status(401)
         .json({ error: "No existe el docente correspondiente a su usuario" });
+    }
 
     const feriaActiva = await Feria.findOne({
       estado: { $ne: estadoFeria.finalizada },

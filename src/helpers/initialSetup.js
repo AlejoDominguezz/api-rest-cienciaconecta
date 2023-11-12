@@ -10,13 +10,13 @@ export const crearNiveles = async () => {
         if(count > 0) return;
 
         const values = await Promise.all([
-            new Nivel({nombre: "Nivel Inicial", abreviatura: "Nivel I", codigo: '1'}).save(),
-            new Nivel({nombre: "Primer Ciclo de la Educación Primaria", abreviatura: "Nivel IIA", codigo: '2'}).save(),
-            new Nivel({nombre: "Segundo Ciclo de la Educación Primaria", abreviatura: "Nivel IIB", codigo: '3'}).save(),
-            new Nivel({nombre: "Ciclo Básico de la Educación Secundaria", abreviatura: "Nivel IIIA", codigo: '4'}).save(),
-            new Nivel({nombre: "Ciclo Orientado de la Educación Secundaria", abreviatura: "Nivel IIIB", codigo: '5'}).save(),
-            new Nivel({nombre: "Nivel Superior Formación Docente", abreviatura: "Nivel IVA", codigo: '6'}).save(),
-            new Nivel({nombre: "Nivel Superior Tecnicaturas", abreviatura: "Nivel IVB", codigo: '7'}).save(),
+            new Nivel({nombre: "Nivel Inicial", abreviatura: "Nivel I", codigo: '1', color: "#FACD59"}).save(),
+            new Nivel({nombre: "Primer Ciclo de la Educación Primaria", abreviatura: "Nivel IIA", codigo: '2', color: "#53FB53"}).save(),
+            new Nivel({nombre: "Segundo Ciclo de la Educación Primaria", abreviatura: "Nivel IIB", codigo: '3', color: "#23FA23"}).save(),
+            new Nivel({nombre: "Ciclo Básico de la Educación Secundaria", abreviatura: "Nivel IIIA", codigo: '4', color: "#72B8FF"}).save(),
+            new Nivel({nombre: "Ciclo Orientado de la Educación Secundaria", abreviatura: "Nivel IIIB", codigo: '5', color: "#3366CC"}).save(),
+            new Nivel({nombre: "Nivel Superior Formación Docente", abreviatura: "Nivel IVA", codigo: '6', color: "#FF8383"}).save(),
+            new Nivel({nombre: "Nivel Superior Tecnicaturas", abreviatura: "Nivel IVB", codigo: '7', color: "#FF3D3D"}).save(),
         ]);
         console.log(values);
     } catch (error) {
@@ -31,19 +31,19 @@ export const crearCategorias = async () => {
         if(count > 0) return;
 
         const values = await Promise.all([
-            new Categoria({nombre: "Ciencias Naturales"}).save(),
-            new Categoria({nombre: "Ciencias Sociales y humanas"}).save(),
-            new Categoria({nombre: "Lengua y Literatura"}).save(),
-            new Categoria({nombre: "Matemática"}).save(),
-            new Categoria({nombre: "Lenguajes Artísticos"}).save(),
-            new Categoria({nombre: "Educación Ambiental"}).save(),
-            new Categoria({nombre: "Educación Tecnológica"}).save(),
-            new Categoria({nombre: "Programación y Robótica"}).save(),
-            new Categoria({nombre: "Emprendedurismo Escolar"}).save(),
-            new Categoria({nombre: "Formación Ética y Ciudadana"}).save(),
-            new Categoria({nombre: "Educación Física"}).save(),
-            new Categoria({nombre: "Trabajos sobre temáticas de la enseñanza y aprendizaje propios de la formación docente y de las Tecnicaturas Profesionales"}).save(),
-            new Categoria({nombre: "Proyectos multidisciplinares"}).save(),
+            new Categoria({nombre: "Ciencias Naturales", abreviatura: "Cs. Nat.", color:"#30B9F3"}).save(),
+            new Categoria({nombre: "Ciencias Sociales y humanas", abreviatura: "Cs. Soc.", color:"#46C132"}).save(),
+            new Categoria({nombre: "Lengua y Literatura", abreviatura: "Lengua", color:"#C931FF"}).save(),
+            new Categoria({nombre: "Matemática", abreviatura: "Mat.", color:"#FF435A"}).save(),
+            new Categoria({nombre: "Lenguajes Artísticos", abreviatura: "Leng. Art", color:"#FB9145"}).save(),
+            new Categoria({nombre: "Educación Ambiental", abreviatura: "Ed. Amb", color:"#028928"}).save(),
+            new Categoria({nombre: "Educación Tecnológica", abreviatura: "Ed. Tec.", color:"#371ED2"}).save(),
+            new Categoria({nombre: "Programación y Robótica", abreviatura: "Program.", color:"#5D4AD2"}).save(),
+            new Categoria({nombre: "Emprendedurismo Escolar", abreviatura: "Empren.", color:"#F5CE42"}).save(),
+            new Categoria({nombre: "Formación Ética y Ciudadana", abreviatura: "Etica", color:"#9092D2"}).save(),
+            new Categoria({nombre: "Educación Física", abreviatura: "Ed. Física", color:"#0F15A3"}).save(),
+            new Categoria({nombre: "Trabajos sobre temáticas de la enseñanza y aprendizaje propios de la formación docente y de las Tecnicaturas Profesionales", abreviatura: "Multidisc.", color:"#E82DEC"}).save(),
+            new Categoria({nombre: "Proyectos multidisciplinares", abreviatura: "Apren.", color:"#554438"}).save(),
         ]);
         console.log(values);
     } catch (error) {

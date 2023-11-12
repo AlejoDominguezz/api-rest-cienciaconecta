@@ -95,9 +95,9 @@ class Server {
         this.app.use(cookieParser())
 
         //Inicialización de categorias y niveles
-        //crearCategorias();
-        //crearNiveles();
-        //crearEstablecimientosEducativos();
+        crearCategorias();
+        crearNiveles();
+        crearEstablecimientosEducativos();
     }
 
 

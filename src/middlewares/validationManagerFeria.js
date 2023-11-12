@@ -823,9 +823,9 @@ const validarRubrica = (rubrica) => {
       !Array.isArray(rubrica.criterios) ||
       rubrica.criterios.length === 0 ||
       !rubrica.ponderacion ||
-      !Number.isInteger(rubrica.ponderacion) ||
-      rubrica.ponderacion < 0 ||
-      rubrica.ponderacion > 100 ||
+      !Number.isInteger(parseInt(rubrica.ponderacion)) ||
+      (parseInt(rubrica.ponderacion)) < 0 ||
+      (parseInt(rubrica.ponderacion)) > 100 ||
       typeof rubrica.exposicion !== "boolean"
     ) {
       throw new Error(
@@ -842,9 +842,9 @@ const validarRubrica = (rubrica) => {
         !Array.isArray(criterioItem.opciones) ||
         criterioItem.opciones.length === 0 ||
         !criterioItem.ponderacion ||
-        !Number.isInteger(criterioItem.ponderacion) ||
-        criterioItem.ponderacion < 0 ||
-        criterioItem.ponderacion > 100
+        !Number.isInteger(parseInt(criterioItem.ponderacion)) ||
+        (parseInt(criterioItem.ponderacion)) < 0 ||
+        (parseInt(criterioItem.ponderacion)) > 100
       ) {
         throw new Error(
           "Cada criterio de evaluación debe tener un nombre, opciones válidas, ponderación numérica entera entre 0 y 100"
@@ -856,9 +856,9 @@ const validarRubrica = (rubrica) => {
           !opcion ||
           !opcion.nombre ||
           typeof opcion.nombre !== "string" ||
-          !Number.isInteger(opcion.puntaje) ||
-          opcion.puntaje < 0 ||
-          opcion.puntaje > 100
+          !Number.isInteger(parseInt(opcion.puntaje)) ||
+          (parseInt(opcion.puntaje)) < 0 ||
+          (parseInt(opcion.puntaje)) > 100
         ) {
           throw new Error(
             "Cada opción debe tener un nombre en string y un puntaje entero entre 0 y 100"

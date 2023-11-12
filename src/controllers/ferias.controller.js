@@ -56,11 +56,10 @@ export const getFeriaActiva = async(req = request, res = response) => {
     const feriaActiva = await Feria.findOne({ estado: { $ne: estadoFeria.finalizada }})
 
     if(!feriaActiva)
-      return res.status(401).json({ error: "No existe una feria activa en este momento" });
+      return res.status(204).json();
 
-    res.json({
-      feriaActiva
-    });
+    return res.json({feriaActiva});
+
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Error de servidor" });
@@ -301,6 +300,9 @@ export const eliminarFeria = async (req, res) => {
 
 export const obtenerInfoResumidaFeria = async (req, res) => {
   const feriaActiva = await getFeriaActivaFuncion();
+  if(!feriaActiva){
+    return res.status(204).json();
+  }
   
   const {instancia_actual, prox_instancia} = obtenerFaseFeria(parseInt(feriaActiva.estado));
   const prox_fecha = convertirFecha(eval(`feriaActiva.${obtenerProximaFecha(parseInt(feriaActiva.estado))}`))

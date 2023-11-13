@@ -327,15 +327,14 @@ export const obtenerInfoResumidaFeria = async (req, res) => {
     const cantidadEvaluadores = await Evaluador.countDocuments({feria: feriaActiva._id, pendiente: false, sede: sede._id})
     total_evaluadores += cantidadEvaluadores;
 
-    if(parseInt(feriaActiva.estado) <= parseInt(estadoFeria.fechaFinExposicionRegional)) {
-      const cantidadProyectosEvaluados_Regional = proyectos.filter((proyecto) => proyecto.estado === estado.evaluadoRegional).length;
+    if(parseInt(feriaActiva.estado) <= parseInt(estadoFeria.instanciaRegional_ExposicionFinalizada)) {
+      const proyectosEvaluados_Regional = proyectos.filter((proyecto) => proyecto.estado == estado.evaluadoRegional);
+      const cantidadProyectosEvaluados_Regional = proyectosEvaluados_Regional.length
       total_proyectosEvaluados_Regional += cantidadProyectosEvaluados_Regional;
       sede.cantidadProyectosEvaluados = cantidadProyectosEvaluados_Regional;
     } else {
-      const cantidadProyectosEvaluados_Provincial = proyectos.filter((proyecto) =>
-                                                        proyecto.estado === estado.evaluadoProvincial ||
-                                                        proyecto.estado === estado.promovidoNacional
-                                                        ).length;
+      const proyectosEvaluados_Provincial = proyectos.filter((proyecto) => proyecto.estado == estado.evaluadoProvincial || proyecto.estado == estado.promovidoNacional);
+      const cantidadProyectosEvaluados_Provincial = proyectosEvaluados_Provincial.length;                                             
       total_proyectosEvaluados_Provincial += cantidadProyectosEvaluados_Provincial;  
       sede.cantidadProyectosEvaluados = cantidadProyectosEvaluados_Provincial;
     }

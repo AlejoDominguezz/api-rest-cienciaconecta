@@ -349,8 +349,10 @@ export const obtenerInfoResumidaEvaluador = async (req, res) => {
           .exec()
 
       const cant_proyectos_asignados = proyectos_asignados.length;
-      const cant_proyectos_pendientes_regional = proyectos_asignados.filter(proyecto => proyecto.estado == estado.instanciaRegional || proyecto.estado == estado.enEvaluacionRegional).lenght;
-      const cant_proyectos_pendientes_provincial = proyectos_asignados.filter(proyecto => proyecto.estado == estado.promovidoProvincial || proyecto.estado == estado.enEvaluacionProvincial).length;
+      const proyectos_pendientes_regional = proyectos_asignados.filter(proyecto => proyecto.estado == estado.instanciaRegional || proyecto.estado == estado.enEvaluacionRegional);
+      const cant_proyectos_pendientes_regional = proyectos_pendientes_regional.length;
+      const proyectos_pendientes_provincial = proyectos_asignados.filter(proyecto => proyecto.estado == estado.promovidoProvincial || proyecto.estado == estado.enEvaluacionProvincial);
+      const cant_proyectos_pendientes_provincial = proyectos_pendientes_provincial.length;
 
 
       const {instancia_actual, prox_instancia} = obtenerFaseFeria(parseInt(feriaActiva.estado));

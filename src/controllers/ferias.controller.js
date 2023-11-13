@@ -374,7 +374,7 @@ export const obtenerInfoResumidaFeria = async (req, res) => {
   feria.total_proyectosPresentados = total_proyectosPresentados;
   feria.total_evaluadores = total_evaluadores;
 
-  if(parseInt(feriaActiva.estado) <= parseInt(estadoFeria.fechaFinExposicionRegional)) {
+  if(parseInt(feriaActiva.estado) <= parseInt(estadoFeria.instanciaRegional_ExposicionFinalizada)) {
     feria.total_proyectosEvaluados = total_proyectosEvaluados_Regional;
   } else {
     feria.total_proyectosEvaluados = total_proyectosEvaluados_Provincial;

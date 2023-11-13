@@ -389,7 +389,7 @@ export const obtenerInfoResumidaFeria = async (req, res) => {
 const obtenerFaseFeria = (estado) => {
   if (estado >= estadoFeria.creada && estado <= estadoFeria.iniciada) {
       return { instancia_actual: "Escolar", prox_instancia: "Regional" };
-  } else if (estado === estadoFeria.instanciaEscolar) {
+  } else if (estado == estadoFeria.instanciaEscolar) {
       return { instancia_actual: "Escolar", prox_instancia: "Regional" };
   } else if (estado >= estadoFeria.instanciaEscolar_Finalizada && estado <= estadoFeria.instanciaRegional_ExposicionFinalizada) {
       return { instancia_actual: "Regional", prox_instancia: "Provincial" };
@@ -405,7 +405,7 @@ const obtenerFaseFeria = (estado) => {
 const obtenerProximaFecha = (estado) => {
   if (estado >= estadoFeria.creada && estado <= estadoFeria.iniciada) {
       return fechasFeria.fechaInicioEscolar;
-  } else if (estado === estadoFeria.instanciaEscolar) {
+  } else if (estado == estadoFeria.instanciaEscolar) {
       return fechasFeria.fechaFinEscolar;
   } else if (estado >= estadoFeria.instanciaEscolar_Finalizada && estado <= estadoFeria.instanciaRegional_ExposicionFinalizada) {
       return fechasFeria.fechaPromocionAProvincial;

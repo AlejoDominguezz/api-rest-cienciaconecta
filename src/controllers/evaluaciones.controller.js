@@ -412,6 +412,8 @@ export const cancelarEvaluacion = async (req, res) =>  {
 
     if(evaluacion_pendiente.evaluacion == null){
       evaluacion_pendiente.deleteOne()
+      proyecto.estado = estado.instanciaRegional;
+      proyecto.save();
     } else {
       evaluacion_pendiente.evaluando = null;
       evaluacion_pendiente.estado = estadoEvaluacion.abierta;

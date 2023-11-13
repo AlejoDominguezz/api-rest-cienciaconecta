@@ -12,6 +12,10 @@ const NivelSchema = new Schema({
     codigo:{
         type: String,
         required: true,
+    },
+    color:{
+        type: String,
+        required: true,
     }
 })
 

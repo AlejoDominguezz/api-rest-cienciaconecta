@@ -53,9 +53,10 @@ routerProyectos.get(
 routerProyectos.get(
   "/:id",
   requireToken,
-  checkRolAuth([roles.admin, roles.responsableProyecto, roles.comAsesora, roles.refEvaluador]),
+  checkRolAuth([roles.admin, roles.responsableProyecto, roles.comAsesora, roles.refEvaluador, roles.evaluador]),
   esPropietario,
   esReferenteDelProyecto,
+  esEvaluadorDelProyecto,
   consultarProyecto
 );
 routerProyectos.get(

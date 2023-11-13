@@ -114,7 +114,7 @@ export const getPostulacionById = async (req, res) => {
   try {
     const {id} = req.params;
 
-    const postulacion = await Evaluador.findOne({ pendiente: true, _id: id})
+    const postulacion = await Evaluador.findById(id)
       .select('-__v -id_carpeta_cv')
       .lean()
       .exec();

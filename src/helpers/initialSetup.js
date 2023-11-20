@@ -10,13 +10,13 @@ export const crearNiveles = async () => {
         if(count > 0) return;
 
         const values = await Promise.all([
-            new Nivel({nombre: "Nivel Inicial", abreviatura: "Nivel I", codigo: '1', color: "#FACD59"}).save(),
-            new Nivel({nombre: "Primer Ciclo de la Educación Primaria", abreviatura: "Nivel IIA", codigo: '2', color: "#53FB53"}).save(),
-            new Nivel({nombre: "Segundo Ciclo de la Educación Primaria", abreviatura: "Nivel IIB", codigo: '3', color: "#23FA23"}).save(),
-            new Nivel({nombre: "Ciclo Básico de la Educación Secundaria", abreviatura: "Nivel IIIA", codigo: '4', color: "#72B8FF"}).save(),
-            new Nivel({nombre: "Ciclo Orientado de la Educación Secundaria", abreviatura: "Nivel IIIB", codigo: '5', color: "#3366CC"}).save(),
-            new Nivel({nombre: "Nivel Superior Formación Docente", abreviatura: "Nivel IVA", codigo: '6', color: "#FF8383"}).save(),
-            new Nivel({nombre: "Nivel Superior Tecnicaturas", abreviatura: "Nivel IVB", codigo: '7', color: "#FF3D3D"}).save(),
+            new Nivel({_id: "6551755edba6cbc126de8585", nombre: "Nivel Inicial", abreviatura: "Nivel I", codigo: '1', color: "#FACD59"}).save(),
+            new Nivel({_id: "6551755edba6cbc126de8586", nombre: "Primer Ciclo de la Educación Primaria", abreviatura: "Nivel IIA", codigo: '2', color: "#53FB53"}).save(),
+            new Nivel({_id: "6551755edba6cbc126de8587", nombre: "Segundo Ciclo de la Educación Primaria", abreviatura: "Nivel IIB", codigo: '3', color: "#23FA23"}).save(),
+            new Nivel({_id: "6551755edba6cbc126de8588", nombre: "Ciclo Básico de la Educación Secundaria", abreviatura: "Nivel IIIA", codigo: '4', color: "#72B8FF"}).save(),
+            new Nivel({_id: "6551755edba6cbc126de8589", nombre: "Ciclo Orientado de la Educación Secundaria", abreviatura: "Nivel IIIB", codigo: '5', color: "#3366CC"}).save(),
+            new Nivel({_id: "6551755edba6cbc126de858a", nombre: "Nivel Superior Formación Docente", abreviatura: "Nivel IVA", codigo: '6', color: "#FF8383"}).save(),
+            new Nivel({_id: "6551755edba6cbc126de858b", nombre: "Nivel Superior Tecnicaturas", abreviatura: "Nivel IVB", codigo: '7', color: "#FF3D3D"}).save(),
         ]);
         console.log(values);
     } catch (error) {

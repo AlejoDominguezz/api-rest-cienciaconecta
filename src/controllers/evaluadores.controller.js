@@ -19,6 +19,7 @@ import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js"
 import { Evaluacion } from "../models/Evaluacion.js";
 import { Proyecto, estado } from "../models/Proyecto.js";
 import { convertirFecha, obtenerFaseFeria, obtenerProximaFecha } from "./referentes.controller.js";
+import {generarNotificacion, tipo_notificacion} from "../helpers/generarNotificacion.js"
 
 export const postularEvaluador = async (req, res) => {
     try {
@@ -61,6 +62,8 @@ export const postularEvaluador = async (req, res) => {
       });
   
       await evaluador.save();
+      generarNotificacion(uid, tipo_notificacion.postulacion)
+
       return res.json({ evaluador });
 
   } catch (error) {
@@ -190,6 +193,7 @@ export const seleccionarEvaluadores = async (req, res) => {
             await emailCola.add("email:seleccionEvaluador", {
                 usuario, 
                 docente})
+            generarNotificacion(usuario.id, tipo_notificacion.seleccion)
 
         } catch (error) {
             return res.status(500).json({ error: "Error de servidor" });
@@ -257,7 +261,7 @@ export const cargarCv = async (req, res) => {
   
         const cola = await fileCv.add({uid , files});
         if(cola){
-          console.log(cola);
+          //console.log(cola);
           res.status(200).json({message: "CV CARGANDOSE..."});
         }else{
           res.status(400).json({message: "ERROR AL INTENTAR CARGAR EL CV"});

@@ -29,6 +29,7 @@ import sharp from 'sharp';
 import {filesCola} from "../helpers/queueManager.js";
 import { Nivel } from "../models/Nivel.js";
 import { Categoria } from "../models/Categoria.js";
+import { generarNotificacion, tipo_notificacion } from "../helpers/generarNotificacion.js";
 
 
 // Configurar multer para manejar la subida de archivos
@@ -86,6 +87,8 @@ export const inscribirProyectoEscolar = async (req, res) => {
     });
 
     await proyecto.save();
+
+    generarNotificacion(uid, tipo_notificacion.inscripcion(proyecto.titulo))
 
     // Cambio estado del usuario: de docente a responsable de proyecto
     if (!usuario.roles.includes(roles.responsableProyecto))

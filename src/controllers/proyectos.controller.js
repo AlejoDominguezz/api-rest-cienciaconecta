@@ -88,7 +88,7 @@ export const inscribirProyectoEscolar = async (req, res) => {
 
     await proyecto.save();
 
-    generarNotificacion(uid, tipo_notificacion.inscripcion(proyecto.titulo))
+    await generarNotificacion(uid, tipo_notificacion.inscripcion(proyecto.titulo))
 
     // Cambio estado del usuario: de docente a responsable de proyecto
     if (!usuario.roles.includes(roles.responsableProyecto))

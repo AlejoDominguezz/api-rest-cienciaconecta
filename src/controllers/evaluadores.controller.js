@@ -62,7 +62,7 @@ export const postularEvaluador = async (req, res) => {
       });
   
       await evaluador.save();
-      generarNotificacion(uid, tipo_notificacion.postulacion)
+      await generarNotificacion(uid, tipo_notificacion.postulacion)
 
       return res.json({ evaluador });
 
@@ -188,12 +188,13 @@ export const seleccionarEvaluadores = async (req, res) => {
 
         usuario.save();
         postulacion.save();
-        
+
+        await generarNotificacion(usuario.id.toString(), tipo_notificacion.seleccion)
         try {   
-            await emailCola.add("email:seleccionEvaluador", {
+            emailCola.add("email:seleccionEvaluador", {
                 usuario, 
                 docente})
-            generarNotificacion(usuario.id, tipo_notificacion.seleccion)
+            
 
         } catch (error) {
             return res.status(500).json({ error: "Error de servidor" });

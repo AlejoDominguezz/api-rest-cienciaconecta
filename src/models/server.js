@@ -21,6 +21,8 @@ import routerExposicion from '../routes/exposicion.route.js';
 import routerPromocion from '../routes/promocion.route.js';
 import routerExposicion_Provincial from '../routes/exposicion_provincial.route.js';
 import routerNotificaciones from '../routes/notificacion.route.js';
+import axios from 'axios';
+import routerArena from '../routes/arena.route.js';
 
 
 
@@ -48,6 +50,7 @@ class Server {
             promocion:              '/api/v1/promocion',
             exposicion_provincial:  '/api/v1/exposicion-provincial',
             notificaciones:         '/api/v1/notificaciones',
+            arena:                  '/arena',
         }
 
         
@@ -152,6 +155,9 @@ class Server {
 
         //path de notificaciones
         this.app.use(this.paths.notificaciones, routerNotificaciones);
+
+        //path de arena
+        this.app.use(this.paths.arena, routerArena);
     }
 
 

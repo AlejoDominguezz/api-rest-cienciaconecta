@@ -1,3 +1,4 @@
+import { subDays } from "date-fns";
 import { feriaCola } from "../../helpers/queueManager.js"
 
 // Función para generar tareas asincrónicas para la actualización de estados de Feria según las fechas ingredas ------------------------
@@ -43,6 +44,14 @@ export const generarJobsAsincronicos = async (feria_id, feria, body) => {
         await cancelarJobs("finEvaluacionRegional", feria_id)
         const fecha = body.instancias.instanciaRegional.fechaFinEvaluacionTeorica;
         await generarJob(fecha, feria_id, "finEvaluacionRegional");
+
+        await cancelarJobs("cinco_dias_finEvaluacionRegional", feria_id)
+        const fechaA = body.instancias.instanciaRegional.fechaFinEvaluacionTeorica;
+        await generarJobDias(fechaA, feria_id, "cinco_dias_finEvaluacionRegional", 5);
+
+        await cancelarJobs("un_dia_finEvaluacionRegional", feria_id)
+        const fechaB = body.instancias.instanciaRegional.fechaFinEvaluacionTeorica;
+        await generarJobDias(fechaB, feria_id, "un_dia_finEvaluacionRegional", 1);
     }
 
     // Fecha de inicio de exposición regional -----------------------------------------------------------------------------
@@ -59,6 +68,14 @@ export const generarJobsAsincronicos = async (feria_id, feria, body) => {
         await cancelarJobs("finExposicionRegional", feria_id)
         const fecha = body.instancias.instanciaRegional.fechaFinEvaluacionPresencial;
         await generarJob(fecha, feria_id, "finExposicionRegional");
+
+        await cancelarJobs("cinco_dias_finExposicionRegional", feria_id)
+        const fechaA = body.instancias.instanciaRegional.fechaFinEvaluacionPresencial;
+        await generarJobDias(fechaA, feria_id, "cinco_dias_finExposicionRegional", 5);
+
+        await cancelarJobs("un_dia_finExposicionRegional", feria_id)
+        const fechaB = body.instancias.instanciaRegional.fechaFinEvaluacionPresencial;
+        await generarJobDias(fechaB, feria_id, "un_dia_finExposicionRegional", 1);
     }
 
     // Fecha de promoción de proyectos a instancia provincial ----------------------------------------------------------------
@@ -83,6 +100,14 @@ export const generarJobsAsincronicos = async (feria_id, feria, body) => {
         await cancelarJobs("finExposicionProvincial", feria_id)
         const fecha = body.instancias.instanciaProvincial.fechaFinEvaluacionPresencial;
         await generarJob(fecha, feria_id, "finExposicionProvincial");
+
+        await cancelarJobs("cinco_dias_finExposicionProvincial", feria_id)
+        const fechaA = body.instancias.instanciaProvincial.fechaFinEvaluacionPresencial;
+        await generarJobDias(fechaA, feria_id, "cinco_dias_finExposicionProvincial", 5);
+
+        await cancelarJobs("un_dia_finExposicionProvincial", feria_id)
+        const fechaB = body.instancias.instanciaProvincial.fechaFinEvaluacionPresencial;
+        await generarJobDias(fechaB, feria_id, "un_dia_finExposicionProvincial", 1);
     }
 
     // Fecha de promoción de proyectos a instancia nacional ----------------------------------------------------------------
@@ -100,9 +125,36 @@ export const generarJobsAsincronicos = async (feria_id, feria, body) => {
         const fecha = body.fechaFinFeria;
         await generarJob(fecha, feria_id, "finFeria");
     }
+
+    // Fecha de inicio de asignación -----------------------------------------------------------------------------
+    if(new Date(body.fechaInicioAsignacionProyectos).getTime() != new Date(feria?.fechaInicioAsignacionProyectos).getTime()){
+    
+        await cancelarJobs("inicioAsignacion", feria_id)
+        const fecha = body.fechaInicioAsignacionProyectos;
+        await generarJob(fecha, feria_id, "inicioAsignacion");
+    }
+
+    // Fecha de fin de asignación -----------------------------------------------------------------------------
+    if(new Date(body.fechaFinAsignacionProyectos).getTime() != new Date(feria?.fechaFinAsignacionProyectos).getTime()){
+
+        await cancelarJobs("cinco_dias_finAsignacion", feria_id)
+        const fechaA = body.fechaFinAsignacionProyectos;
+        await generarJobDias(fechaA, feria_id, "cinco_dias_finAsignacion", 5);
+
+        await cancelarJobs("un_dia_finAsignacion", feria_id)
+        const fechaB = body.fechaFinAsignacionProyectos;
+        await generarJobDias(fechaB, feria_id, "un_dia_finAsignacion", 1);
+    }
   
   } 
   
+
+const generarJobDias = async (fecha_original, feria_id, tipo, dias) => {
+    const fecha = subDays(new Date(fecha_original), dias);
+    const delay = fecha.getTime() - Date.now();
+    await feriaCola.add(`feria:${tipo}`, { fecha, feria_id }, { delay });
+}
+
   
 const generarJob = async (fecha_original, feria_id, tipo) => {
     const fecha = new Date(fecha_original);

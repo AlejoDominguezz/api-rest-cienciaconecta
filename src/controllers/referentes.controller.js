@@ -1,6 +1,8 @@
+import { capitalizarPalabras } from "../helpers/capitalizarPalabras.js";
 import { generarNotificacion, tipo_notificacion } from "../helpers/generarNotificacion.js";
 import { roles } from "../helpers/roles.js";
 import { Docente } from "../models/Docente.js";
+import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js";
 import { Evaluador } from "../models/Evaluador.js";
 import { estadoFeria, fechasFeria } from "../models/Feria.js";
 import { Proyecto, estado } from "../models/Proyecto.js";
@@ -71,6 +73,9 @@ export const seleccionarReferentes = async (req, res) => {
                 usuario.save()
                 referente.save()
 
+                const sede = await EstablecimientoEducativo.findById(obj.sede)
+                const nombreSedeFormateado = capitalizarPalabras(sede.nombre.toString());
+                await generarNotificacion(usuario.id.toString(), tipo_notificacion.referente_asignado(nombreSedeFormateado))
             }
         }
 

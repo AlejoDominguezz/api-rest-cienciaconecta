@@ -7,6 +7,7 @@ import { Types } from "mongoose";
 import { roles } from "../helpers/roles.js";
 import { Referente } from "../models/Referente.js";
 import { EvaluacionExposicion, nombreEstadoExposicion } from "../models/EvaluacionExposicion.js";
+import { generarNotificacion, tipo_notificacion } from "../helpers/generarNotificacion.js";
 
 export const evaluarProyecto = async (req, res) => {
     const evaluacion = req.body.evaluacion;
@@ -14,6 +15,7 @@ export const evaluarProyecto = async (req, res) => {
     const proyecto = req.proyecto;
     const evaluador = req.evaluador;
     const feria = req.feria;
+    const usuario = req.uid;
 
     const evaluacion_anterior = await Evaluacion.findOne({proyectoId: proyecto.id})
     if(!evaluacion_anterior) {
@@ -56,6 +58,15 @@ export const evaluarProyecto = async (req, res) => {
 
       // COMPROBAR SI SE MODIFICO LA EVALUACION ANTERIOR PARA QUITAR LOS "LISTO"
       if(!arraysEvaluacionIguales(evaluacion_anterior.evaluacion, evaluacion) || !arraysComentariosIguales(evaluacion_anterior.comentarios, comentarios)){
+      
+        if(evaluacion_anterior.listo.length != 0){
+          for(const evaluadorId of evaluacion_anterior.listo){
+            const evaluador = await Evaluador.findById(evaluadorId)
+            const docente = await Docente.findById(evaluador.idDocente)
+            await generarNotificacion(docente.usuario.toString(), tipo_notificacion.quita_confirmado_evaluacion(proyecto.titulo))
+          }
+        }
+
         evaluacion_anterior.listo = [];
       }
 
@@ -75,6 +86,16 @@ export const evaluarProyecto = async (req, res) => {
       evaluacion_anterior.save()
 
     }
+
+    if(proyecto.evaluadoresRegionales.length == evaluacion_anterior.evaluadorId.length) {
+      for(const evaluadorId of proyecto.evaluadoresRegionales){
+        const evaluador = await Evaluador.findById(evaluadorId)
+        const docente = await Docente.findById(evaluador.idDocente)
+        await generarNotificacion(docente.usuario, tipo_notificacion.todos_evaluaron_teorica_regional(proyecto.titulo))
+      }
+    }
+
+    await generarNotificacion(usuario, tipo_notificacion.evaluacion_teorica_regional(proyecto.titulo))
 
     return res.json({ ok: true,  evaluacion: evaluacion_anterior});
     
@@ -272,6 +293,7 @@ export const iniciarEvaluacion = async (req, res) => {
 export const confirmarEvaluacion = async (req, res) => {
   const proyecto = req.proyecto;
   const evaluador = req.evaluador;
+  const usuario = req.uid;
   let responseMessage = "Se ha confirmado la evaluación"
 
   const evaluacion_anterior = await Evaluacion.findOne({proyectoId: proyecto.id})
@@ -287,10 +309,16 @@ export const confirmarEvaluacion = async (req, res) => {
 
   if(evaluacion_anterior.listo.length == evaluacion_anterior.evaluadorId.length) {
     evaluacion_anterior.estado = estadoEvaluacion.cerrada;
+    for(const evaluadorId of proyecto.evaluadoresRegionales){
+      const evaluador = await Evaluador.findById(evaluadorId)
+      const docente = await Docente.findById(evaluador.idDocente)
+      await generarNotificacion(docente.usuario, tipo_notificacion.fin_evaluacion_teorica_regional(proyecto.titulo))
+    }
     responseMessage = `Todos los evaluadores han confirmado la evaluación. La evaluación del proyecto '${proyecto.titulo}' ha finalizado`;
   }
 
   evaluacion_anterior.save()
+  await generarNotificacion(usuario, tipo_notificacion.confirmar_evaluacion_teorica_regional(proyecto.titulo))
 
   return res.json({ ok: true , responseMessage });
 

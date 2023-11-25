@@ -1,5 +1,8 @@
+import { capitalizarPalabras } from "../helpers/capitalizarPalabras.js";
+import { generarNotificacion, tipo_notificacion } from "../helpers/generarNotificacion.js";
 import { roles } from "../helpers/roles.js";
 import { Docente } from "../models/Docente.js";
+import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js";
 import { Evaluador } from "../models/Evaluador.js";
 import { estadoFeria, fechasFeria } from "../models/Feria.js";
 import { Proyecto, estado } from "../models/Proyecto.js";
@@ -70,6 +73,9 @@ export const seleccionarReferentes = async (req, res) => {
                 usuario.save()
                 referente.save()
 
+                const sede = await EstablecimientoEducativo.findById(obj.sede)
+                const nombreSedeFormateado = capitalizarPalabras(sede.nombre.toString());
+                await generarNotificacion(usuario.id.toString(), tipo_notificacion.referente_asignado(nombreSedeFormateado))
             }
         }
 
@@ -270,6 +276,7 @@ export const asignarEvaluadoresAProyecto = async (req, res) => {
         //     return res.status(401).json(
         //         { error: `No puedes asignar ${evaluadores.length} evaluadores, hay ${proyecto.evaluadoresRegionales.length} evaluadores asignados en el proyecto. Puedes asignar ${3 - proyecto.evaluadoresRegionales.length} como máximo` });
         // }
+        let usuarios = [];
 
         for (const evaluadorID of evaluadores) {
             try {
@@ -290,6 +297,8 @@ export const asignarEvaluadoresAProyecto = async (req, res) => {
                         }
                          else {
                             proyecto.evaluadoresRegionales.push(evaluadorID);
+                            const docente = await Docente.findById(evaluador.idDocente);
+                            usuarios.push(docente.usuario.toString())
                         }
                     }
                 // }
@@ -302,10 +311,14 @@ export const asignarEvaluadoresAProyecto = async (req, res) => {
             return res.status(401).json({ error: "Han ocurrido errores al asignar evaluadores al proyecto", errors: errores });
         } else {
             await proyecto.save();
+            for(const usuario of usuarios){
+                await generarNotificacion(usuario, tipo_notificacion.asignacion(proyecto.titulo))
+            }
             return res.json({ msg: `Todos los evaluadores han sido asignados correctamente al proyecto '${proyecto.titulo}'` });
         }
 
     } catch (error) {
+        console.log(error)
         return res.status(500).json({ error: "Error de servidor" });
     }
 }

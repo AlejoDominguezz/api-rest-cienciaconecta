@@ -20,6 +20,7 @@ import routerReferente from '../routes/referente.route.js';
 import routerExposicion from '../routes/exposicion.route.js';
 import routerPromocion from '../routes/promocion.route.js';
 import routerExposicion_Provincial from '../routes/exposicion_provincial.route.js';
+import routerNotificaciones from '../routes/notificacion.route.js';
 
 
 
@@ -46,6 +47,7 @@ class Server {
             referente:              '/api/v1/referente',
             promocion:              '/api/v1/promocion',
             exposicion_provincial:  '/api/v1/exposicion-provincial',
+            notificaciones:         '/api/v1/notificaciones',
         }
 
         
@@ -95,9 +97,9 @@ class Server {
         this.app.use(cookieParser())
 
         //Inicialización de categorias y niveles
-        crearCategorias();
-        crearNiveles();
-        crearEstablecimientosEducativos();
+        //crearCategorias();
+        //crearNiveles();
+        //crearEstablecimientosEducativos();
     }
 
 
@@ -147,6 +149,9 @@ class Server {
 
         //path de exposiciones
         this.app.use(this.paths.exposicion_provincial, routerExposicion_Provincial);
+
+        //path de notificaciones
+        this.app.use(this.paths.notificaciones, routerNotificaciones);
     }
 
 

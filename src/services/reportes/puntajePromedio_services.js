@@ -1,44 +1,9 @@
 import { Proyecto } from "../../models/Proyecto.js";
 import { EvaluacionExposicion } from "../../models/EvaluacionExposicion.js"
-import _ from 'lodash';
 import { EstablecimientoEducativo } from "../../models/EstablecimientoEducativo.js";
 import { Categoria } from "../../models/Categoria.js";
 import { Nivel } from "../../models/Nivel.js";
 import { capitalizarPalabras } from "../../helpers/capitalizarPalabras.js"
-
-
-export const buscarPor = async (tipo, filtro) => {
-    const proyectos = await Proyecto.find(filtro)
-    if(proyectos.length == 0) {
-        return res.status(204).json({})
-    }
-
-    if (tipo == "departamento") {
-
-        const proyectosConEstablecimiento = await Promise.all(
-            proyectos.map(async (proyecto) => {
-                const establecimiento = await EstablecimientoEducativo.findById(proyecto.establecimientoEducativo)
-                    .select("-__v -provincia -domicilio -CP -telefono -email -niveles -ferias")
-                    .lean()
-                    .exec()
-                proyecto = proyecto.toObject()
-                proyecto.establecimientoEducativo = establecimiento
-                return proyecto
-                   }
-            )
-        );
-
-        const proyectosPorTipo = _.groupBy(proyectosConEstablecimiento, "establecimientoEducativo.departamento");
-        return proyectosPorTipo;
-    }
-
-    // Organizar proyectos por tipo (categoria, nivel, departamento) usando lodash
-    const proyectosPorTipo = _.groupBy(proyectos, tipo);
-    return proyectosPorTipo;
-}
-
-
-
 
 
 export const obtenerPromedioConColor = async (tipo, proyectosPorClase) => {
@@ -68,16 +33,19 @@ const obtenerPromedioColorNivelCategoria = async (tipo, proyectosPorClase) => {
 
         // Sumar puntajes de cada categoría, puntaje final de exposición regional
         let sumaPuntaje = 0;
+        let cantidadProyectos = 0;
         
         for (const proyecto of proyectos) {
             const evaluacion = await EvaluacionExposicion.findOne({ proyectoId: proyecto._id });
             if (evaluacion) {
                 sumaPuntaje += evaluacion.puntajeFinal;
+                cantidadProyectos += 1;
             }
+
         }
 
         // Obtener el promedio de la categoría o nivel actual
-        let promedioClase = proyectos.length > 0 ? sumaPuntaje / proyectos.length : 0;
+        let promedioClase = cantidadProyectos > 0 ? sumaPuntaje / cantidadProyectos : 0;
         promedioClase = parseFloat(promedioClase.toFixed(2))
 
         // Añadir la información de color al resultado
@@ -115,16 +83,18 @@ const obtenerPromedioColorDepartamento = async (proyectosPorDepto) => {
 
         // Sumar puntajes de cada departamento, puntaje final de exposición regional
         let sumaPuntaje = 0;
+        let cantidadProyectos = 0;
         
         for (const proyecto of proyectos) {
             const evaluacion = await EvaluacionExposicion.findOne({ proyectoId: proyecto._id });
             if (evaluacion) {
                 sumaPuntaje += evaluacion.puntajeFinal;
+                cantidadProyectos += 1;
             }
         }
 
         // Obtener el promedio del departamento actual
-        let promedioDepto = proyectos.length > 0 ? sumaPuntaje / proyectos.length : 0;
+        let promedioDepto = cantidadProyectos > 0 ? sumaPuntaje / cantidadProyectos : 0;
         promedioDepto = parseFloat(promedioDepto.toFixed(2));
 
         // Añadir la información de color al resultado
@@ -144,8 +114,8 @@ const obtenerPromedioColorDepartamento = async (proyectosPorDepto) => {
 
 
 
-export const formatearSalida = (tipo, promedios) => {
-    
+export const formatearSalida_puntajePromedio = (tipo, promedios) => {
+
     const labels = promedios.map(item => item.nombre);
     const data = promedios.map(item => item.promedio);
     const backgroundColor = promedios.map(item => item.color);
@@ -167,3 +137,5 @@ export const formatearSalida = (tipo, promedios) => {
 
     return { labels, datasets };
 }
+
+

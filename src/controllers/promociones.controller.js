@@ -1,7 +1,6 @@
 import { Evaluacion, estadoEvaluacion, nombreEstadoEvaluacion } from "../models/Evaluacion.js";
 import { EvaluacionExposicion, estadoEvaluacionExposicion, nombreEstadoExposicion } from "../models/EvaluacionExposicion.js";
 import { EvaluacionExposicionProvincial, estadoEvaluacionExposicionProvincial, nombreEstadoExposicionProvincial } from "../models/EvaluacionExposicion_Provincial.js";
-import { Nivel } from "../models/Nivel.js"
 import { Promocion, promocionA } from "../models/Promocion.js"
 import { Proyecto, nombreEstado } from "../models/Proyecto.js";
 import { getFeriaActivaFuncion } from "./ferias.controller.js"
@@ -351,3 +350,5 @@ try {
     return res.status(500).json({ error: "Error de servidor" });
 }
 }
+
+

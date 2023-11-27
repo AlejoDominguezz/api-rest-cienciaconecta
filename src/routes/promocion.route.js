@@ -7,7 +7,7 @@
 
 import { Router } from "express";
 import { requireToken } from "../middlewares/requireToken.js";
-import { checkRolAuth } from "../middlewares/validar-roles.js";
+import { checkRolAuth, esPropietario } from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
 import {
   obtenerProyectosNacional,
@@ -59,6 +59,7 @@ routerPromocion.post(
   promoverNacionalValidator,
   promoverProyectos_Nacional
 );
+
 
 export default routerPromocion;
 

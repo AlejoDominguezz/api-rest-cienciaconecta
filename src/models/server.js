@@ -22,6 +22,7 @@ import routerPromocion from '../routes/promocion.route.js';
 import routerExposicion_Provincial from '../routes/exposicion_provincial.route.js';
 import routerNotificaciones from '../routes/notificacion.route.js';
 import routerReportes from '../routes/reporte.route.js';
+import routerDevolucion from '../routes/devolucion.route.js';
 
 
 
@@ -50,6 +51,7 @@ class Server {
             exposicion_provincial:  '/api/v1/exposicion-provincial',
             notificaciones:         '/api/v1/notificaciones',
             reportes:               '/api/v1/reportes',
+            devoluciones:           '/api/v1/devoluciones',
         }
 
         
@@ -157,6 +159,9 @@ class Server {
 
         //path de reportes
         this.app.use(this.paths.reportes, routerReportes);      
+
+        //path de devoluciones
+        this.app.use(this.paths.devoluciones, routerDevolucion);
     }
 
 

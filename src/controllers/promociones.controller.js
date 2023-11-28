@@ -343,6 +343,7 @@ try {
     }
 
     promocion.save()
+
     return res.json({msg: "Todos los proyectos han sido agregado a la lista de proyectos por promover al final de la instancia"});
 
 } catch (error) {

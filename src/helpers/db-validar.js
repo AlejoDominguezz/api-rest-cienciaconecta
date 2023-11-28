@@ -2,6 +2,7 @@ import {Usuario} from '../models/Usuario.js';
 import {Proyecto} from '../models/Proyecto.js';
 import {Nivel} from '../models/Nivel.js';
 import {Categoria} from '../models/Categoria.js';
+import { Feria } from '../models/Feria.js';
 
 export const existeEmail = async (email = '') => {
 
@@ -95,4 +96,10 @@ export const existeIdProyecto = async ( id ) => {
 }
 
 
-
+  
+  export const existeIdFeria = async (id) => {
+    const existeFeria = await Feria.findById(id);
+    if (!existeFeria) {
+      throw new Error(`El ID ingresado no corresponde a ninguna feria existente`);
+    }
+  };

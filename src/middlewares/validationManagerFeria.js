@@ -1,9 +1,11 @@
 import { body, param } from "express-validator";
 import { validarCampos } from "./validar-campos.js";
-import { fechaAnteriorA, fechaPosteriorA } from "../helpers/db-validar.js";
+import { existeIdFeria, fechaAnteriorA, fechaPosteriorA } from "../helpers/db-validar.js";
 import { check } from "express-validator";
 import { Nivel } from "../models/Nivel.js";
 import { EstablecimientoEducativo } from "../models/EstablecimientoEducativo.js";
+import { Feria } from "../models/Feria.js";
+import { query } from "express";
 
 const fechaActual = Date.now();
 const fechaActualAjustada = new Date(fechaActual);
@@ -867,3 +869,12 @@ const validarRubrica = (rubrica) => {
       }
     }
   };
+
+  export const validarIdFeria = [
+    check(
+      "id",
+      "No es un ID válido de mongo, verificar el ID ingresado por parámetro"
+    ).isMongoId(),
+    check("id").custom(existeIdFeria),
+    validarCampos
+  ];

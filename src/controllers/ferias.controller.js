@@ -433,3 +433,21 @@ export const obtenerEstadoFeria = async (req, res) => {
   const respuesta = { feria }; 
   return res.json(respuesta);
 }
+
+export const getFeriaById = async(req , res) => {
+  try {
+    const {id} = req.params;
+    const feriaActiva = await Feria.findById(id).select("-instancias.instanciaRegional.cupos -instancias.instanciaProvincial.cupos");
+
+
+    if(!feriaActiva){
+      return res.status(400).json({message: "ERROR AL INTENTAR MOSTRAR LA FERIA."});
+    }else{
+      return res.status(200).json({feriaActiva});
+    }
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Error de servidor" });
+  }
+}

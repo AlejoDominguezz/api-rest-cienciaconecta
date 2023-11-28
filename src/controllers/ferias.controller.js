@@ -1,5 +1,5 @@
 import { response , request } from 'express';
-import {Feria, estadoFeria, fechasFeria} from '../models/Feria.js';
+import {Feria, estadoFeria, fechasFeria, nombreEstadoFeria} from '../models/Feria.js';
 import { EstablecimientoEducativo} from '../models/EstablecimientoEducativo.js'
 import { Usuario } from '../models/Usuario.js';
 import { Proyecto, estado } from '../models/Proyecto.js';
@@ -11,41 +11,56 @@ import { infoFeria } from '../helpers/infoFeria.js';
 // Funcion para visualizar un listado de ferias --------------------------
 export const getFerias = async(req = request, res = response) => {
 
-  const {
-    nombre,
-    descripcion,
-    fechaInicioFeria,
-    fechaFinFeria,
-    fechaInicioPostulacionEvaluadores,
-    fechaFinPostulacionEvaluadores,
-    fechaInicioAsignacionProyectos,
-    fechaFinAsignacionProyectos,
-    estado,
-    usuarioResponsable,
-    instancias,
+  try {
     
-  } = req.query;
+    const {
+      nombre,
+      descripcion,
+      fechaInicioFeria,
+      fechaFinFeria,
+      fechaInicioPostulacionEvaluadores,
+      fechaFinPostulacionEvaluadores,
+      fechaInicioAsignacionProyectos,
+      fechaFinAsignacionProyectos,
+      estado,
+      usuarioResponsable,
+      instancias,
+      
+    } = req.query;
+  
+    // Crear un objeto de filtro con los parámetros de consulta presentes
+    const filtro = {
+      ...(nombre && { nombre }),
+      ...(descripcion && { descripcion }),
+      ...(fechaInicioFeria && { fechaInicioFeria }),
+      ...(fechaFinFeria && { fechaFinFeria }),
+      ...(fechaInicioPostulacionEvaluadores && { fechaInicioPostulacionEvaluadores }),
+      ...(fechaFinPostulacionEvaluadores && { fechaFinPostulacionEvaluadores }),
+      ...(fechaInicioAsignacionProyectos && { fechaInicioAsignacionProyectos }),
+      ...(fechaFinAsignacionProyectos && { fechaFinAsignacionProyectos }),
+      ...(instancias && { instancias }),
+      ...(estado && { estado }),
+      ...(usuarioResponsable && { usuarioResponsable }),
+    };
+  
+    let ferias = await Feria.find(filtro)
 
-  // Crear un objeto de filtro con los parámetros de consulta presentes
-  const filtro = {
-    ...(nombre && { nombre }),
-    ...(descripcion && { descripcion }),
-    ...(fechaInicioFeria && { fechaInicioFeria }),
-    ...(fechaFinFeria && { fechaFinFeria }),
-    ...(fechaInicioPostulacionEvaluadores && { fechaInicioPostulacionEvaluadores }),
-    ...(fechaFinPostulacionEvaluadores && { fechaFinPostulacionEvaluadores }),
-    ...(fechaInicioAsignacionProyectos && { fechaInicioAsignacionProyectos }),
-    ...(fechaFinAsignacionProyectos && { fechaFinAsignacionProyectos }),
-    ...(instancias && { instancias }),
-    ...(estado && { estado }),
-    ...(usuarioResponsable && { usuarioResponsable }),
-  };
-
-    const ferias = await Feria.find(filtro)
+    ferias = ferias.map((feria) => {
+      return {
+        ...feria.toObject(),
+        nombreEstado: nombreEstadoFeria[feria.estado],
+      };
+    });
 
     res.json({
         ferias
     });
+
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ error: "Error de servidor" });
+  }
+  
 }
 
 
@@ -61,7 +76,7 @@ export const getFeriaActiva = async(req = request, res = response) => {
     return res.json({feriaActiva});
 
   } catch (error) {
-    console.log(error);
+    //console.log(error);
     return res.status(500).json({ error: "Error de servidor" });
   }
 }
@@ -77,7 +92,7 @@ export const getFeriaActivaFuncion = async() => {
 
     return feriaActiva
   } catch (error) {
-    console.log(error);
+    //console.log(error);
     return null
   }
 }
@@ -155,7 +170,7 @@ export const crearFeria = async (req, res) => {
   
       return res.json({ ok: true });
     } catch (error) {
-      console.log(error);
+      //console.log(error);
       return res.status(500).json({ error: "Error de servidor" });
     }
   };
@@ -259,7 +274,7 @@ export const modificarFeria = async (req, res) => {
 
     return res.json({ feria });
   } catch (error) {
-    console.log(error);
+    //console.log(error);
     return res.status(500).json({ error: "Error de servidor" });
   }
 };
@@ -292,7 +307,7 @@ export const eliminarFeria = async (req, res) => {
 
     return res.json({ ok: true });
   } catch (error) {
-    console.log(error);
+    //console.log(error);
     return res.status(500).json({ error: "Error de servidor" });
   }
 };

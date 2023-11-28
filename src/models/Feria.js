@@ -203,6 +203,22 @@ export const estadoFeria = {
     finalizada: '12'
 };
 
+export const nombreEstadoFeria = {
+    0:  "Creada",
+    1:  "Iniciada",
+    2:  "Instancia Escolar",
+    3:  "Instancia Regional",
+    4:  "Instancia Regional - En Evaluación",
+    5:  "Instancia Regional - Evaluación Finalizada",
+    6:  "Instancia Regional - En Exposición",
+    7:  "Instancia Regional - Exposición Finalizada",
+    8:  "Instancia Provincial",
+    9:  "Instancia Provincial - En Exposición",
+    10: "Instancia Provincial - Exposición Finalizada",
+    11: "Instancia Nacional",
+    12: "Finalizada",
+}
+
 export const feriaExistente = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '8', '9', '10', '11']
 
 

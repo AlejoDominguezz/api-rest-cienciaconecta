@@ -1,6 +1,6 @@
 import {Router} from 'express';
-import { altaUsuarios, confirmarCuenta, consultarPendientes, login, logout, register, resetearContrasena, solicitarRecuperacionContrasena } from '../controllers/auth.controller.js';
-import { bodyLoginValidator, bodyRegisterValidator } from '../middlewares/validationManager.js';
+import { altaUsuarios, cambiarContrasena, confirmarCuenta, consultarPendientes, login, logout, register, resetearContrasena, solicitarRecuperacionContrasena } from '../controllers/auth.controller.js';
+import { bodyLoginValidator, bodyRegisterValidator , bodyChangePasswordValidator} from '../middlewares/validationManager.js';
 import { requireToken } from '../middlewares/requireToken.js';
 import { requireRefreshToken } from '../middlewares/requireRefreshToken.js';
 import { refreshToken } from '../middlewares/refreshToken.js';
@@ -20,7 +20,7 @@ routerAuth.post('/reset-password', resetearContrasena);
 routerAuth.post('/recuperar-contrasena', solicitarRecuperacionContrasena);
 routerAuth.post('/alta', requireToken, checkRolAuth([roles.admin, roles.comAsesora]), altaUsuarios)
 routerAuth.get('/pendientes', requireToken, checkRolAuth([roles.admin, roles.comAsesora]), consultarPendientes)
-
+routerAuth.post('/change-password' , requireToken , bodyChangePasswordValidator , cambiarContrasena);
 
 export default routerAuth;
 

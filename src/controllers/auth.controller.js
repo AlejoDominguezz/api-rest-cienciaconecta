@@ -197,7 +197,7 @@ export const consultarPendientes = async (req, res) => {
 
   try {
     
-    const usuarios_pendientes = await Usuario.find({estado: estadoUsuario.pendiente}) 
+    const usuarios_pendientes = await Usuario.find({estado: estadoUsuario.pendiente, cuentaConfirmada: true}) 
     .select('-password -estado -roles -tokenConfirm -cuentaConfirmada -tokenRecuperacion -__v')
     .lean()
     .exec();

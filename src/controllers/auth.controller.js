@@ -9,6 +9,7 @@ import { nanoid } from 'nanoid';
 import { estadoUsuario } from "../models/Usuario.js";
 import { emailCola } from "../helpers/queueManager.js";
 import { infoFeria } from "../helpers/infoFeria.js";
+import bcryptjs from 'bcryptjs';
 
 // Función de Login
 export const login = async (req, res) => {
@@ -300,3 +301,45 @@ export const altaUsuarios = async (req, res) => {
 //   }
 // }
 
+export const cambiarContrasena = async(req , res) => {
+  try {
+    const { old_password , new_password } = req.body;
+    const uid = req.uid;
+    console.log('old', old_password);
+    console.log('new', new_password);
+
+    const usuario = await Usuario.findById(uid);
+
+    if(!usuario){
+      res.status(400).json({message: "ERROR AL INTENTAR CAMBIAR LA CONTRASEÑA DEL USUARIO, EL USUARIO NO EXISTE."});
+    }else{
+
+      //verifico que la contraseña vieja sea la misma que la actual
+      const contraseñaActual = await bcryptjs.compare(old_password, usuario.password);
+
+      if(contraseñaActual){
+
+        //verifico que la nueva contraseña sea distinta a la actual
+        const esContraseñaActual = await bcryptjs.compare(new_password, usuario.password);
+
+        if(esContraseñaActual){
+          res.status(400).json({message: "ERROR AL CAMBIAR LA CONTRASEÑA, LA CONTRASEÑA NO DEBE SER IGUAL A TU CONTRASEÑA ANTERIOR"});
+        }else{
+          usuario.password = new_password;
+          await usuario.save();
+
+          res.status(200).json({message: "LA CONTRASEÑA FUE CAMBIADA CON ÉXITO."});
+        }
+  
+      }else{
+        res.status(400).json({message: "ERROR AL INTENTAR CAMBIAR LA CONTRASEÑA, LA CONTRASEÑA ACTUAL INGRESADA NO ES CORRECTA, VETIFIQUE DATOS INGRESADOS."});
+      }
+
+
+    }
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({message: "ERROR DEL SERVIDOR."});
+  }
+}

@@ -262,3 +262,29 @@ export const bodyUpdateValidator = [
   ),
   validarCampos,
 ];
+
+export const bodyChangePasswordValidator = [
+  body("new_password", "Mínimo 8 caracteres y máximo 20")
+    .trim()
+    .isLength({ min: 8, max: 20 }),
+
+  body("new_password", "La contraseña debe tener al menos un número").matches(
+    /[0-9]/
+  ),
+
+  body("new_password", "La contraseña debe tener al menos una mayúscula").matches(
+    /[A-Z]/
+  ),
+  body("old_password", "Mínimo 8 caracteres y máximo 20")
+  .trim()
+  .isLength({ min: 8, max: 20 }),
+
+  body("old_password", "La contraseña debe tener al menos un número").matches(
+    /[0-9]/
+  ),
+
+  body("old_password", "La contraseña debe tener al menos una mayúscula").matches(
+    /[A-Z]/
+  ),
+  validarCampos,
+];

@@ -7,15 +7,21 @@ export const getNotificacionesNuevas = async (req, res) => {
         const uid = req.uid;
         const notificacion = await Notificacion.findOne({id_usuario: uid})
         if(!notificacion){
-            return res.status(204).json({});
+            return res.status(200).json({notificacionesNuevas: [], notificacionesNoLeidas: 0});
         }
 
         const notificacionesNuevas = notificacion.notificaciones.filter(
             (notificacion) => notificacion.estado == estadoNotificacion.creada
         );
 
+        const notificacionesNoLeidas = notificacion.notificaciones.filter(
+            (notificacion) => (notificacion.estado == estadoNotificacion.creada || notificacion.estado == estadoNotificacion.enviada)
+        );
+
+        const cantNotificacionesNoLeidas = notificacionesNoLeidas.length;
+
         if(notificacionesNuevas.length == 0){
-            return res.status(204).json({});
+            return res.status(200).json({notificacionesNuevas: [], notificacionesNoLeidas: cantNotificacionesNoLeidas});
         }
 
         // Cambia el estado de las notificaciones a "enviada"
@@ -27,7 +33,7 @@ export const getNotificacionesNuevas = async (req, res) => {
 
 
 
-        return res.json(notificacionesNuevas)
+        return res.json({notificacionesNuevas, notificacionesNoLeidas: cantNotificacionesNoLeidas})
 
     } catch (error) {
         return res.status(500).json({ error: "Error de servidor" });

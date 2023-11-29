@@ -7,7 +7,7 @@
 
 import { Router } from "express";
 import { requireToken } from "../middlewares/requireToken.js";
-import { checkRolAuth } from "../middlewares/validar-roles.js";
+import { blockRolAuth, checkRolAuth } from "../middlewares/validar-roles.js";
 import { roles } from "../helpers/roles.js";
 import {
   postularEvaluador,
@@ -34,6 +34,7 @@ routerEvaluadores.post(
   fecha(fechasFeria.fechaInicioPostulacion, fechasFeria.fechaFinPostulacion),
   requireToken,
   checkRolAuth([roles.admin, roles.docente]),
+  blockRolAuth([roles.refEvaluador]),
   bodyPostularEvaluadorValidator,
   postularEvaluador
 );

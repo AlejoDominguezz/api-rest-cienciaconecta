@@ -280,28 +280,30 @@ export const asignarEvaluadoresAProyecto = async (req, res) => {
 
         for (const evaluadorID of evaluadores) {
             try {
-                // if (proyecto.evaluadoresRegionales.includes(evaluadorID.toString())) {
-                //     errores.push(`El evaluador con ID ${evaluadorID} ya ha sido asignado al proyecto`);
-                // } else {
-                    const evaluador = await Evaluador.findById(evaluadorID);
-                    if (!evaluador) {
-                        errores.push(`No existe un evaluador registrado con ID ${evaluadorID}`);
-                    } else {
-                        const proyectosAsignados = await Proyecto.find({ evaluadoresRegionales: evaluadorID, _id: { $ne: proyecto._id } }).countDocuments();
-                        if (proyectosAsignados >= 5) {
-                            errores.push(`Evaluador con ID ${evaluadorID} ya está asignado a 5 proyectos`);
-                        } else if(evaluador.sede.toString() != proyecto.sede.toString()) {
-                            errores.push(`Evaluador con ID ${evaluadorID} no pertenece a la sede del proyecto`);
-                        } else if(evaluador.pendiente == true) {
-                            errores.push(`Evaluador con ID ${evaluadorID} no se encuentra activo`);
-                        }
-                         else {
-                            proyecto.evaluadoresRegionales.push(evaluadorID);
-                            const docente = await Docente.findById(evaluador.idDocente);
-                            usuarios.push(docente.usuario.toString())
-                        }
+
+                const evaluador = await Evaluador.findById(evaluadorID);
+                if (!evaluador) {
+                    errores.push(`No existe un evaluador registrado con ID ${evaluadorID}`);
+                } else {
+                    const docente = await Docente.findById(evaluador.idDocente);
+
+                    if(proyecto.idResponsable.toString() == docente.id.toString()){
+                        errores.push(`Evaluador '${docente.nombre} ${docente.apellido}' no puede evaluar el proyecto '${proyecto.titulo}' porque es de su pertenencia.`);
                     }
-                // }
+                    const proyectosAsignados = await Proyecto.find({ evaluadoresRegionales: evaluadorID, _id: { $ne: proyecto._id } }).countDocuments();
+                    if (proyectosAsignados >= 5) {
+                        errores.push(`Evaluador '${docente.nombre} ${docente.apellido}' ya está asignado a 5 proyectos`);
+                    } else if(evaluador.sede.toString() != proyecto.sede.toString()) {
+                        errores.push(`Evaluador '${docente.nombre} ${docente.apellido}' no pertenece a la sede del proyecto`);
+                    } else if(evaluador.pendiente == true) {
+                        errores.push(`Evaluador '${docente.nombre} ${docente.apellido}' no se encuentra activo`);
+                    }
+                        else {
+                        proyecto.evaluadoresRegionales.push(evaluadorID);
+                        usuarios.push(docente.usuario.toString())
+                    }
+                }
+
             } catch (error) {
                 errores.push(`Error al procesar evaluador con ID ${evaluadorID}: ${error.message}`);
             }

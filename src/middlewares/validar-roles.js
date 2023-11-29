@@ -24,6 +24,24 @@ export const checkRolAuth = (roles) => async (req, res, next) => {
   }
 };
 
+
+export const blockRolAuth = (roles) => async (req, res, next) => {
+  try {
+    const rolesData = req.roles;
+
+    if (rolesData.some((role) => roles.includes(role))) {
+      res.status(403).json({ error: "No tienes los permisos necesarios para realizar esta acción" });
+    } else {
+      next();
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(409);
+    res.send({ error: "Error al comprobar permisos" });
+  }
+};
+
+
 export const esPropietario = async (req, res, next) => {
   try {
     const idUsuario = req.uid;

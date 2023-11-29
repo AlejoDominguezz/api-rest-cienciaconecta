@@ -167,29 +167,32 @@ export const porcProyectosInscriptos = async (req, res) => {
 export const cantidadProyectosFeria = async (req, res) => {
   try {
 
-    // Obtener todas las ferias
-    const ferias = await Feria.find();
+    // Obtener todas las ferias ordenadas por fecha de inicio
+    const ferias = await Feria.find().sort({ fechaInicioFeria: 1 }); // 1 para orden ascendente
 
     let proyectosXferia = [];
-    for (const feria of ferias){
-      const proyectos = await Proyecto.find({feria: feria._id, estado: { $ne: "9" }})
+    for (const feria of ferias) {
+      const proyectos = await Proyecto.find({ feria: feria._id, estado: { $ne: "9" } });
       const resultado = {
         feria: feria.nombre,
+        fechaInicioFeria: feria.fechaInicioFeria,
         proyectos: proyectos.length
       }
       proyectosXferia.push(resultado)
     }
-    
-    const cantProyectosFeria = await formatearSalida_cantProyectosFeria(proyectosXferia)
 
-    return res.json({data: cantProyectosFeria});
+    // Ordenar el array de resultados por fecha de inicio de feria (ascendente)
+    proyectosXferia.sort((a, b) => new Date(a.fechaInicioFeria) - new Date(b.fechaInicioFeria));
+
+    const cantProyectosFeria = await formatearSalida_cantProyectosFeria(proyectosXferia);
+
+    return res.json({ data: cantProyectosFeria });
 
   } catch (error) {
-    //console.log(error)
+    // console.log(error)
     return res.status(500).json({ error: "Error de servidor" });
   }
 }
-
 
 
 
@@ -246,7 +249,7 @@ export const cantidadEvaluadores = async (req, res) => {
     }
 
     const cantEvaluadores = await formatearSalida_cantEvaluadores(resultados)
-    return res.status(200).json(cantEvaluadores);
+    return res.status(200).json({data: cantEvaluadores});
 
   } catch (error) {
     //console.log(error)

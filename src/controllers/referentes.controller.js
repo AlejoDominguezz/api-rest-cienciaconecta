@@ -310,7 +310,7 @@ export const asignarEvaluadoresAProyecto = async (req, res) => {
         }
 
         if (errores.length > 0) {
-            return res.status(401).json({ error: "Han ocurrido errores al asignar evaluadores al proyecto", errors: errores });
+            return res.status(422).json({ error: "Han ocurrido errores al asignar evaluadores al proyecto", errors: errores });
         } else {
             await proyecto.save();
             for(const usuario of usuarios){

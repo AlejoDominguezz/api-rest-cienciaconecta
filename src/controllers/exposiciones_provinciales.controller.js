@@ -5,6 +5,7 @@ import { Docente } from "../models/Docente.js";
 import { EvaluacionExposicionProvincial, estadoEvaluacionExposicionProvincial, nombreEstadoExposicionProvincial } from "../models/EvaluacionExposicion_Provincial.js";
 import { Evaluador } from "../models/Evaluador.js";
 import { Proyecto, estado, nombreEstado } from "../models/Proyecto.js";
+import { cancelarJobsEvaluacion, crearJobsEvaluacion } from "../services/evaluacion/jobsEvaluacion_services.js";
 import { obtenerPuntaje } from "./evaluaciones.controller.js";
 
 // Obtener estructura de evaluacion de exposicion para iniciar la evaluación, exista o no una evaluacion previa -------------------------------
@@ -75,6 +76,8 @@ export const iniciarEvaluacionExposicion = async (req, res) => {
         evaluacion_proyecto.save();
       }
   
+      // Crear jobs para cancelar exposicion
+      crearJobsEvaluacion("Exposicion_Provincial", feria._id, proyecto._id)
   
       // Devolver la estructura de evaluación de exposicion con o sin evaluacion existente
       return res.json(evaluacion_estructura_exposicion);
@@ -147,6 +150,9 @@ export const iniciarEvaluacionExposicion = async (req, res) => {
             evaluacion.save()
             }
 
+            // Crear jobs para cancelar exposicion
+            crearJobsEvaluacion("Exposicion_Provincial", feria._id, proyecto._id)
+
             // Devolver la estructura de evaluación de exposicion con o sin evaluacion existente
             return res.json(evaluacion_estructura_exposicion);
         }
@@ -173,12 +179,16 @@ export const cancelarEvaluacionExposicion = async (req, res) =>  {
 
     if(evaluacion_pendiente.evaluacion == null){
       evaluacion_pendiente.deleteOne()
+      proyecto.estado = estado.promovidoProvincial;
+      proyecto.save();
     } else {
       evaluacion_pendiente.evaluando = null;
       evaluacion_pendiente.estado = estadoEvaluacionExposicionProvincial.abierta;
 
       evaluacion_pendiente.save();
     }
+
+    await cancelarJobsEvaluacion("Exposicion_Provincial", feria._id, proyecto._id)
 
     return res.json({ ok: true });
   } catch (error) {
@@ -376,6 +386,7 @@ export const evaluarExposicionProyecto = async (req, res) => {
     }
   }
 
+  await cancelarJobsEvaluacion("Exposicion_Provincial", feria._id, proyecto._id)
   await generarNotificacion(usuario, tipo_notificacion.evaluacion_exposicion_provincial(proyecto.titulo))
   return res.json({ ok: true,  evaluacion: evaluacion_anterior});
   

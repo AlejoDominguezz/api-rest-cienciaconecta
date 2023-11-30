@@ -179,6 +179,8 @@ export const cancelarEvaluacionExposicion = async (req, res) =>  {
 
     if(evaluacion_pendiente.evaluacion == null){
       evaluacion_pendiente.deleteOne()
+      proyecto.estado = estado.promovidoProvincial;
+      proyecto.save();
     } else {
       evaluacion_pendiente.evaluando = null;
       evaluacion_pendiente.estado = estadoEvaluacionExposicionProvincial.abierta;

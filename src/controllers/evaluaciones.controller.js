@@ -8,6 +8,7 @@ import { roles } from "../helpers/roles.js";
 import { Referente } from "../models/Referente.js";
 import { EvaluacionExposicion, nombreEstadoExposicion } from "../models/EvaluacionExposicion.js";
 import { generarNotificacion, tipo_notificacion } from "../helpers/generarNotificacion.js";
+import { cancelarJobsEvaluacion, crearJobsEvaluacion } from "../services/evaluacion/jobsEvaluacion_services.js";
 
 export const evaluarProyecto = async (req, res) => {
     const evaluacion = req.body.evaluacion;
@@ -94,6 +95,8 @@ export const evaluarProyecto = async (req, res) => {
         await generarNotificacion(docente.usuario, tipo_notificacion.todos_evaluaron_teorica_regional(proyecto.titulo))
       }
     }
+
+    await cancelarJobsEvaluacion("Evaluacion_Regional", feria._id, proyecto._id)
 
     await generarNotificacion(usuario, tipo_notificacion.evaluacion_teorica_regional(proyecto.titulo))
 
@@ -206,7 +209,8 @@ export const iniciarEvaluacion = async (req, res) => {
 
     }
 
-
+    // Crear jobs para cancelar evaluación
+    await crearJobsEvaluacion("Evaluacion_Regional", feria._id, proyecto._id)
 
     // Devolver la estructura de evaluación teórica con o sin evaluacion existente
     return res.json(evaluacion_estructura_teorica);
@@ -278,6 +282,9 @@ export const iniciarEvaluacion = async (req, res) => {
             evaluacion.evaluando = evaluador.id;
             evaluacion.save()
           }
+
+          // Crear jobs para cancelar evaluación
+          crearJobsEvaluacion("Evaluacion_Regional", feria._id, proyecto._id)
 
           // Devolver la estructura de evaluación teórica con o sin evaluacion existente
           return res.json(evaluacion_estructura_teorica);
@@ -448,6 +455,8 @@ export const cancelarEvaluacion = async (req, res) =>  {
 
       evaluacion_pendiente.save();
     }
+
+    await cancelarJobsEvaluacion("Evaluacion_Regional", feria._id, proyecto._id)
 
     return res.json({ ok: true });
   } catch (error) {

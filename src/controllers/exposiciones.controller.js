@@ -9,6 +9,7 @@ import { Types } from "mongoose";
 import { roles } from "../helpers/roles.js";
 import { Referente } from "../models/Referente.js";
 import { generarNotificacion, tipo_notificacion } from "../helpers/generarNotificacion.js";
+import { cancelarJobsEvaluacion, crearJobsEvaluacion } from "../services/evaluacion/jobsEvaluacion_services.js";
 
 
 // Obtener estructura de evaluacion de exposicion para iniciar la evaluación, exista o no una evaluacion previa -------------------------------
@@ -77,6 +78,9 @@ export const iniciarEvaluacionExposicion = async (req, res) => {
       }
   
   
+      // Crear jobs para cancelar exposicion
+      crearJobsEvaluacion("Exposicion_Regional", feria._id, proyecto._id)
+
       // Devolver la estructura de evaluación de exposicion con o sin evaluacion existente
       return res.json(evaluacion_estructura_exposicion);
   
@@ -148,6 +152,9 @@ export const iniciarEvaluacionExposicion = async (req, res) => {
             evaluacion.save()
             }
 
+            // Crear jobs para cancelar exposicion
+            crearJobsEvaluacion("Exposicion_Regional", feria._id, proyecto._id)
+
             // Devolver la estructura de evaluación de exposicion con o sin evaluacion existente
             return res.json(evaluacion_estructura_exposicion);
         }
@@ -182,6 +189,8 @@ export const cancelarEvaluacionExposicion = async (req, res) =>  {
 
       evaluacion_pendiente.save();
     }
+
+    await cancelarJobsEvaluacion("Exposicion_Regional", feria._id, proyecto._id)
 
     return res.json({ ok: true });
   } catch (error) {
@@ -385,6 +394,7 @@ export const evaluarExposicionProyecto = async (req, res) => {
     }
   }
 
+  await cancelarJobsEvaluacion("Exposicion_Regional", feria._id, proyecto._id)
   await generarNotificacion(usuario, tipo_notificacion.evaluacion_exposicion_regional(proyecto.titulo))
   return res.json({ ok: true,  evaluacion: evaluacion_anterior});
   

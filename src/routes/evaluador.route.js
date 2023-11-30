@@ -18,7 +18,8 @@ import {
   getCvV2,
   getCv_,
   getPostulacionById,
-  obtenerInfoResumidaEvaluador
+  obtenerInfoResumidaEvaluador,
+  validarPostulacionEvaluador
 } from "../controllers/evaluadores.controller.js";
 import {
   bodyPostularEvaluadorValidator,
@@ -96,6 +97,13 @@ routerEvaluadores.get(
   checkRolAuth([roles.evaluador]),
   obtenerInfoResumidaEvaluador
 );
+
+routerEvaluadores.get(
+  "/validarPostulacion",
+  requireToken,
+  checkRolAuth([roles.docente]),
+  validarPostulacionEvaluador
+)
 
 export default routerEvaluadores;
 

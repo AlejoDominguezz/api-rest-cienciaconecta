@@ -387,7 +387,27 @@ export const obtenerInfoResumidaEvaluador = async (req, res) => {
       return res.json({evaluador})
 
   } catch (error) {
-      console.log(error)
+      //console.log(error)
       return res.status(500).json({error: "Error de servidor"})
+  }
+}
+
+
+
+export const validarPostulacionEvaluador = async (req, res) => {
+  try {
+    const feriaActiva = await getFeriaActivaFuncion()
+    const uid = req.uid;
+    const docente = await Docente.findOne({usuario: uid})
+    const postulacion = await Evaluador.findOne({idDocente: docente.id.toString(), feria: feriaActiva.id.toString()})
+    if(postulacion){
+      return res.status(401).json({ error: "Ya te has postulado como evaluador anteriormente" });
+    } else {
+      return res.status(200).json({ ok: true });
+    }
+
+
+  } catch (error) {
+    return res.status(500).json({error: "Error de servidor"})
   }
 }

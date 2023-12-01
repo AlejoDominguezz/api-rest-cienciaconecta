@@ -571,12 +571,13 @@ export const modificarProyectoRegional = async (req, res) => {
 
 export const cargarArchivosRegional = async (req, res) => {
   //obtengo el id del proyecto
+  const uid = req.uid;
   const id_proyecto = req.params.id;
   const proyecto = await Proyecto.findById(id_proyecto);
 
   try {
     if(!proyecto.id_carpeta_drive){
-      console.log('no existe la carpeta')
+      //console.log('no existe la carpeta')
       //logica para cargar por primera vez los documents
       const form = formidable({ multiples: false });
       form.parse(req, async (err, fields, files) => {
@@ -643,6 +644,7 @@ export const cargarArchivosRegional = async (req, res) => {
 
       await proyecto.save();
       const cola = await filesCola.add("files_:upload", { 
+        uid: uid,
         id: id_proyecto, 
         files: files,
         name_files: name_files});
@@ -656,7 +658,7 @@ export const cargarArchivosRegional = async (req, res) => {
 
     }else{
       //logica para modificar documents
-      console.log('existe carpeta');
+      //console.log('existe carpeta');
       const id = id_proyecto;
       const form = formidable({ multiples: false });
       form.parse(req, async (err, fields, files) => {
@@ -700,6 +702,7 @@ export const cargarArchivosRegional = async (req, res) => {
       
       await proyecto.save();
       const cola = await filesCola.add("files_:update", { 
+        uid: uid,
         id: id, 
         files: files,
         name_files: name_files});

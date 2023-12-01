@@ -14,8 +14,11 @@ import {
   getEstablecimientosEducativos,
   getSedesRegionalesActuales,
   getEstablecimientoById,
+  actualizarEstablecimientosEducativos,
 } from "../controllers/establecimientos.controller.js";
 import { bodyCrearEstablecimientoValidator } from "../middlewares/validationManagerEstablecimiento.js";
+import { noExisteFeriaActiva } from "../middlewares/existeFeriaActiva.js";
+import { verificarTareaActiva } from "../middlewares/existeTareaActiva.js";
 
 const routerEstablecimiento = Router();
 
@@ -37,6 +40,15 @@ routerEstablecimiento.get(
   requireToken,
   checkRolAuth(allRoles),
   getEstablecimientosEducativos
+);
+
+routerEstablecimiento.post(
+  "/actualizar",
+  requireToken,
+  checkRolAuth([roles.comAsesora]),
+  noExisteFeriaActiva,
+  verificarTareaActiva,
+  actualizarEstablecimientosEducativos,
 );
 
 //routerEstablecimiento.post("/", requireToken, checkRolAuth([roles.admin, roles.comAsesora]), bodyCrearEstablecimientoValidator, crearEstablecimientoEducativo)

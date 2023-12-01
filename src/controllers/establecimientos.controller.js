@@ -1,20 +1,21 @@
 import {EstablecimientoEducativo} from '../models/EstablecimientoEducativo.js';
 import { response, request } from 'express';
 import { Feria, estadoFeria } from '../models/Feria.js';
+import { establecimientosCola } from '../helpers/queueManager.js';
+import formidable from "formidable";
+import { validarCamposExcel, validarCueAnexo, validarHojasExcel } from '../middlewares/validarCamposExcel.js';
 
 export const getEstablecimientosEducativos = async (req = request, res = response) => {
     try {
         const { localidad } = req.params;
 
-        // const establecimientosAggregation = await EstablecimientoEducativo.aggregate([
-        //     { $match: { localidad: localidad } }, // Filtrar por el departamento especificado
-        //     { $group: { _id: "$nombre" } },
-        //     { $project: { _id: 0, establecimiento: "$_id" } }
-        // ]);
-
-        // const establecimientos = establecimientosAggregation.map(item => item.establecimiento);
-
-        const establecimientos = await EstablecimientoEducativo.find({ localidad: localidad });
+        const establecimientos = await EstablecimientoEducativo.find({
+            localidad: localidad,
+            $or: [
+                { activo: true },
+                { activo: { $exists: false } } 
+            ]
+        });
 
         res.json({
             establecimientos
@@ -208,3 +209,65 @@ export const checkEstablecimientoIsSede = async (sedeId) => {
 //         });
 //     }
 // };
+
+export const actualizarEstablecimientosEducativos = (req, res) => {
+    try {
+
+        const uid = req.uid;
+        const form = formidable({ multiples: false });
+
+        form.parse(req, async (err, fields, files) => {
+
+            if (err) {
+                console.error("Error al procesar el Form Data", err.message);
+                return res.status(500).json({error:"Error al procesar el Form Data"});
+                return;
+            }
+
+            if(!files.establecimientosEducativos){
+                return res.status(400).json({error: "Debe ingresar un archivo con formato .xls con el nombre 'establecimientosEducativos"});
+            }
+
+            if (!files || Object.keys(files).length === 0) {
+                return res.status(400).json({error: "Debe ingresar un archivo Excel"});
+            }
+
+            const extensionValida = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            for (const archivoKey in files) {
+                if (files.hasOwnProperty(archivoKey)) {
+                    const archivo = files[archivoKey];
+                    if(archivo.mimetype !== extensionValida)
+                    return res.status(400).json({error: "El formato del archivo cargado no es válido"})
+                }
+            }
+
+            const validarHojas = validarHojasExcel(files.establecimientosEducativos)
+            if(!validarHojas) {
+                return res.status(409).json({error: `El archivo Excel debe contar con una única Hoja de al menos 5000 filas`})
+            }
+
+            const {formatoCorrecto, campo, posicion} = validarCamposExcel(files.establecimientosEducativos)
+            if(!formatoCorrecto){
+                return res.status(409).json({error: `Formato de Excel incorrecto. El campo ${campo} no se encuentra en la posición ${posicion}`})
+            }
+
+            const validarCUE = validarCueAnexo(files.establecimientosEducativos)
+            if(!validarCUE){
+                return res.status(409).json({error: `Cada Cueanexo debe contener 9 dígitos (2 Anexo + 7 CUE)`})
+            }
+
+            const cola = establecimientosCola.add("establecimientos:actualizar", {uid , files});
+            if(cola){
+                return res.status(200).json({msg: "Actualizando Establecimientos Educativos"});
+            }else{
+                return res.status(400).json({error: "Error al actualizar Establecimientos Educativos"});
+            }
+        });
+        
+    
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({error: "Error de servidor"});
+      }
+
+}

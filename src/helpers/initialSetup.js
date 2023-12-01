@@ -58,7 +58,8 @@ export const crearEstablecimientosEducativos = async () => {
         if(count > 0) return;
 
         const workbook = xlsx.readFile('./excel/2023.07.03_establecimientosEducativos.xlsx');
-        const worksheet = workbook.Sheets['padron'];
+        const worksheetName = workbook.SheetNames[0]; // Obtener el nombre de la primera Sheet
+        const worksheet = workbook.Sheets[worksheetName];
     
         // Convertir el contenido del archivo Excel a un arreglo de objetos
         const data = xlsx.utils.sheet_to_json(worksheet, { header: 1, range: 14 });

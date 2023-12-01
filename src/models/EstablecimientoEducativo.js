@@ -40,25 +40,30 @@ const EstablecimientoEducativoSchema = new Schema({
     niveles:{
         inicial:{
             type: Boolean,
-            required:true,
+            required:false,
         },
         primario:{
             type: Boolean,
-            required:true,
+            required:false,
         },
         secundario:{
             type: Boolean,
-            required:true,
+            required:false,
         },
         terciario:{
             type: Boolean,
-            required:true,
+            required:false,
         }
     },
     ferias: {
         type: [Schema.Types.ObjectId],
         default: [],
         ref: 'Feria',
+    },
+    activo: {
+        type: Boolean,
+        required: false,
+        default: true,
     }
 })
 

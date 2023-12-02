@@ -28,7 +28,7 @@ import {
   bodyInscribirProyectoValidator,
   bodyActualizarProyectoRegionalValidator,
 } from "../middlewares/validationManager.js";
-import { blockRolAuth, checkRolAuth, esEvaluadorDelProyecto, esPropietario, esReferenteDelProyecto } from "../middlewares/validar-roles.js";
+import { blockRolAuth, checkRolAuth, esEvaluadorDelProyecto, esPropietario, esPropietarioHistorico, esReferenteDelProyecto } from "../middlewares/validar-roles.js";
 import { allRoles, roles } from "../helpers/roles.js";
 import { BodyValidationDrive , validarArchivosPDF  } from "../middlewares/validationDrive.js";
 import { estado, fecha } from "../middlewares/validar-fechas.js";
@@ -54,10 +54,17 @@ routerProyectos.get(
 routerProyectos.get(
   "/:id",
   requireToken,
-  checkRolAuth([roles.admin, roles.responsableProyecto, roles.comAsesora, roles.refEvaluador, roles.evaluador]),
+  checkRolAuth([roles.admin, roles.docente, roles.responsableProyecto, roles.comAsesora, roles.refEvaluador, roles.evaluador]),
   esPropietario,
   esReferenteDelProyecto,
   esEvaluadorDelProyecto,
+  consultarProyecto
+);
+routerProyectos.get(
+  "/propietario/:id",
+  requireToken,
+  checkRolAuth([roles.admin, roles.docente]),
+  esPropietarioHistorico,
   consultarProyecto
 );
 routerProyectos.get(

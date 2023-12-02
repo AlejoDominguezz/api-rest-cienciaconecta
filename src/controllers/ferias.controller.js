@@ -4,7 +4,7 @@ import { EstablecimientoEducativo} from '../models/EstablecimientoEducativo.js'
 import { Usuario } from '../models/Usuario.js';
 import { Proyecto, estado } from '../models/Proyecto.js';
 import { generarJobsAsincronicos } from '../services/drive/feriaJobs.js';
-import { getSedesRegionalesActualesFunction } from './establecimientos.controller.js';
+import { getSedesRegionalesActualesFunction, getSedesRegionalesFeria } from './establecimientos.controller.js';
 import { Evaluador } from '../models/Evaluador.js';
 import { infoFeria } from '../helpers/infoFeria.js';
 
@@ -314,14 +314,32 @@ export const eliminarFeria = async (req, res) => {
 
 
 export const obtenerInfoResumidaFeria = async (req, res) => {
-  const feriaActiva = await getFeriaActivaFuncion();
+  
+  const {
+    id,
+  } = req.query;
+
+  let feriaActiva = null;
+  if(!id){
+    feriaActiva = await getFeriaActivaFuncion();
+  } else {
+    feriaActiva = await Feria.findById(id)
+  }
+  
   if(!feriaActiva){
     return res.status(204).json();
   }
   
   const {instancia_actual, prox_instancia} = obtenerFaseFeria(parseInt(feriaActiva.estado));
   const prox_fecha = convertirFecha(eval(`feriaActiva.${obtenerProximaFecha(parseInt(feriaActiva.estado))}`))
-  const sedes = await getSedesRegionalesActualesFunction()
+
+  let sedes = null;
+  if(!id){
+    sedes = await getSedesRegionalesActualesFunction()
+  } else {
+    sedes = await getSedesRegionalesFeria(feriaActiva)
+  }
+  
   let feria = {
     sedes: []
   };

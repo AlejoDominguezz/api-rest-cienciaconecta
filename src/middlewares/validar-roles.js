@@ -88,6 +88,49 @@ export const esPropietario = async (req, res, next) => {
 };
 
 
+export const esPropietarioHistorico = async (req, res, next) => {
+  try {
+    const idUsuario = req.uid;
+    const { id } = req.params;
+    const rolesData = req.roles;
+
+    if (rolesData.includes(roles.admin)) {
+      return next();
+    }
+
+    if (!id) {
+      return res
+        .status(400)
+        .json({ error: "Se necesita pasar por parámetro el ID de proyecto" });
+    }
+
+    const proyecto = await Proyecto.findById(id);
+    if (!proyecto)
+      return res.status(404).json({ error: "No se ha encontrado el proyecto" });
+
+    const docente = await Docente.findOne({ usuario: idUsuario });
+    if (!docente)
+      return res.status(404).json({ error: "No se ha encontrado el docente" });
+
+
+    if (docente._id.toString() !== proyecto.idResponsable.toString()) {
+      return res
+        .status(403)
+        .json({ error: "No eres propietario de este proyecto" });
+    }
+
+    req.proyecto = proyecto;
+
+    next();
+
+  } catch (error) {
+    console.log(error);
+    res.status(409).json({ error: "Error al comprobar el propietario" });
+  }
+};
+
+
+
 export const esEvaluadorDelProyecto = async (req, res, next) => {
   
   try {

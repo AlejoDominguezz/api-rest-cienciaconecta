@@ -124,6 +124,7 @@ export const generarJobsAsincronicos = async (feria_id, feria, body) => {
         await cancelarJobs("finFeria", feria_id)
         const fecha = body.fechaFinFeria;
         await generarJob(fecha, feria_id, "finFeria");
+        // Al finalizar la feria, se eliminan los roles de todos los usuarios, excepto roles: admin, comAsesora, docente.
     }
 
     // Fecha de inicio de asignación -----------------------------------------------------------------------------

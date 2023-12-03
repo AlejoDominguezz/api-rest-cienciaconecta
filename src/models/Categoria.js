@@ -12,6 +12,11 @@ const CategoriaSchema = new Schema({
     color: {
         type: String,
         required: true,
+    },
+    activa: {
+        type: Boolean,
+        required: true,
+        default: true,
     }
 })
 

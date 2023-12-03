@@ -5,7 +5,12 @@ import {Categoria} from '../models/Categoria.js';
 export const getCategorias = async(req = request, res = response) => {
 
     try {
-        const categoria = await Categoria.find()
+        const categoria = await Categoria.find({
+            $or: [
+                { activa: true },
+                { activa: { $exists: false } } 
+            ]
+        })
         .select('-__v')
         .lean()
         .exec()
@@ -25,10 +30,16 @@ export const crearCategoria = async(req = request, res = response) => {
     try {
         const {nombre, abreviatura, color} = req.body;
 
+        const categoria_existente = await Categoria.findOne({nombre: nombre, activa: true})
+        if(categoria_existente){
+            return res.status(422).json({error: `Ya existe una categoría activa con el nombre ${nombre}`})
+        }
+
         const categoria = new Categoria({
             nombre, 
             abreviatura,
-            color
+            color,
+            activa: true,
         })
 
         const cat = await categoria.save()
@@ -50,7 +61,8 @@ export const eliminarCategoria = async(req = request, res = response) => {
             return res.status(404).json({error: "No se ha encontrado ninguna categoría con el ID ingresado"})
         }
 
-        categoria.deleteOne()
+        categoria.activa = false;
+        categoria.save();
 
         return res.json({msg: `La categoria '${categoria.nombre}' se ha eliminado con éxito`})
     } catch (error) {

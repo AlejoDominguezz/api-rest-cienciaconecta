@@ -75,7 +75,7 @@ export const register = async (req, res) => {
     await user.save();
     await docente.save();
 
-    await emailCola.add("email:confirmacionUsuario", { 
+    emailCola.add("email:confirmacionUsuario", { 
       tokenConfirm: user.tokenConfirm, 
       mail: user.email})
 
@@ -152,7 +152,7 @@ export async function solicitarRecuperacionContrasena(req, res) {
     usuario.tokenRecuperacion = token;
     await usuario.save()
 
-    await emailCola.add("email:recuperacionContrasena", { 
+    emailCola.add("email:recuperacionContrasena", { 
       token, 
       usuario})
 
@@ -255,7 +255,7 @@ export const altaUsuarios = async (req, res) => {
             usuario.save()
 
             try {
-                await emailCola.add("email:altaUsuario", {
+                emailCola.add("email:altaUsuario", {
                   usuario, 
                   docente})
 

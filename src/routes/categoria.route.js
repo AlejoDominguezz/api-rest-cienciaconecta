@@ -21,6 +21,7 @@ import {
 } from "../middlewares/validationManagerCategoria.js";
 import { estado } from "../middlewares/validar-fechas.js";
 import { estadoFeria } from "../models/Feria.js";
+import { noExisteFeriaActiva } from "../middlewares/existeFeriaActiva.js";
 
 const routerCategorias = Router();
 
@@ -42,6 +43,7 @@ routerCategorias.post(
   ]),
   requireToken,
   checkRolAuth([roles.admin, roles.comAsesora]),
+  noExisteFeriaActiva,
   crearCategoriaValidator,
   crearCategoria
 );
@@ -56,6 +58,7 @@ routerCategorias.delete(
   ]),
   requireToken,
   checkRolAuth([roles.admin, roles.comAsesora]),
+  noExisteFeriaActiva,
   eliminarCategoriaValidator,
   eliminarCategoria
 );

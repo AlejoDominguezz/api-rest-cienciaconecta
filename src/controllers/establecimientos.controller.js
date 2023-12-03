@@ -274,7 +274,7 @@ export const actualizarEstablecimientosEducativos = (req, res) => {
                 return res.status(409).json({error: `Cada Cueanexo debe contener 9 dígitos (2 Anexo + 7 CUE)`})
             }
 
-            const cola = establecimientosCola.add("establecimientos:actualizar", {uid , files});
+            const cola = await establecimientosCola.add("establecimientos:actualizar", {uid , files});
             if(cola){
                 return res.status(200).json({msg: "Actualizando Establecimientos Educativos"});
             }else{

@@ -153,14 +153,14 @@ export const generarJobsAsincronicos = async (feria_id, feria, body) => {
 const generarJobDias = async (fecha_original, feria_id, tipo, dias) => {
     const fecha = subDays(new Date(fecha_original), dias);
     const delay = fecha.getTime() - Date.now();
-    await feriaCola.add(`feria:${tipo}`, { fecha, feria_id }, { delay });
+    feriaCola.add(`feria:${tipo}`, { fecha, feria_id }, { delay });
 }
 
   
 const generarJob = async (fecha_original, feria_id, tipo) => {
     const fecha = new Date(fecha_original);
     const delay = fecha.getTime() - Date.now();
-    await feriaCola.add(`feria:${tipo}`, { fecha, feria_id }, { delay });
+    feriaCola.add(`feria:${tipo}`, { fecha, feria_id }, { delay });
 }
   
   

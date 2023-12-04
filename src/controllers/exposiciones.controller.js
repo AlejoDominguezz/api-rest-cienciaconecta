@@ -79,7 +79,8 @@ export const iniciarEvaluacionExposicion = async (req, res) => {
   
   
       // Crear jobs para cancelar exposicion
-      crearJobsEvaluacion("Exposicion_Regional", feria._id, proyecto._id)
+
+      await crearJobsEvaluacion("Exposicion_Regional", feria._id, proyecto._id)
 
       // Devolver la estructura de evaluación de exposicion con o sin evaluacion existente
       return res.json(evaluacion_estructura_exposicion);
@@ -153,7 +154,7 @@ export const iniciarEvaluacionExposicion = async (req, res) => {
             }
 
             // Crear jobs para cancelar exposicion
-            crearJobsEvaluacion("Exposicion_Regional", feria._id, proyecto._id)
+            await crearJobsEvaluacion("Exposicion_Regional", feria._id, proyecto._id)
 
             // Devolver la estructura de evaluación de exposicion con o sin evaluacion existente
             return res.json(evaluacion_estructura_exposicion);

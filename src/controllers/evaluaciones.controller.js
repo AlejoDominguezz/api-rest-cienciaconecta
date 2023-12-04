@@ -284,7 +284,7 @@ export const iniciarEvaluacion = async (req, res) => {
           }
 
           // Crear jobs para cancelar evaluación
-          crearJobsEvaluacion("Evaluacion_Regional", feria._id, proyecto._id)
+          await crearJobsEvaluacion("Evaluacion_Regional", feria._id, proyecto._id)
 
           // Devolver la estructura de evaluación teórica con o sin evaluacion existente
           return res.json(evaluacion_estructura_teorica);

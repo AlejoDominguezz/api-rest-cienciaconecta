@@ -4,6 +4,8 @@ import { Feria, estadoFeria } from '../models/Feria.js';
 import { establecimientosCola } from '../helpers/queueManager.js';
 import formidable from "formidable";
 import { validarCamposExcel, validarCueAnexo, validarHojasExcel } from '../middlewares/validarCamposExcel.js';
+import xlsx from 'xlsx';
+import fs from 'fs';
 
 export const getEstablecimientosEducativos = async (req = request, res = response) => {
     try {
@@ -259,27 +261,25 @@ export const actualizarEstablecimientosEducativos = (req, res) => {
                 }
             }
 
-            const validarHojas = validarHojasExcel(files.establecimientosEducativos)
+            const workbook = xlsx.readFile(files.establecimientosEducativos.filepath); 
+
+            const validarHojas = validarHojasExcel(workbook)
             if(!validarHojas) {
                 return res.status(409).json({error: `El archivo Excel debe contar con una única Hoja de al menos 5000 filas`})
             }
 
-            const {formatoCorrecto, campo, posicion} = validarCamposExcel(files.establecimientosEducativos)
+            const {formatoCorrecto, campo, posicion} = validarCamposExcel(workbook)
             if(!formatoCorrecto){
                 return res.status(409).json({error: `Formato de Excel incorrecto. El campo ${campo} no se encuentra en la posición ${posicion}`})
             }
 
-            const validarCUE = validarCueAnexo(files.establecimientosEducativos)
+            const validarCUE = validarCueAnexo(workbook)
             if(!validarCUE){
                 return res.status(409).json({error: `Cada Cueanexo debe contener 9 dígitos (2 Anexo + 7 CUE)`})
             }
 
-            const cola = await establecimientosCola.add("establecimientos:actualizar", {uid , files});
-            if(cola){
-                return res.status(200).json({msg: "Actualizando Establecimientos Educativos"});
-            }else{
-                return res.status(400).json({error: "Error al actualizar Establecimientos Educativos"});
-            }
+            establecimientosCola.add("establecimientos:actualizar", {uid , files});
+            return res.status(200).json({msg: "Actualizando Establecimientos Educativos"});
         });
         
     

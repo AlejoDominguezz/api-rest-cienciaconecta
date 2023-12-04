@@ -1,9 +1,8 @@
 import xlsx from 'xlsx';
 
 
-export const validarCamposExcel = (archivo) => {
+export const validarCamposExcel = (workbook) => {
   try {
-    const workbook = xlsx.readFile(archivo.filepath);
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
 
@@ -56,9 +55,8 @@ export const validarCamposExcel = (archivo) => {
 };
 
 
-export const validarHojasExcel = (archivo) => {
+export const validarHojasExcel = (workbook) => {
     try {
-      const workbook = xlsx.readFile(archivo.filepath);
       const sheetNames = workbook.SheetNames;
   
       if (sheetNames.length !== 1) {
@@ -78,9 +76,8 @@ export const validarHojasExcel = (archivo) => {
 
 
 
-  export const validarCueAnexo = (archivo) => {
+  export const validarCueAnexo = (workbook) => {
     try {
-      const workbook = xlsx.readFile(archivo.filepath);
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
   

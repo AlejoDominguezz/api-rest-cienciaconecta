@@ -30,6 +30,10 @@ import {filesCola} from "../helpers/queueManager.js";
 import { Nivel } from "../models/Nivel.js";
 import { Categoria } from "../models/Categoria.js";
 import { generarNotificacion, tipo_notificacion } from "../helpers/generarNotificacion.js";
+import { getFeriaActivaFuncion } from "./ferias.controller.js";
+import { Evaluacion } from "../models/Evaluacion.js";
+import { EvaluacionExposicion } from "../models/EvaluacionExposicion.js";
+import { EvaluacionExposicionProvincial } from "../models/EvaluacionExposicion_Provincial.js";
 
 
 // Configurar multer para manejar la subida de archivos
@@ -1058,8 +1062,46 @@ export const consultarDocuments = async (req, res) => {
 
     return res.json(ultimoTrabajo.data.name_files || {});
   } catch (error) {
-    console.error(error);
+    //console.error(error);
     res.status(500).json({ message: 'ERROR AL PROCESAR LA CONSULTA.' });
   }
 };
 
+
+
+export const consultarEstadoEvaluacion = async (req, res) => {
+  try {
+    const feriaActiva = req.feria;
+    const proyecto = req.proyecto;
+    let evaluadores = proyecto.evaluadoresRegionales?.length ?? 0;
+
+    let evaluacion = null;
+    if(
+      (feriaActiva.estado == estadoFeria.instanciaRegional_EnEvaluacion) || 
+      (feriaActiva.estado == estadoFeria.instanciaRegional_EvaluacionFinalizada)){
+
+      evaluacion = await Evaluacion.findOne({proyectoId: proyecto._id})
+
+    } else if (
+      (feriaActiva.estado == estadoFeria.instanciaRegional_EnExposicion) || 
+      (feriaActiva.estado == estadoFeria.instanciaRegional_ExposicionFinalizada)) {
+
+      evaluacion = await EvaluacionExposicion.findOne({proyectoId: proyecto._id})
+      
+    } else if (
+      (feriaActiva.estado == estadoFeria.instanciaProvincial_EnExposicion) || 
+      (feriaActiva.estado == estadoFeria.instanciaProvincial_ExposicionFinalizada)) {
+
+      evaluacion = await EvaluacionExposicionProvincial.findOne({proyectoId: proyecto._id})
+    }
+
+    let realizadas = evaluacion?.evaluadorId?.length ?? 0;
+    let confirmadas = evaluacion?.listo?.length ?? 0;
+
+    return res.json({evaluadores, realizadas, confirmadas})
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({error: "Error de servidor"})
+  }
+}

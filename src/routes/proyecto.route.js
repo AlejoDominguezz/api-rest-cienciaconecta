@@ -23,6 +23,7 @@ import {
   generarPDFconQR,
   obtenerInfoResumidaProyecto,
   consultarDocuments,
+  consultarEstadoEvaluacion,
 } from "../controllers/proyectos.controller.js";
 import {
   bodyInscribirProyectoValidator,
@@ -171,6 +172,15 @@ routerProyectos.get(
   esPropietario,
   consultarDocuments
 );
+
+routerProyectos.get(
+  "/estado-evaluacion/:id",
+  requireToken,
+  checkRolAuth([roles.admin, roles.refEvaluador, roles.evaluador]),
+  esEvaluadorDelProyecto,
+  esReferenteDelProyecto,
+  consultarEstadoEvaluacion
+)
 
 // requireToken , checkRolAuth([roles.admin, roles.responsableProyecto]), esPropietario,
 export default routerProyectos;

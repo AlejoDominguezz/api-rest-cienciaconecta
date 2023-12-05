@@ -153,47 +153,134 @@ export const bodyCrearFeriaValidator = [
             }),
 
     //validaciones de cupo
-    body('instancias.instanciaRegional.cupos')
-        .optional()
+
+    // Cupos por nivel
+
+    body('instancias.instanciaRegional.cupos.porNivel')
         .isArray()
-        .custom((cupos, { req }) => {
-            const seenSedeNivelPairs = new Set();
-    
-            for (const cupo of cupos) {
-                const sedeNivelPair = `${cupo.sede}-${cupo.nivel}`;
-                if (seenSedeNivelPairs.has(sedeNivelPair)) {
-                    return Promise.reject('No puede haber cupos con la misma sede y el mismo nivel');
-                }
-                seenSedeNivelPairs.add(sedeNivelPair);
+        .withMessage("Los cupos por nivel deben ser un array"),
+
+    body('instancias.instanciaRegional.cupos.porNivel.*.nivel')
+      .isMongoId()
+      .withMessage("Cada nivel ingresado debe ser un Mongo ID válido"),
+
+    body('instancias.instanciaRegional.cupos.porNivel.*.cantidad')
+      .exists()
+      .withMessage("El campo 'cantidad' es requerido.")
+      .isInt()
+      .withMessage("El campo 'cantidad' debe ser un número entero"),
+
+    body('instancias.instanciaRegional.cupos.porNivel')
+        .custom(async (cuposPorNivel, { req }) => {
+            const seenNiveles = new Set();
+            
+            for (const cupo of cuposPorNivel) {
+              if (!cupo.nivel || !cupo.cantidad) {
+                return Promise.reject("Cada objeto en cupos por nivel debe tener las propiedades 'nivel' y 'cantidad'");
+              }
+      
+              const nivelId = cupo.nivel.toString();
+              const nivelExists = await Nivel.exists({ _id: nivelId });
+              if (!nivelExists) {
+                return Promise.reject('El nivel proporcionado en los cupos por nivel no es válido');
+              }
+      
+              if (seenNiveles.has(nivelId)) {
+                return Promise.reject('No puede haber dos objetos en cupos por nivel con el mismo nivel (id duplicado)');
+              }
+      
+              seenNiveles.add(nivelId);
             }
+      
             return true;
-        })
-        .withMessage('Los cupos no pueden tener la misma sede y el mismo nivel al mismo tiempo'),
+          }),
+
+
+    // Cupos por sede
+    body('instancias.instanciaRegional.cupos.porSede')
+        .isArray()
+        .withMessage('Los cupos por sede deben ser un array'),
+
+    body('instancias.instanciaRegional.cupos.porSede.*.sede')
+      .isMongoId()
+      .withMessage("Cada sede ingresada debe ser un Mongo ID válido"),
+
+    body('instancias.instanciaRegional.cupos.porSede.*.cantidad')
+      .exists()
+      .withMessage("El campo 'cantidad' es requerido.")
+      .isInt()
+      .withMessage("El campo 'cantidad' debe ser un número entero"),
+
+
+    body('instancias.instanciaRegional.cupos.porSede')
+        .custom(async (cuposPorSede, { req }) => {
+          const sedeIdsElegidas = req.body.instancias.instanciaRegional.sedes;
+          const seenSedes = new Set();
+    
+          for (const cupo of cuposPorSede) {
+            if (!cupo.sede || !cupo.cantidad) {
+              return Promise.reject("Cada objeto en cupos por sede debe tener las propiedades 'sede' y 'cantidad'");
+            }
+    
+            const sedeId = cupo.sede.toString();
+            // Verificar que la sede esté en el array de sedes elegidas
+            if (!sedeIdsElegidas.includes(sedeId)) {
+              return Promise.reject('La sede en los cupos por sede debe ser una de las sedes elegidas');
+            }
+    
+            if (seenSedes.has(sedeId)) {
+              return Promise.reject('No puede haber dos objetos en cupos por sede con la misma sede (id duplicado)');
+            }
+    
+            seenSedes.add(sedeId);
+          }
+    
+          return true;
+        }),
+
+
+    // -----------------------------------
+    // body('instancias.instanciaRegional.cupos')
+    //     .optional()
+    //     .isArray()
+    //     .custom((cupos, { req }) => {
+    //         const seenSedeNivelPairs = new Set();
+    
+    //         for (const cupo of cupos) {
+    //             const sedeNivelPair = `${cupo.sede}-${cupo.nivel}`;
+    //             if (seenSedeNivelPairs.has(sedeNivelPair)) {
+    //                 return Promise.reject('No puede haber cupos con la misma sede y el mismo nivel');
+    //             }
+    //             seenSedeNivelPairs.add(sedeNivelPair);
+    //         }
+    //         return true;
+    //     })
+    //     .withMessage('Los cupos no pueden tener la misma sede y el mismo nivel al mismo tiempo'),
         
-    body('instancias.instanciaRegional.cupos.*.sede', 'El campo "sede" es requerido y debe ser un ObjectId válido.')
-        .if(body('instancias.instanciaProvincial.cupos').exists())
-            .exists()
-            .isMongoId()
-            .custom((value, { req }) => {
-                const sedeIds = req.body.instancias.instanciaRegional.sedes;
-                return sedeIds.includes(value.toString()); // Convertir a string para comparar
-            })
-            .withMessage('La sede en los cupos debe ser una de las sedes elegidas'),
-    body('instancias.instanciaRegional.cupos.*.nivel', 'El campo "nivel" es requerido y debe ser un ObjectId válido.')
-        .if(body('instancias.instanciaProvincial.cupos').exists())
-            .exists()
-            .isMongoId()
-            .custom(async (value) => {
-                const nivelExists = await Nivel.exists({ _id: value });
-                if (!nivelExists) {
-                    return Promise.reject('El nivel proporcionado no es válido');
-                }
-                return true;
-            }),
-    body('instancias.instanciaRegional.cupos.*.cantidad', 'El campo "cantidad" es requerido y debe ser un número válido.')
-        .if(body('instancias.instanciaProvincial.cupos').exists())
-            .exists()
-            .isInt(),
+    // body('instancias.instanciaRegional.cupos.*.sede', 'El campo "sede" es requerido y debe ser un ObjectId válido.')
+    //     .if(body('instancias.instanciaProvincial.cupos').exists())
+    //         .exists()
+    //         .isMongoId()
+    //         .custom((value, { req }) => {
+    //             const sedeIds = req.body.instancias.instanciaRegional.sedes;
+    //             return sedeIds.includes(value.toString()); // Convertir a string para comparar
+    //         })
+    //         .withMessage('La sede en los cupos debe ser una de las sedes elegidas'),
+    // body('instancias.instanciaRegional.cupos.*.nivel', 'El campo "nivel" es requerido y debe ser un ObjectId válido.')
+    //     .if(body('instancias.instanciaProvincial.cupos').exists())
+    //         .exists()
+    //         .isMongoId()
+    //         .custom(async (value) => {
+    //             const nivelExists = await Nivel.exists({ _id: value });
+    //             if (!nivelExists) {
+    //                 return Promise.reject('El nivel proporcionado no es válido');
+    //             }
+    //             return true;
+    //         }),
+    // body('instancias.instanciaRegional.cupos.*.cantidad', 'El campo "cantidad" es requerido y debe ser un número válido.')
+    //     .if(body('instancias.instanciaProvincial.cupos').exists())
+    //         .exists()
+    //         .isInt(),
     
 
     //validaciones de sedes
@@ -552,47 +639,133 @@ export const bodyModificarFeriaValidator = [
             }),
 
     //validaciones de cupo
-    body('instancias.instanciaRegional.cupos')
-        .optional()
-        .isArray()
-        .custom((cupos, { req }) => {
-            const seenSedeNivelPairs = new Set();
     
-            for (const cupo of cupos) {
-                const sedeNivelPair = `${cupo.sede}-${cupo.nivel}`;
-                if (seenSedeNivelPairs.has(sedeNivelPair)) {
-                    return Promise.reject('No puede haber cupos con la misma sede y el mismo nivel');
-                }
-                seenSedeNivelPairs.add(sedeNivelPair);
+    // Cupos por nivel
+
+    body('instancias.instanciaRegional.cupos.porNivel')
+      .isArray()
+      .withMessage("Los cupos por nivel deben ser un array"),
+
+    body('instancias.instanciaRegional.cupos.porNivel.*.nivel')
+      .isMongoId()
+      .withMessage("Cada nivel ingresado debe ser un Mongo ID válido"),
+
+    body('instancias.instanciaRegional.cupos.porNivel.*.cantidad')
+      .exists()
+      .withMessage("El campo 'cantidad' es requerido.")
+      .isInt()
+      .withMessage("El campo 'cantidad' debe ser un número entero"),
+
+    body('instancias.instanciaRegional.cupos.porNivel')
+        .custom(async (cuposPorNivel, { req }) => {
+            const seenNiveles = new Set();
+            
+            for (const cupo of cuposPorNivel) {
+              if (!cupo.nivel || !cupo.cantidad) {
+                return Promise.reject("Cada objeto en cupos por nivel debe tener las propiedades 'nivel' y 'cantidad'");
+              }
+      
+              const nivelId = cupo.nivel.toString();
+              const nivelExists = await Nivel.exists({ _id: nivelId });
+              if (!nivelExists) {
+                return Promise.reject('El nivel proporcionado en los cupos por nivel no es válido');
+              }
+      
+              if (seenNiveles.has(nivelId)) {
+                return Promise.reject('No puede haber dos objetos en cupos por nivel con el mismo nivel (id duplicado)');
+              }
+      
+              seenNiveles.add(nivelId);
             }
+      
             return true;
-        })
-        .withMessage('Los cupos no pueden tener la misma sede y el mismo nivel al mismo tiempo'),
+          }),
+
+    // Cupos por sede
+
+    body('instancias.instanciaRegional.cupos.porSede')
+      .isArray()
+      .withMessage('Los cupos por sede deben ser un array'),
+
+    body('instancias.instanciaRegional.cupos.porSede.*.sede')
+      .isMongoId()
+      .withMessage("Cada sede ingresada debe ser un Mongo ID válido"),
+
+    body('instancias.instanciaRegional.cupos.porSede.*.cantidad')
+      .exists()
+      .withMessage("El campo 'cantidad' es requerido.")
+      .isInt()
+      .withMessage("El campo 'cantidad' debe ser un número entero"),
+
+    body('instancias.instanciaRegional.cupos.porSede')
+        .custom(async (cuposPorSede, { req }) => {
+          const sedeIdsElegidas = req.body.instancias.instanciaRegional.sedes;
+          const seenSedes = new Set();
+    
+          for (const cupo of cuposPorSede) {
+            if (!cupo.sede || !cupo.cantidad) {
+              return Promise.reject("Cada objeto en cupos por sede debe tener las propiedades 'sede' y 'cantidad'");
+            }
+    
+            const sedeId = cupo.sede.toString();
+            // Verificar que la sede esté en el array de sedes elegidas
+            if (!sedeIdsElegidas.includes(sedeId)) {
+              return Promise.reject('La sede en los cupos por sede debe ser una de las sedes elegidas');
+            }
+    
+            if (seenSedes.has(sedeId)) {
+              return Promise.reject('No puede haber dos objetos en cupos por sede con la misma sede (id duplicado)');
+            }
+    
+            seenSedes.add(sedeId);
+          }
+    
+          return true;
+        }),
+
+
+    //-----------------------------------------
+    // body('instancias.instanciaRegional.cupos')
+    //     .optional()
+    //     .isArray()
+    //     .custom((cupos, { req }) => {
+    //         const seenSedeNivelPairs = new Set();
+    
+    //         for (const cupo of cupos) {
+    //             const sedeNivelPair = `${cupo.sede}-${cupo.nivel}`;
+    //             if (seenSedeNivelPairs.has(sedeNivelPair)) {
+    //                 return Promise.reject('No puede haber cupos con la misma sede y el mismo nivel');
+    //             }
+    //             seenSedeNivelPairs.add(sedeNivelPair);
+    //         }
+    //         return true;
+    //     })
+    //     .withMessage('Los cupos no pueden tener la misma sede y el mismo nivel al mismo tiempo'),
         
-    body('instancias.instanciaRegional.cupos.*.sede', 'El campo "sede" es requerido y debe ser un ObjectId válido.')
-        .if(body('instancias.instanciaProvincial.cupos').exists())
-            .exists()
-            .isMongoId()
-            .custom((value, { req }) => {
-                const sedeIds = req.body.instancias.instanciaRegional.sedes;
-                return sedeIds.includes(value.toString()); // Convertir a string para comparar
-            })
-            .withMessage('La sede en los cupos debe ser una de las sedes elegidas'),
-    body('instancias.instanciaRegional.cupos.*.nivel', 'El campo "nivel" es requerido y debe ser un ObjectId válido.')
-        .if(body('instancias.instanciaProvincial.cupos').exists())
-            .exists()
-            .isMongoId()
-            .custom(async (value) => {
-                const nivelExists = await Nivel.exists({ _id: value });
-                if (!nivelExists) {
-                    return Promise.reject('El nivel proporcionado no es válido');
-                }
-                return true;
-            }),
-    body('instancias.instanciaRegional.cupos.*.cantidad', 'El campo "cantidad" es requerido y debe ser un número válido.')
-        .if(body('instancias.instanciaProvincial.cupos').exists())
-            .exists()
-            .isInt(),
+    // body('instancias.instanciaRegional.cupos.*.sede', 'El campo "sede" es requerido y debe ser un ObjectId válido.')
+    //     .if(body('instancias.instanciaProvincial.cupos').exists())
+    //         .exists()
+    //         .isMongoId()
+    //         .custom((value, { req }) => {
+    //             const sedeIds = req.body.instancias.instanciaRegional.sedes;
+    //             return sedeIds.includes(value.toString()); // Convertir a string para comparar
+    //         })
+    //         .withMessage('La sede en los cupos debe ser una de las sedes elegidas'),
+    // body('instancias.instanciaRegional.cupos.*.nivel', 'El campo "nivel" es requerido y debe ser un ObjectId válido.')
+    //     .if(body('instancias.instanciaProvincial.cupos').exists())
+    //         .exists()
+    //         .isMongoId()
+    //         .custom(async (value) => {
+    //             const nivelExists = await Nivel.exists({ _id: value });
+    //             if (!nivelExists) {
+    //                 return Promise.reject('El nivel proporcionado no es válido');
+    //             }
+    //             return true;
+    //         }),
+    // body('instancias.instanciaRegional.cupos.*.cantidad', 'El campo "cantidad" es requerido y debe ser un número válido.')
+    //     .if(body('instancias.instanciaProvincial.cupos').exists())
+    //         .exists()
+    //         .isInt(),
     
 
     //validaciones de sedes

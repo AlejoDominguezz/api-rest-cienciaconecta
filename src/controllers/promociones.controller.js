@@ -12,8 +12,10 @@ export const obtenerProyectosProvincial = async (req, res) => {
   const id_sede = req.body.sede;
   const feriaActiva = await getFeriaActivaFuncion();
   const promocionExistente = await Promocion.findOne({ nivel: id_nivel, sede: id_sede, feria: feriaActiva._id, promocionAInstancia: promocionA.instanciaProvincial });
-  const cuposNivelSede = feriaActiva.instancias.instanciaRegional.cupos.find(cupo => (cupo.nivel?.toString() === id_nivel.toString()) && (cupo.sede?.toString() === id_sede.toString()));
-  const cantidadCupos = cuposNivelSede ? cuposNivelSede.cantidad : 0;
+  const cuposNivel = feriaActiva.instancias.instanciaRegional.cupos.porNivel.find(cupo => (cupo.nivel?.toString() === id_nivel.toString()));
+  const cuposSede = feriaActiva.instancias.instanciaRegional.cupos.porSede.find(cupo => (cupo.sede?.toString() === id_sede.toString()));
+  const cantidadCuposNivel = cuposNivel ? cuposNivel.cantidad : 0;
+  const cantidadCuposSede = cuposSede ? cuposSede.cantidad : 0;
 
 
   let proyectos = await Proyecto.find({ nivel: id_nivel, sede: id_sede, feria: feriaActiva._id })
@@ -58,7 +60,7 @@ export const obtenerProyectosProvincial = async (req, res) => {
 
   const proyectosSorted = proyectosFiltrados.sort((a, b) => b.exposicion.puntajeFinal - a.exposicion.puntajeFinal);
 
-  return res.json({ proyectos: proyectosSorted, cupos: cantidadCupos });
+  return res.json({ proyectos: proyectosSorted, cuposNivel: cantidadCuposNivel, cuposSede: cantidadCuposSede });
 };
 
 
@@ -321,13 +323,39 @@ try {
     const id_nivel = req.body.nivel;
     const id_sede = req.body.sede;
     const feriaActiva = await getFeriaActivaFuncion()
-    const cuposNivelSede = feriaActiva.instancias.instanciaRegional.cupos.find(cupo => (cupo.nivel?.toString() === id_nivel.toString()) && (cupo.sede?.toString() === id_sede.toString()));
-    const cantidadCupos = cuposNivelSede ? cuposNivelSede.cantidad : 0;
+    const cuposNivel = feriaActiva.instancias.instanciaRegional.cupos.porNivel.find(cupo => (cupo.nivel?.toString() === id_nivel.toString()));
+    const cuposSede = feriaActiva.instancias.instanciaRegional.cupos.porSede.find(cupo => (cupo.sede?.toString() === id_sede.toString()));
+    const cantidadCuposNivel = cuposNivel ? cuposNivel.cantidad : 0;
+    const cantidadCuposSede = cuposSede ? cuposSede.cantidad : 0;
 
-    if(id_proyectos.length > cantidadCupos) {
-        return res.status(401).json({ error: `No es posible promover ${id_proyectos.length} proyectos. El límite de cupos en esta instancia para el nivel ingresado es ${cantidadCupos}` });
+    // Validar cupos por nivel
+    const promocionesNivel = await Promocion.find({ nivel: id_nivel, feria: feriaActiva._id, promocionAInstancia: promocionA.instanciaProvincial })
+    let totalProyectosNivel = 0;
+    for (const promocionNivel of promocionesNivel){
+      totalProyectosNivel += promocionNivel.proyectos.length;
     }
 
+    //console.log(`Cantidad proyectos promovidos nivel: ${id_proyectos.length + totalProyectosNivel}. Límite: ${cantidadCuposNivel}`)
+    
+    if((id_proyectos.length + totalProyectosNivel) > cantidadCuposNivel) {
+        return res.status(401).json({ error: `No es posible promover ${id_proyectos.length} proyecto/s, teniendo ${totalProyectosNivel} ya promovido/s. El límite de cupos en esta instancia para el nivel ingresado es de ${cantidadCuposNivel}` });
+    }
+
+    // Validar cupos por sede
+    const promocionesSede = await Promocion.find({ sede: id_sede, feria: feriaActiva._id, promocionAInstancia: promocionA.instanciaProvincial })
+    let totalProyectosSede = 0;
+    for (const promocionSede of promocionesSede){
+      totalProyectosSede += promocionSede.proyectos.length;
+    }
+
+    //console.log(`Cantidad proyectos promovidos sede: ${id_proyectos.length + totalProyectosSede}. Límite: ${cantidadCuposSede}`)
+    
+    if((id_proyectos.length + totalProyectosSede) > cantidadCuposSede) {
+        return res.status(401).json({ error: `No es posible promover ${id_proyectos.length} proyecto/s, teniendo ${totalProyectosSede} ya promovido/s. El límite de cupos en esta instancia para la sede ingresada es de ${cantidadCuposSede}` });
+    }
+
+
+    // Crear o modificar el documento Promocion, para la sede y el nivel del proyectoF
     let promocion = await Promocion.findOne({nivel: id_nivel, sede: id_sede, feria: feriaActiva._id, promocionAInstancia: promocionA.instanciaProvincial})
     
     if(promocion) {

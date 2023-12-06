@@ -16,6 +16,7 @@
     "axios": "^1.6.2",
     "bcryptjs": "^2.4.3",
     "bull": "^4.11.3",
+    "bull-arena": "^4.1.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "date-fns": "^2.30.0",

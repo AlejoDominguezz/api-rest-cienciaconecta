@@ -37,6 +37,7 @@ export const generarJobsAsincronicos = async (feria_id, feria, body) => {
         const fecha = body.instancias.instanciaRegional.fechaInicioEvaluacionTeorica;
         await generarJob(fecha, feria_id, "inicioEvaluacionRegional");
     }
+    // Los proyectos cuyos documentos no se cargaron, se finalizan automáticamente
 
     // Fecha de fin de evaluación regional -----------------------------------------------------------------------------
     if(new Date(body.instancias.instanciaRegional.fechaFinEvaluacionTeorica).getTime() != new Date(feria?.instancias.instanciaRegional.fechaFinEvaluacionTeorica).getTime()){
@@ -53,6 +54,7 @@ export const generarJobsAsincronicos = async (feria_id, feria, body) => {
         const fechaB = body.instancias.instanciaRegional.fechaFinEvaluacionTeorica;
         await generarJobDias(fechaB, feria_id, "un_dia_finEvaluacionRegional", 1);
     }
+    // Los proyectos no evaluados, se generan con puntaje 0. Si se evaluaron, se cierra la evaluación, si estaba abierta
 
     // Fecha de inicio de exposición regional -----------------------------------------------------------------------------
     if(new Date(body.instancias.instanciaRegional.fechaInicioEvaluacionPresencial).getTime() != new Date(feria?.instancias.instanciaRegional.fechaInicioEvaluacionPresencial).getTime()){
@@ -77,6 +79,7 @@ export const generarJobsAsincronicos = async (feria_id, feria, body) => {
         const fechaB = body.instancias.instanciaRegional.fechaFinEvaluacionPresencial;
         await generarJobDias(fechaB, feria_id, "un_dia_finExposicionRegional", 1);
     }
+    // Los proyectos no evaluados, se generan con puntaje 0. Si se evaluaron, se cierra la evaluación, si estaba abierta
 
     // Fecha de promoción de proyectos a instancia provincial ----------------------------------------------------------------
     if(new Date(body.instancias.instanciaRegional.fechaPromocionAProvincial).getTime() != new Date(feria?.instancias.instanciaRegional.fechaPromocionAProvincial).getTime()){
@@ -109,6 +112,7 @@ export const generarJobsAsincronicos = async (feria_id, feria, body) => {
         const fechaB = body.instancias.instanciaProvincial.fechaFinEvaluacionPresencial;
         await generarJobDias(fechaB, feria_id, "un_dia_finExposicionProvincial", 1);
     }
+    // Los proyectos no evaluados, se generan con puntaje 0. Si se evaluaron, se cierra la evaluación, si estaba abierta
 
     // Fecha de promoción de proyectos a instancia nacional ----------------------------------------------------------------
     if(new Date(body.instancias.instanciaProvincial.fechaPromocionANacional).getTime() != new Date(feria?.instancias.instanciaProvincial.fechaPromocionANacional).getTime()){

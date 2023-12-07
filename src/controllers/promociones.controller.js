@@ -17,6 +17,18 @@ export const obtenerProyectosProvincial = async (req, res) => {
   const cantidadCuposNivel = cuposNivel ? cuposNivel.cantidad : 0;
   const cantidadCuposSede = cuposSede ? cuposSede.cantidad : 0;
 
+  const promocionesNivel = await Promocion.find({ nivel: id_nivel, feria: feriaActiva._id, promocionAInstancia: promocionA.instanciaProvincial })
+    let promovidosNivel = 0;
+    for (const promocionNivel of promocionesNivel){
+      promovidosNivel += promocionNivel.proyectos.length;
+    }
+
+  const promocionesSede = await Promocion.find({ sede: id_sede, feria: feriaActiva._id, promocionAInstancia: promocionA.instanciaProvincial })
+  let promovidosSede = 0;
+  for (const promocionSede of promocionesSede){
+    promovidosSede += promocionSede.proyectos.length;
+  }
+
 
   let proyectos = await Proyecto.find({ nivel: id_nivel, sede: id_sede, feria: feriaActiva._id })
       .select('-__v -QR -id_carpeta_drive')
@@ -60,7 +72,7 @@ export const obtenerProyectosProvincial = async (req, res) => {
 
   const proyectosSorted = proyectosFiltrados.sort((a, b) => b.exposicion.puntajeFinal - a.exposicion.puntajeFinal);
 
-  return res.json({ proyectos: proyectosSorted, cuposNivel: cantidadCuposNivel, cuposSede: cantidadCuposSede });
+  return res.json({ proyectos: proyectosSorted, cuposNivel: cantidadCuposNivel, cuposSede: cantidadCuposSede, promovidosNivel, promovidosSede });
 };
 
 

@@ -83,6 +83,11 @@ export const obtenerProyectosNacional = async (req, res) => {
   const promocionExistente = await Promocion.findOne({ nivel: id_nivel, feria: feriaActiva._id, promocionAInstancia: promocionA.instanciaNacional });
   const cuposNivel = feriaActiva.instancias.instanciaProvincial.cupos.find(cupo => cupo.nivel?.toString() === id_nivel.toString());
   const cantidadCupos = cuposNivel ? cuposNivel.cantidad : 0;
+  let promovidosNivel = 0;
+  if (promocionExistente) {
+    promovidosNivel = promocionExistente.proyectos.length;
+  }
+
 
   let proyectos = await Proyecto.find({nivel: id_nivel, feria: feriaActiva._id})
   .select('-__v -QR -id_carpeta_drive')
@@ -125,7 +130,7 @@ export const obtenerProyectosNacional = async (req, res) => {
 
   const proyectosSorted = proyectosFiltrados.sort((a, b) => b.exposicion.puntajeExposicion - a.exposicion.puntajeExposicion);
   
-  return res.json({proyectos: proyectosSorted, cupos: cantidadCupos});
+  return res.json({proyectos: proyectosSorted, cuposNivel: cantidadCupos, promovidosNivel});
 }
 
 

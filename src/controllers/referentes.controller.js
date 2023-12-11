@@ -486,10 +486,10 @@ export const obtenerInfoReferente = async (req, res) => {
                     { evaluadoresRegionales: { $eq: [] } } 
                 ]
             });
-        const cant_proyectos_por_evaluar_regional = await Proyecto.countDocuments({sede: ref.sede, feria: feriaActiva._id, estado: estado.instanciaRegional});
+        const cant_proyectos_por_evaluar_regional = await Proyecto.countDocuments({sede: ref.sede, feria: feriaActiva._id,  estado: estado.instanciaRegional });
         const cant_proyectos_por_evaluar_provincial = await Proyecto.countDocuments({sede: ref.sede, feria: feriaActiva._id, estado: estado.promovidoProvincial});
-        const cant_proyectos_por_confirmar_regional = await Proyecto.countDocuments({sede: ref.sede, feria: feriaActiva._id, estado: estado.enEvaluacionRegional});
-        const cant_proyectos_por_confirmar_provincial = await Proyecto.countDocuments({sede: ref.sede, feria: feriaActiva._id, estado: estado.enEvaluacionProvincial});
+        const cant_proyectos_por_confirmar_regional = await Proyecto.countDocuments({sede: ref.sede, feria: feriaActiva._id, estado:  {$in: [estado.instanciaRegional, estado.enEvaluacionRegional]}});
+        const cant_proyectos_por_confirmar_provincial = await Proyecto.countDocuments({sede: ref.sede, feria: feriaActiva._id, estado: {$in: [estado.promovidoProvincial, estado.enEvaluacionProvincial]}});
 
 
         let evaluadores_asignados = await Evaluador.find({pendiente: false, sede: ref.sede, feria: feriaActiva._id})

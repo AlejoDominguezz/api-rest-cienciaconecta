@@ -211,40 +211,32 @@ export const cantidadEvaluadores = async (req, res) => {
 
     const ferias = await Feria.find(filter);
 
-
     let resultados = [];
     const departamentos = await obtenerTodasClases("departamento");
 
     for (const depto of departamentos) {
-      // Objeto para almacenar el resultado para cada departamento
       let resultadoDepto = {
         departamento: capitalizarPalabras(depto),
         evaluadores: 0,
       };
 
-      // Iteramos sobre cada feria
-      for (const feria of ferias) {
-        // Obtenemos las sedes regionales de la feria
-        const sedesRegionales = feria.instancias.instanciaRegional.sedes;
+      const sedesRegionalesDeDepto = await EstablecimientoEducativo.find({
+        _id: { $in: ferias.flatMap(feria => feria.instancias.instanciaRegional.sedes) },
+        departamento: depto,
+      }).select('_id');
 
-        // Obtener las sedes de cada departamento
-        const sedesRegionalesDeDepto = await EstablecimientoEducativo.find({
-          _id: { $in: [...sedesRegionales] },
-          departamento: depto,
-        }).select('_id');
-
-        // Obtener la cantidad de evaluadores para la feria y el departamento
+      const evaluadoresPromises = ferias.map(async (feria) => {
         const evaluadores = await Evaluador.countDocuments({
           feria: feria._id,
           pendiente: false,
           sede: { $in: sedesRegionalesDeDepto.map(sede => sede._id) },
         });
+        return evaluadores;
+      });
 
-        // Sumar al resultado para el departamento
-        resultadoDepto.evaluadores += evaluadores;
-      }
+      const evaluadores = await Promise.all(evaluadoresPromises);
+      resultadoDepto.evaluadores = evaluadores.reduce((sum, count) => sum + count, 0);
 
-      // Agregar el resultado del departamento al array final
       resultados.push(resultadoDepto);
     }
 

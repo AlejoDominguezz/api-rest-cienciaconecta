@@ -7,7 +7,7 @@ import { Proyecto } from "../../models/Proyecto.js";
 export const buscarPor = async (tipo, filtro) => {
     const proyectos = await Proyecto.find(filtro)
     if(proyectos.length == 0) {
-        return res.status(204).json({})
+        return []
     }
 
     if (tipo == "departamento") {
@@ -39,7 +39,10 @@ export const obtenerTodasClases = async (tipo) => {
     let todasClases = null;
 
     if(tipo == "categoria"){
-        todasClases = await Categoria.find().lean().exec();
+        todasClases = await Categoria.find({$or: [
+            { activa: true },
+            { activa: { $exists: false } } 
+        ]}).lean().exec();
 
     } else if (tipo == "nivel") {
 

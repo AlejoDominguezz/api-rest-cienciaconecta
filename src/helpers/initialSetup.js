@@ -42,8 +42,8 @@ export const crearCategorias = async () => {
             new Categoria({nombre: "Emprendedurismo Escolar", abreviatura: "Empren.", color:"#F5CE42"}).save(),
             new Categoria({nombre: "Formación Ética y Ciudadana", abreviatura: "Etica", color:"#9092D2"}).save(),
             new Categoria({nombre: "Educación Física", abreviatura: "Ed. Física", color:"#0F15A3"}).save(),
-            new Categoria({nombre: "Trabajos sobre temáticas de la enseñanza y aprendizaje propios de la formación docente y de las Tecnicaturas Profesionales", abreviatura: "Multidisc.", color:"#E82DEC"}).save(),
-            new Categoria({nombre: "Proyectos multidisciplinares", abreviatura: "Apren.", color:"#554438"}).save(),
+            new Categoria({nombre: "Trabajos sobre temáticas de la enseñanza y aprendizaje propios de la formación docente y de las Tecnicaturas Profesionales", abreviatura: "Apren.", color:"#E82DEC"}).save(),
+            new Categoria({nombre: "Proyectos multidisciplinares", abreviatura: "Multidisc.", color:"#554438"}).save(),
         ]);
         console.log(values);
     } catch (error) {

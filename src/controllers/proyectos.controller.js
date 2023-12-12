@@ -443,6 +443,54 @@ export const consultarMisProyectos = async (req, res) => {
   }
 };
 
+export const consultarMisProyectosActivos = async (req, res) => {
+  try {
+    const uid = req.uid;
+
+    const responsable = await Docente.findOne({ usuario: uid });
+    if (!responsable)
+      return res
+        .status(401)
+        .json({ error: "No existe el docente correspondiente a su usuario" });
+
+    const feriaActiva = await getFeriaActivaFuncion()
+    const proyectos = await Proyecto.find({feria: feriaActiva.id, idResponsable: responsable.id, estado: {$nin: [estado.inactivo]}});
+
+    if (proyectos.length === 0)
+      return res.status(204).json({ error: "No se han encontrado proyectos" });
+
+    // Agrega el nombre del estado y establecimiento, y lo devuelve en el json de la consulta
+    const proyectosModificado = await Promise.all(
+      proyectos.map(async (proyecto) => {
+        // Busca el establecimiento educativo para cada proyecto
+        const establecimientoProyecto = await EstablecimientoEducativo.findOne({
+          _id: proyecto.establecimientoEducativo,
+        });
+
+        if (!establecimientoProyecto) {
+          return {
+            ...proyecto.toObject(),
+            establecimientoEducativo: null, // O puedes manejarlo de otra manera si el establecimiento no se encuentra
+            nombreEstado: nombreEstado[proyecto.estado],
+          };
+        }
+
+        return {
+          ...proyecto.toObject(),
+          establecimientoEducativo: establecimientoProyecto,
+          nombreEstado: nombreEstado[proyecto.estado],
+        };
+      })
+    );
+
+    return res.json({ proyectos: proyectosModificado });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error de servidor" });
+  }
+};
+
+
 // export const actualizarProyectoRegional = async (req, res) => {
 //   try {
 //     const { id } = req.params;

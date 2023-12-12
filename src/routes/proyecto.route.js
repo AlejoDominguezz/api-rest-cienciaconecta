@@ -24,6 +24,7 @@ import {
   obtenerInfoResumidaProyecto,
   consultarDocuments,
   consultarEstadoEvaluacion,
+  consultarMisProyectosActivos,
 } from "../controllers/proyectos.controller.js";
 import {
   bodyInscribirProyectoValidator,
@@ -51,6 +52,12 @@ routerProyectos.get(
   requireToken,
   checkRolAuth([roles.admin, roles.responsableProyecto, roles.docente]),
   consultarMisProyectos
+);
+routerProyectos.get(
+  "/misProyectosActivos",
+  requireToken,
+  checkRolAuth([roles.admin, roles.responsableProyecto, roles.docente]),
+  consultarMisProyectosActivos
 );
 routerProyectos.get(
   "/:id",

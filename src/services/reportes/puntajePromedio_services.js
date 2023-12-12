@@ -19,7 +19,11 @@ const obtenerPromedioColorNivelCategoria = async (tipo, proyectosPorClase) => {
     const resultados = [];
     
     // Obtener todas las categorías o niveles de la base de datos
-    const todasClases = await (tipo === "categoria" ? Categoria.find() : Nivel.find()).lean().exec();
+    const todasClases = await (tipo === "categoria" ? Categoria.find({$or: [
+        { activa: true },
+        { activa: { $exists: false } } 
+    ]}) : Nivel.find()).lean().exec();
+    
     if (tipo === "nivel") {
         todasClases.sort((a, b) => parseInt(a.codigo) - parseInt(b.codigo));
     }
